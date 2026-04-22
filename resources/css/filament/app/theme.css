@@ -1,0 +1,840 @@
+@import "../../../../vendor/filament/filament/resources/css/theme.css";
+
+/* ============================================
+   DASHBOARD MODERNO - Estilo Profesional
+   ============================================ */
+
+/* =========================================
+   BOTONES CON FONDOS SÓLIDOS Y AZULES - Alta Visibilidad
+   ========================================= */
+
+/* Botones primarios - Gradiente Vibrante y Destacado */
+.fi-btn.fi-btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; /* Azul vibrante */
+    border: none !important;
+    border-radius: 0.75rem !important;
+    font-weight: 700 !important; /* Más peso para destacar */
+    font-size: 0.875rem !important;
+    padding: 0.75rem 1.5rem !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3), 0 2px 4px -1px rgba(37, 99, 235, 0.15) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    letter-spacing: 0.025em !important;
+}
+
+.fi-btn.fi-btn-primary:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4), 0 4px 6px -2px rgba(37, 99, 235, 0.2) !important;
+}
+
+.fi-btn.fi-btn-primary:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 4px -1px rgba(37, 99, 235, 0.3) !important;
+}
+
+/* Botones primarios - Modo Oscuro (Aún más vibrante para contraste) */
+.dark .fi-btn.fi-btn-primary {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important; /* Azul eléctrico */
+    color: #ffffff !important;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4), 0 2px 4px -1px rgba(59, 130, 246, 0.2) !important;
+}
+
+.dark .fi-btn.fi-btn-primary:hover {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.5), 0 4px 6px -2px rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Botones secundarios - Gris Metálico Brillante */
+.fi-btn.fi-btn-secondary {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+    border: none !important;
+    border-radius: 0.75rem !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    padding: 0.75rem 1.5rem !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 6px -1px rgba(71, 85, 105, 0.3), 0 2px 4px -1px rgba(71, 85, 105, 0.15) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.fi-btn.fi-btn-secondary:hover {
+    background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 15px -3px rgba(71, 85, 105, 0.4), 0 4px 6px -2px rgba(71, 85, 105, 0.2) !important;
+}
+
+/* Botones secundarios - Modo Oscuro */
+.dark .fi-btn.fi-btn-secondary {
+    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 6px -1px rgba(148, 163, 184, 0.3), 0 2px 4px -1px rgba(148, 163, 184, 0.15) !important;
+}
+
+.dark .fi-btn.fi-btn-secondary:hover {
+    background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%) !important;
+    color: #0f172a !important;
+    box-shadow: 0 10px 15px -3px rgba(148, 163, 184, 0.4), 0 4px 6px -2px rgba(148, 163, 184, 0.2) !important;
+}
+
+/* Botones de éxito - Verde Esmeralda Vibrante */
+.fi-btn.fi-btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    border: none !important;
+    border-radius: 0.75rem !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    padding: 0.75rem 1.5rem !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3), 0 2px 4px -1px rgba(16, 185, 129, 0.15) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.fi-btn.fi-btn-success:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4), 0 4px 6px -2px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Botones de peligro - Rojo Intenso */
+.fi-btn.fi-btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    border: none !important;
+    border-radius: 0.75rem !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    padding: 0.75rem 1.5rem !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3), 0 2px 4px -1px rgba(239, 68, 68, 0.15) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.fi-btn.fi-btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.4), 0 4px 6px -2px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Botones de info - Azul Cian Brillante */
+.fi-btn.fi-btn-info {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+    border: none !important;
+    border-radius: 0.75rem !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    padding: 0.75rem 1.5rem !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 6px -1px rgba(6, 182, 212, 0.3), 0 2px 4px -1px rgba(6, 182, 212, 0.15) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.fi-btn.fi-btn-info:hover {
+    background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 15px -3px rgba(6, 182, 212, 0.4), 0 4px 6px -2px rgba(6, 182, 212, 0.2) !important;
+}
+
+/* Botones de warning - Ámbar Solar */
+.fi-btn.fi-btn-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    border: none !important;
+    border-radius: 0.75rem !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    padding: 0.75rem 1.5rem !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.3), 0 2px 4px -1px rgba(245, 158, 11, 0.15) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.fi-btn.fi-btn-warning:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.4), 0 4px 6px -2px rgba(245, 158, 11, 0.2) !important;
+}
+
+/* =========================================
+   MEJORAS PARA ACCIONES EN TABLAS
+   ========================================= */
+
+/* Acciones en tablas - Modo Claro */
+.fi-ta .fi-ta-actions-action button,
+.fi-ta .fi-ta-actions-action .fi-btn {
+    background: linear-gradient(
+        135deg,
+        #ffffff 0%,
+        #f8fafc 50%,
+        #ffffff 100%
+    ) !important;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 0.5rem !important;
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+    padding: 0.5rem 1rem !important;
+    color: #475569 !important;
+    text-shadow: none !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.fi-ta .fi-ta-actions-action button:hover,
+.fi-ta .fi-ta-actions-action .fi-btn:hover {
+    background: linear-gradient(
+        135deg,
+        #f1f5f9 0%,
+        #e2e8f0 50%,
+        #f1f5f9 100%
+    ) !important;
+    border-color: #cbd5e1 !important;
+    color: #1e293b !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Acciones en tablas - Modo Oscuro */
+.dark .fi-ta .fi-ta-actions-action button,
+.dark .fi-ta .fi-ta-actions-action .fi-btn {
+    background: linear-gradient(
+        135deg,
+        #374151 0%,
+        #4b5563 50%,
+        #374151 100%
+    ) !important;
+    border: 2px solid #4b5563 !important;
+    color: #f3f4f6 !important;
+    text-shadow: none !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .fi-ta .fi-ta-actions-action button:hover,
+.dark .fi-ta .fi-ta-actions-action .fi-btn:hover {
+    background: linear-gradient(
+        135deg,
+        #4b5563 0%,
+        #6b7280 50%,
+        #4b5563 100%
+    ) !important;
+    border-color: #6b7280 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3),
+        0 2px 4px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Acciones primarias en tablas - Modo Claro */
+.fi-ta .fi-ta-actions-action .fi-btn-primary,
+.fi-ta .fi-ta-actions-action button[data-type="action"]:not([data-color]) {
+    background: linear-gradient(
+        135deg,
+        #d97706 0%,
+        #f59e0b 50%,
+        #d97706 100%
+    ) !important;
+    border: 2px solid #d97706 !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 1px 3px 0 rgba(217, 119, 6, 0.3),
+        0 1px 2px 0 rgba(217, 119, 6, 0.2) !important;
+}
+
+.fi-ta .fi-ta-actions-action .fi-btn-primary:hover,
+.fi-ta
+    .fi-ta-actions-action
+    button[data-type="action"]:not([data-color]):hover {
+    background: linear-gradient(
+        135deg,
+        #b45309 0%,
+        #d97706 50%,
+        #b45309 100%
+    ) !important;
+    border-color: #b45309 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.4),
+        0 2px 4px 0 rgba(217, 119, 6, 0.3) !important;
+}
+
+/* Acciones primarias en tablas - Modo Oscuro */
+.dark .fi-ta .fi-ta-actions-action .fi-btn-primary,
+.dark
+    .fi-ta
+    .fi-ta-actions-action
+    button[data-type="action"]:not([data-color]) {
+    background: linear-gradient(
+        135deg,
+        #f59e0b 0%,
+        #fbbf24 50%,
+        #f59e0b 100%
+    ) !important;
+    border: 2px solid #f59e0b !important;
+    color: #1f2937 !important;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 1px 3px 0 rgba(245, 158, 11, 0.4),
+        0 1px 2px 0 rgba(245, 158, 11, 0.3) !important;
+}
+
+.dark .fi-ta .fi-ta-actions-action .fi-btn-primary:hover,
+.dark
+    .fi-ta
+    .fi-ta-actions-action
+    button[data-type="action"]:not([data-color]):hover {
+    background: linear-gradient(
+        135deg,
+        #d97706 0%,
+        #f59e0b 50%,
+        #d97706 100%
+    ) !important;
+    border-color: #d97706 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.5),
+        0 2px 4px 0 rgba(245, 158, 11, 0.4) !important;
+}
+
+/* =========================================
+   MEJORAS PARA MODAL Y OVERLAYS
+   ========================================= */
+
+/* Botones en modals - Modo Claro */
+.fi-modal .fi-btn,
+.fi-panel .fi-btn {
+    background: linear-gradient(
+        135deg,
+        #ffffff 0%,
+        #f8fafc 50%,
+        #ffffff 100%
+    ) !important;
+    border: 2px solid #e2e8f0 !important;
+    color: #374151 !important;
+    font-weight: 600 !important;
+    text-shadow: none !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.fi-modal .fi-btn:hover,
+.fi-panel .fi-btn:hover {
+    background: linear-gradient(
+        135deg,
+        #f8fafc 0%,
+        #e2e8f0 50%,
+        #f8fafc 100%
+    ) !important;
+    border-color: #cbd5e1 !important;
+    color: #1f293b !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Botones primarios en modals - Modo Claro */
+.fi-modal .fi-btn-primary,
+.fi-panel .fi-btn-primary {
+    background: linear-gradient(
+        135deg,
+        #d97706 0%,
+        #f59e0b 50%,
+        #d97706 100%
+    ) !important;
+    border: 2px solid #d97706 !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 2px 4px 0 rgba(217, 119, 6, 0.3),
+        0 1px 2px 0 rgba(217, 119, 6, 0.2) !important;
+}
+
+.fi-modal .fi-btn-primary:hover,
+.fi-panel .fi-btn-primary:hover {
+    background: linear-gradient(
+        135deg,
+        #b45309 0%,
+        #d97706 50%,
+        #b45309 100%
+    ) !important;
+    border-color: #b45309 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.4),
+        0 2px 4px 0 rgba(217, 119, 6, 0.3) !important;
+}
+
+/* Botones en modals - Modo Oscuro */
+.dark .fi-modal .fi-btn,
+.dark .fi-panel .fi-btn {
+    background: linear-gradient(
+        135deg,
+        #374151 0%,
+        #4b5563 50%,
+        #374151 100%
+    ) !important;
+    border: 2px solid #4b5563 !important;
+    color: #f3f4f6 !important;
+    text-shadow: none !important;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .fi-modal .fi-btn:hover,
+.dark .fi-panel .fi-btn:hover {
+    background: linear-gradient(
+        135deg,
+        #4b5563 0%,
+        #6b7280 50%,
+        #4b5563 100%
+    ) !important;
+    border-color: #6b7280 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3),
+        0 2px 4px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Botones primarios en modals - Modo Oscuro */
+.dark .fi-modal .fi-btn-primary,
+.dark .fi-panel .fi-btn-primary {
+    background: linear-gradient(
+        135deg,
+        #f59e0b 0%,
+        #fbbf24 50%,
+        #f59e0b 100%
+    ) !important;
+    border: 2px solid #f59e0b !important;
+    color: #1f2937 !important;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 2px 4px 0 rgba(245, 158, 11, 0.4),
+        0 1px 2px 0 rgba(245, 158, 11, 0.3) !important;
+}
+
+.dark .fi-modal .fi-btn-primary:hover,
+.dark .fi-panel .fi-btn-primary:hover {
+    background: linear-gradient(
+        135deg,
+        #d97706 0%,
+        #f59e0b 50%,
+        #d97706 100%
+    ) !important;
+    border-color: #d97706 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.5),
+        0 2px 4px 0 rgba(245, 158, 11, 0.4) !important;
+}
+
+/* =========================================
+   EFECTOS DE BRILLO PARA TODOS LOS BOTONES
+   ========================================= */
+
+/* Efecto de brillo - shimmer effect */
+.fi-btn {
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.fi-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    transition: left 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.fi-btn:hover::before {
+    left: 100%;
+}
+
+/* Efecto de brillo para modo oscuro */
+.dark .fi-btn::before {
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+}
+
+/* =========================================
+   FONDO DEL DASHBOARD MODERNO
+   ============================================ */
+
+/* Fondo del dashboard - MODO CLARO */
+body {
+    background: #f1f5f9;
+}
+
+/* Fondo del dashboard - MODO OSCURO */
+.dark body {
+    background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+    background-attachment: fixed;
+}
+
+/* Contenedor principal del dashboard */
+.fi-dashboard-page {
+    background: transparent;
+}
+
+/* Estilo base para todos los widgets */
+.fi-widget {
+    border-radius: 1.25rem !important;
+    border: none !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+        0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+.fi-widget:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25) !important;
+}
+
+.dark .fi-widget {
+    background: rgba(30, 41, 59, 0.95) !important;
+    border: 1px solid rgba(148, 163, 184, 0.1) !important;
+}
+
+/* Widgets de estadísticas con gradientes */
+.fi-wi-stats-overview-stat {
+    border-radius: 1.25rem !important;
+    border: none !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+/* ========================================
+   MODO CLARO - Gradientes vivos según contexto
+   ======================================== */
+
+/* Widget 1: Ventas Hoy - Azul (neutro) */
+.fi-wi-stats-overview-stat:nth-child(1) {
+    background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%) !important;
+}
+
+/* Widget 2: Esta Semana - Rojizo (puede ser alerta) */
+.fi-wi-stats-overview-stat:nth-child(2) {
+    background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%) !important;
+}
+
+/* Widget 3: Este Mes - Verde (positivo) */
+.fi-wi-stats-overview-stat:nth-child(3) {
+    background: linear-gradient(135deg, #6ee7b7 0%, #34d399 100%) !important;
+}
+
+/* Widget 4: Clientes VIP - Verde agua (positivo) */
+.fi-wi-stats-overview-stat:nth-child(4) {
+    background: linear-gradient(135deg, #5eead4 0%, #2dd4bf 100%) !important;
+}
+
+/* Widget 5: Valor Inventario - Verde (positivo) */
+.fi-wi-stats-overview-stat:nth-child(5) {
+    background: linear-gradient(135deg, #86efac 0%, #4ade80 100%) !important;
+}
+
+/* Widget 6: Productos Activos - Verde (positivo) */
+.fi-wi-stats-overview-stat:nth-child(6) {
+    background: linear-gradient(135deg, #6ee7b7 0%, #34d399 100%) !important;
+}
+
+/* Widget 7: Movimientos Hoy - Azul (neutro) */
+.fi-wi-stats-overview-stat:nth-child(7) {
+    background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 100%) !important;
+}
+
+/* Widget 8: Alertas de Stock - Rojizo (alerta crítica) */
+.fi-wi-stats-overview-stat:nth-child(8) {
+    background: linear-gradient(135deg, #fca5a5 0%, #ef4444 100%) !important;
+}
+
+/* Texto OSCURO en modo claro */
+.fi-wi-stats-overview-stat * {
+    color: #1e293b !important;
+}
+
+/* Centrar contenido de los widgets de estadísticas */
+.fi-wi-stats-overview-stat {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+.fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-value {
+    text-align: center !important;
+    width: 100% !important;
+}
+
+.fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-label {
+    text-align: center !important;
+    width: 100% !important;
+}
+
+.fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-description {
+    text-align: center !important;
+    width: 100% !important;
+}
+
+/* ========================================
+   MODO OSCURO - Gradientes oscuros con texto claro
+   ======================================== */
+.dark .fi-wi-stats-overview-stat:nth-child(4n + 1) {
+    background: linear-gradient(135deg, #312e81 0%, #4c1d95 100%) !important;
+}
+
+.dark .fi-wi-stats-overview-stat:nth-child(4n + 2) {
+    background: linear-gradient(135deg, #831843 0%, #881337 100%) !important;
+}
+
+.dark .fi-wi-stats-overview-stat:nth-child(4n + 3) {
+    background: linear-gradient(135deg, #075985 0%, #164e63 100%) !important;
+}
+
+.dark .fi-wi-stats-overview-stat:nth-child(4n + 4) {
+    background: linear-gradient(135deg, #065f46 0%, #115e59 100%) !important;
+}
+
+/* Texto CLARO en modo oscuro */
+.dark .fi-wi-stats-overview-stat * {
+    color: #f1f5f9 !important;
+}
+
+/* Números más grandes y bold */
+.fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-value {
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos mejorados para botón de login */
+.fi-simple-page form button[type="submit"] {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 0.5rem !important;
+    border: none !important;
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.3),
+        0 2px 4px -2px rgba(245, 158, 11, 0.3) !important;
+    transition: all 0.2s ease !important;
+}
+
+.fi-simple-page form button[type="submit"]:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+    box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.4),
+        0 4px 6px -4px rgba(245, 158, 11, 0.4) !important;
+    transform: translateY(-2px) !important;
+}
+
+.fi-simple-page form button[type="submit"]:active {
+    transform: translateY(0) !important;
+}
+
+/* Widgets y secciones - Sin bordes laterales */
+.fi-section {
+    border-radius: 1.25rem !important;
+    overflow: hidden !important;
+    border: none !important;
+}
+
+/* Gráficos con mejor apariencia */
+.fi-wi-chart {
+    padding: 1.5rem !important;
+}
+
+/* Tablas modernas */
+.fi-ta {
+    border-radius: 1rem !important;
+    overflow: hidden !important;
+}
+
+.fi-ta-row:hover {
+    background: rgba(102, 126, 234, 0.05) !important;
+    transform: scale(1.01) !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Badge mejorados */
+.fi-badge {
+    padding: 0.375rem 0.875rem !important;
+    border-radius: 9999px !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+/* Espaciado entre widgets */
+.fi-dashboard-page .fi-wi {
+    gap: 1.5rem !important;
+}
+
+/* Animación suave para elementos cargando */
+@keyframes pulse-soft {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.animate-pulse {
+    animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
+
+/* Mejora visual para iconos */
+.fi-icon {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Forzar widgets con col-span específicos a ancho completo */
+.fi-wi > div[style*="--col-span-lg: span 4"] {
+    grid-column: 1 / -1 !important;
+}
+
+/* Alternativa: sobrescribir todos los col-span-lg en el dashboard */
+@media (min-width: 1024px) {
+    .fi-dashboard-page .fi-wi > div {
+        grid-column: var(--col-span-lg, var(--col-span-default)) !important;
+    }
+
+    /* Forzar full width para widgets específicos usando atributos de estilo */
+    .fi-dashboard-page .fi-wi > div[style*="span 4 / span 4"] {
+        grid-column: 1 / -1 !important;
+    }
+}
+
+/* Modo oscuro - ajustes adicionales */
+.dark .fi-section {
+    background: rgba(30, 41, 59, 0.95) !important;
+}
+
+/* Topbar con glassmorphism */
+.fi-topbar {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.dark .fi-topbar {
+    background: rgba(30, 41, 59, 0.95) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* =========================================
+   BOTONES PERSONALIZADOS FI-COLOR-CUSTOM - Solución para botones invisibles
+   ========================================= */
+
+/* Botones con fi-color-success - Verde vibrante */
+.fi-btn.fi-color-success,
+.fi-btn.fi-color-custom.fi-color-success {
+    background: #059669 !important; /* Verde esmeralda oscuro */
+    border: 2px solid #059669 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3) !important;
+    transition: all 0.3s ease !important;
+}
+
+.fi-btn.fi-color-success:hover,
+.fi-btn.fi-color-custom.fi-color-success:hover {
+    background: #047857 !important; /* Verde más oscuro al hover */
+    border-color: #047857 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4) !important;
+}
+
+/* Botones con fi-color-primary - Azul vibrante */
+.fi-btn.fi-color-primary,
+.fi-btn.fi-color-custom.fi-color-primary {
+    background: #3b82f6 !important; /* Azul vibrante */
+    border: 2px solid #3b82f6 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+    transition: all 0.3s ease !important;
+}
+
+.fi-btn.fi-color-primary:hover,
+.fi-btn.fi-color-custom.fi-color-primary:hover {
+    background: #2563eb !important; /* Azul más oscuro al hover */
+    border-color: #2563eb !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Forzar override de estilos inline para botones personalizados */
+.fi-btn.fi-color-custom[style] {
+    background: #059669 !important; /* Override estilos inline */
+}
+
+.fi-btn.fi-color-custom.fi-color-success[style] {
+    background: #059669 !important;
+}
+
+.fi-btn.fi-color-custom.fi-color-primary[style] {
+    background: #3b82f6 !important;
+}
+
+
+/* =========================================
+   MODO OSCURO - Botones fi-color-custom
+   ========================================= */
+
+.dark .fi-btn.fi-color-success,
+.dark .fi-btn.fi-color-custom.fi-color-success {
+    background: #10b981 !important; /* Verde más brillante en modo oscuro */
+    border-color: #10b981 !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4) !important;
+}
+
+.dark .fi-btn.fi-color-success:hover,
+.dark .fi-btn.fi-color-custom.fi-color-success:hover {
+    background: #34d399 !important; /* Verde aún más brillante */
+    border-color: #34d399 !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5) !important;
+}
+
+.dark .fi-btn.fi-color-primary,
+.dark .fi-btn.fi-color-custom.fi-color-primary {
+    background: #60a5fa !important; /* Azul más brillante en modo oscuro */
+    border-color: #60a5fa !important;
+    box-shadow: 0 2px 8px rgba(96, 165, 250, 0.4) !important;
+}
+
+.dark .fi-btn.fi-color-primary:hover,
+.dark .fi-btn.fi-color-custom.fi-color-primary:hover {
+    background: #93c5fd !important; /* Azul aún más brillante */
+    border-color: #93c5fd !important;
+    color: #1e293b !important; /* Texto oscuro para contraste */
+    box-shadow: 0 4px 12px rgba(96, 165, 250, 0.5) !important;
+}
+
+/* Forzar override en modo oscuro también */
+.dark .fi-btn.fi-color-custom[style] {
+    background: #10b981 !important;
+}
+
+.dark .fi-btn.fi-color-custom.fi-color-success[style] {
+    background: #10b981 !important;
+}
+
+.dark .fi-btn.fi-color-custom.fi-color-primary[style] {
+    background: #60a5fa !important;
+}
+

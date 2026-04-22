@@ -1,0 +1,7 @@
+{
+    "Inventory": true,
+    "Clients": true,
+    "POS": true,
+    "Reporting": true,
+    "ECommerce": false
+}

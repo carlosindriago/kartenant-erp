@@ -1,0 +1,100 @@
+services:
+    # PHP-FPM (Laravel)
+    laravel.test:
+        build:
+            context: ./docker/8.3
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: '${WWWGROUP}'
+        image: sail-8.3/app
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        ports:
+            - '1025:1025'
+            - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+            XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
+            XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
+            IGNITION_LOCAL_SITES_PATH: '${PWD}'
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        depends_on:
+            - pgsql
+            - redis
+
+    # Nginx
+    nginx:
+        image: nginx:alpine
+        ports:
+            - '${APP_PORT:-80}:80'
+            - '443:443'
+        volumes:
+            - '.:/var/www/html'
+            - './docker/nginx/ssl:/etc/nginx/ssl:ro'
+            - './docker/nginx/sites:/etc/nginx/sites-available:ro'
+            - './docker/nginx/default.conf:/etc/nginx/conf.d/default.conf'
+        networks:
+            - sail
+        depends_on:
+            - laravel.test
+
+    # PostgreSQL
+    pgsql:
+        image: 'postgres:15'
+        ports:
+            - '${FORWARD_DB_PORT:-5433}:5432'
+        environment:
+            PGPASSWORD: '${DB_PASSWORD:-password}'
+            POSTGRES_DB: '${DB_DATABASE}'
+            POSTGRES_USER: '${DB_USERNAME}'
+            POSTGRES_PASSWORD: '${DB_PASSWORD:-password}'
+        volumes:
+            - 'sail-pgsql:/var/lib/postgresql/data'
+        networks:
+            - sail
+        healthcheck:
+            test: ["CMD", "pg_isready", "-q", "-d", "${DB_DATABASE}", "-U", "${DB_USERNAME}"]
+            retries: 3
+            timeout: 5s
+
+    # Redis
+    redis:
+        image: 'redis:alpine'
+        ports:
+            - '${FORWARD_REDIS_PORT:-6379}:6379'
+        volumes:
+            - 'sail-redis:/data'
+        networks:
+            - sail
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            retries: 3
+            timeout: 5s
+
+    # Selenium Chrome for Dusk tests
+    selenium:
+        image: 'selenium/standalone-chrome'
+        ports:
+            - '${SELENIUM_PORT:-4444}:4444'
+        networks:
+            - sail
+        environment:
+            - SELENIUM_DRIVER_PATH=/wd/hub
+        links:
+            - nginx:emporiodigital.test
+            - nginx:fruteria.emporiodigital.test
+            - nginx:laravel.test
+
+networks:
+    sail:
+        driver: bridge
+
+volumes:
+    sail-pgsql:
+        driver: local
+    sail-redis:
+        driver: local

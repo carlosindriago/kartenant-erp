@@ -1,0 +1,401 @@
+/* =========================================
+   TEMA PROFESIONAL PARA EMPORIO DIGITAL
+   ========================================= */
+
+/* Paleta de Colores Profesional */
+:root {
+    --primary-50: #fef3c7;
+    --primary-100: #fde68a;
+    --primary-500: #d97706;
+    --primary-600: #b45309;
+    --primary-700: #92400e;
+
+    --success-50: #ecfdf5;
+    --success-100: #d1fae5;
+    --success-500: #10b981;
+    --success-600: #059669;
+
+    --info-50: #eff6ff;
+    --info-100: #dbeafe;
+    --info-500: #3b82f6;
+    --info-600: #2563eb;
+
+    --warning-50: #fffbeb;
+    --warning-100: #fef3c7;
+    --warning-500: #f59e0b;
+    --warning-600: #d97706;
+
+    --danger-50: #fef2f2;
+    --danger-100: #fee2e2;
+    --danger-500: #ef4444;
+    --danger-600: #dc2626;
+}
+
+/* =========================================
+   WIDGETS PROFESIONALES
+   ========================================= */
+
+/* Estilo base para widgets */
+.fi-widget {
+    border-radius: 1rem !important;
+    border: 1px solid rgba(229, 231, 235, 0.8) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06),
+        0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+/* Hover effect para widgets */
+.fi-widget:hover {
+    transform: translateY(-2px) scale(1.01) !important;
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04),
+        0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+    border-color: var(--primary-300) !important;
+}
+
+/* Cards de estadísticas */
+.fi-wi-stats-overview-stat {
+    border-radius: 1rem !important;
+    border: 1px solid rgba(229, 231, 235, 0.6) !important;
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.98) 0%,
+        rgba(249, 250, 251, 0.95) 100%) !important;
+    overflow: hidden !important;
+    position: relative !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.fi-wi-stats-overview-stat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-400), var(--primary-600), var(--primary-400));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.fi-wi-stats-overview-stat:hover::before {
+    transform: scaleX(1);
+}
+
+.fi-wi-stats-overview-stat:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* =========================================
+   DARK MODE MEJORAS
+   ========================================= */
+
+.dark .fi-widget {
+    background: rgba(30, 41, 59, 0.95) !important;
+    border-color: rgba(148, 163, 184, 0.2) !important;
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.3),
+        0 2px 4px -1px rgba(0, 0, 0, 0.2),
+        0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark .fi-wi-stats-overview-stat {
+    background: linear-gradient(135deg,
+        rgba(30, 41, 59, 0.98) 0%,
+        rgba(15, 23, 42, 0.95) 100%) !important;
+    border-color: rgba(148, 163, 184, 0.3) !important;
+}
+
+.dark .fi-widget:hover {
+    border-color: var(--primary-600) !important;
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.4),
+        0 10px 10px -5px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* =========================================
+   NAVIGACIÓN MEJORADA
+   ========================================= */
+
+/* Sidebar items */
+.fi-sidebar-item {
+    border-radius: 0.5rem !important;
+    margin: 0.25rem 0.5rem !important;
+    transition: all 0.2s ease !important;
+}
+
+.fi-sidebar-item:hover {
+    background: linear-gradient(135deg, var(--primary-50), var(--primary-100)) !important;
+    transform: translateX(4px) !important;
+}
+
+.dark .fi-sidebar-item:hover {
+    background: linear-gradient(135deg, var(--primary-900), var(--primary-800)) !important;
+}
+
+/* Navigation groups */
+.fi-nav-group {
+    border-bottom: 1px solid rgba(229, 231, 235, 0.5) !important;
+    margin-bottom: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}
+
+.dark .fi-nav-group {
+    border-bottom-color: rgba(75, 85, 99, 0.5) !important;
+}
+
+/* =========================================
+   BOTONES Y FORMULARIOS
+   ========================================= */
+
+/* Primary buttons */
+.fi-btn-primary {
+    background: linear-gradient(135deg, var(--primary-500), var(--primary-600)) !important;
+    border: none !important;
+    border-radius: 0.5rem !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.fi-btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.fi-btn-primary:hover::before {
+    left: 100%;
+}
+
+.fi-btn-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 20px -5px rgba(217, 119, 6, 0.4) !important;
+}
+
+/* =========================================
+   TABLAS Y DATOS
+   ========================================= */
+
+/* Table styling */
+.fi-table {
+    border-radius: 0.75rem !important;
+    overflow: hidden !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+.fi-table thead {
+    background: linear-gradient(135deg, var(--gray-50), var(--gray-100)) !important;
+}
+
+.dark .fi-table thead {
+    background: linear-gradient(135deg, var(--gray-800), var(--gray-900)) !important;
+}
+
+.fi-table tbody tr {
+    transition: all 0.2s ease !important;
+}
+
+.fi-table tbody tr:hover {
+    background: var(--primary-50) !important;
+    transform: scale(1.01) !important;
+}
+
+.dark .fi-table tbody tr:hover {
+    background: rgba(217, 119, 6, 0.1) !important;
+}
+
+/* =========================================
+   LOADERS Y ESTADOS DE CARGA
+   ========================================= */
+
+/* Loading spinner */
+.fi-loading-spinner {
+    border: 3px solid var(--gray-200) !important;
+    border-top: 3px solid var(--primary-500) !important;
+    border-radius: 50% !important;
+    width: 40px !important;
+    height: 40px !important;
+    animation: spin 1s linear infinite !important;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Skeleton loading */
+.fi-skeleton {
+    background: linear-gradient(90deg,
+        var(--gray-200) 25%,
+        var(--gray-100) 50%,
+        var(--gray-200) 75%) !important;
+    background-size: 200% 100% !important;
+    animation: loading 1.5s infinite !important;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* =========================================
+   EFECTOS Y ANIMACIONES
+   ========================================= */
+
+/* Fade in animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fi-widget {
+    animation: fadeIn 0.5s ease-out !important;
+}
+
+/* Stagger animation for dashboard items */
+.fi-dashboard-page .fi-wi:nth-child(1) { animation-delay: 0.1s; }
+.fi-dashboard-page .fi-wi:nth-child(2) { animation-delay: 0.2s; }
+.fi-dashboard-page .fi-wi:nth-child(3) { animation-delay: 0.3s; }
+.fi-dashboard-page .fi-wi:nth-child(4) { animation-delay: 0.4s; }
+
+/* =========================================
+   RESPONSIVE DESIGN
+   ========================================= */
+
+/* Mobile improvements */
+@media (max-width: 768px) {
+    .fi-widget {
+        margin-bottom: 1rem !important;
+    }
+
+    .fi-dashboard-page .fi-wi {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    .fi-sidebar {
+        transform: translateX(-100%) !important;
+        transition: transform 0.3s ease-in-out !important;
+    }
+
+    .fi-sidebar.open {
+        transform: translateX(0) !important;
+    }
+
+    .fi-wi-stats-overview-stat {
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Adjust grid for mobile */
+    .grid.sm\\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+    }
+
+    .grid.lg\\:grid-cols-3 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .grid.lg\\:grid-cols-3 {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* =========================================
+   ACCESSIBILITY MEJORAS
+   ========================================= */
+
+/* Focus states */
+.fi-btn:focus,
+.fi-input:focus,
+.fi-select:focus {
+    outline: 2px solid var(--primary-500) !important;
+    outline-offset: 2px !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .fi-widget {
+        border: 2px solid var(--gray-600) !important;
+    }
+
+    .fi-btn-primary {
+        border: 2px solid var(--primary-700) !important;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .fi-widget,
+    .fi-sidebar-item,
+    .fi-btn-primary {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* =========================================
+   UTILIDADES
+   ========================================= */
+
+/* Glass morphism utility */
+.glass {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.dark .glass {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Gradient text utility */
+.gradient-text {
+    background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--gray-100);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-500);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-600);
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: var(--gray-800);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: var(--primary-600);
+}

@@ -1,0 +1,1 @@
+@livewire('critical-alerts-notification')

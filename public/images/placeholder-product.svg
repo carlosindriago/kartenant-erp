@@ -1,0 +1,33 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo gris claro -->
+  <rect width="400" height="400" fill="#f3f4f6"/>
+  
+  <!-- Icono de caja/producto -->
+  <g transform="translate(100, 100)">
+    <!-- Caja -->
+    <path d="M 100 50 L 200 100 L 200 200 L 100 250 L 0 200 L 0 100 Z" 
+          fill="#d1d5db" 
+          stroke="#9ca3af" 
+          stroke-width="3"/>
+    
+    <!-- Tapa de la caja -->
+    <path d="M 0 100 L 100 50 L 200 100 L 100 150 Z" 
+          fill="#e5e7eb" 
+          stroke="#9ca3af" 
+          stroke-width="3"/>
+    
+    <!-- Línea central -->
+    <line x1="100" y1="50" x2="100" y2="250" 
+          stroke="#9ca3af" 
+          stroke-width="3"/>
+  </g>
+  
+  <!-- Texto -->
+  <text x="200" y="330" 
+        font-family="Arial, sans-serif" 
+        font-size="20" 
+        fill="#6b7280" 
+        text-anchor="middle">
+    Sin imagen
+  </text>
+</svg>

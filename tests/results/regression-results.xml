@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Tests\Browser\AdminFullRegressionTest" file="Admin Full Regression (Tests\Browser\AdminFullRegression)" tests="1" assertions="2" errors="1" failures="0" skipped="0" time="5.146402">
+    <testcase name="Complete admin panel regression" file="Admin Full Regression (Tests\Browser\AdminFullRegression)::Complete admin panel regression" class="Tests\Browser\AdminFullRegressionTest" classname="Tests.Browser.AdminFullRegressionTest" assertions="2" time="5.146402">
+      <error type="ErrorException">Complete admin panel regressionErrorException: file_put_contents(/var/www/html/tests/Browser/screenshots/failure-Tests_Browser_AdminFullRegressionTest_test_complete_admin_panel_regression-0.png): Failed to open stream: Permission denied
+at vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php:258
+at vendor/php-webdriver/webdriver/lib/Support/ScreenshotHelper.php:70
+at vendor/php-webdriver/webdriver/lib/Support/ScreenshotHelper.php:60
+at vendor/php-webdriver/webdriver/lib/Support/ScreenshotHelper.php:33
+at vendor/php-webdriver/webdriver/lib/Remote/RemoteWebDriver.php:381
+at vendor/laravel/dusk/src/Browser.php:426
+at vendor/laravel/dusk/src/Concerns/ProvidesBrowser.php:150
+at vendor/laravel/framework/src/Illuminate/Collections/Traits/EnumeratesValues.php:271
+at vendor/laravel/dusk/src/Concerns/ProvidesBrowser.php:143
+at vendor/laravel/dusk/src/Concerns/ProvidesBrowser.php:72
+at tests/Browser/AdminFullRegressionTest.php:20</error>
+      <system-out>
+🔐 Testing SuperAdmin Login...
+</system-out>
+    </testcase>
+  </testsuite>
+</testsuites>

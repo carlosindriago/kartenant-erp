@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CRÍTICO: Notificaciones siempre encima de modales */
+/* Modales de Filament usan z-40 (--z-modal: 40) */
+/* Forzamos notificaciones a z-index máximo */
+
+.fi-notifications,
+.fi-no,
+[data-filament-notifications-container] {
+    z-index: 99999 !important;
+    position: fixed !important;
+}
+
+/* Notificación individual con todos sus wrappers */
+.fi-no-notification {
+    z-index: 99999 !important;
+}
+
+/* Manager de notificaciones de Filament */
+[x-data*="notifications"],
+div[class*="notifications"] {
+    z-index: 99999 !important;
+}
+
+/* Override adicional para garantizar visibilidad */
+body > div[class*="fi-notifications"],
+body > div[x-data*="notifications"] {
+    z-index: 99999 !important;
+    position: fixed !important;
+}

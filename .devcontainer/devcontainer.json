@@ -1,0 +1,23 @@
+{
+  "name": "Laravel Sail Dev Environment",
+  
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/var/www/html",
+
+  "forwardPorts": [5432, 6379, 5173],
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bmewburn.vscode-intelephense-client",
+        "onecentlin.laravel-blade",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+
+  "remoteUser": "sail",
+  "postCreateCommand": "composer install && npm install"
+}
