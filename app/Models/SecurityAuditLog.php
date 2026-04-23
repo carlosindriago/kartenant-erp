@@ -2,11 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Comprehensive Security Audit Logging Model
@@ -88,38 +87,61 @@ class SecurityAuditLog extends Model
      * Operation Categories for classification
      */
     const CATEGORY_TENANT_MANAGEMENT = 'tenant_management';
+
     const CATEGORY_USER_AUTHENTICATION = 'user_authentication';
+
     const CATEGORY_DATA_ACCESS = 'data_access';
+
     const CATEGORY_SYSTEM_ADMINISTRATION = 'system_administration';
+
     const CATEGORY_SECURITY_EVENT = 'security_event';
+
     const CATEGORY_COMPLIANCE = 'compliance';
+
     const CATEGORY_EMERGENCY = 'emergency';
 
     /**
      * Operation Types for detailed tracking
      */
     const OPERATION_TENANT_CREATE = 'tenant_create';
+
     const OPERATION_TENANT_UPDATE = 'tenant_update';
+
     const OPERATION_TENANT_DEACTIVATE = 'tenant_deactivate';
+
     const OPERATION_TENANT_ARCHIVE = 'tenant_archive';
+
     const OPERATION_TENANT_DELETE = 'tenant_delete';
+
     const OPERATION_LOGIN_SUCCESS = 'login_success';
+
     const OPERATION_LOGIN_FAILURE = 'login_failure';
+
     const OPERATION_MFA_VERIFICATION = 'mfa_verification';
+
     const OPERATION_SUDO_MODE = 'sudo_mode';
+
     const OPERATION_OTP_GENERATION = 'otp_generation';
+
     const OPERATION_BACKUP_CREATE = 'backup_create';
+
     const OPERATION_BACKUP_RESTORE = 'backup_restore';
+
     const OPERATION_DATA_EXPORT = 'data_export';
+
     const OPERATION_SECURITY_BREACH = 'security_breach';
+
     const OPERATION_ANOMALY_DETECTED = 'anomaly_detected';
 
     /**
      * Security Tiers
      */
     const TIER_1 = 'tier_1'; // Standard operations
+
     const TIER_2 = 'tier_2'; // Elevated risk
+
     const TIER_3 = 'tier_3'; // High risk
+
     const TIER_4 = 'tier_4'; // Critical risk
 
     /**
@@ -236,6 +258,7 @@ class SecurityAuditLog extends Model
     private static function getSystemLoad(): float
     {
         $load = sys_getloadavg();
+
         return $load[0] ?? 0.0;
     }
 
@@ -264,10 +287,18 @@ class SecurityAuditLog extends Model
         $score += $tierScores[$data['security_tier']] ?? 10;
 
         // Risk factors
-        if (self::isNewIP($data['ip_address'] ?? '')) $score += 15;
-        if (self::isUnusualTime()) $score += 10;
-        if (self::isHighRiskLocation($data['ip_address'] ?? '')) $score += 20;
-        if (self::hasRecentFailures($data['user_id'] ?? null)) $score += 25;
+        if (self::isNewIP($data['ip_address'] ?? '')) {
+            $score += 15;
+        }
+        if (self::isUnusualTime()) {
+            $score += 10;
+        }
+        if (self::isHighRiskLocation($data['ip_address'] ?? '')) {
+            $score += 20;
+        }
+        if (self::hasRecentFailures($data['user_id'] ?? null)) {
+            $score += 25;
+        }
 
         return min(100, $score);
     }
@@ -286,7 +317,7 @@ class SecurityAuditLog extends Model
             'risk_score' => $data['risk_score'] ?? 0,
         ];
 
-        return hash('sha256', json_encode($signatureData) . config('app.audit_salt'));
+        return hash('sha256', json_encode($signatureData).config('app.audit_salt'));
     }
 
     /**
@@ -301,7 +332,7 @@ class SecurityAuditLog extends Model
         // - Compliance platforms
 
         // Generate external audit ID
-        $externalId = 'AUD_' . $auditLog->id . '_' . now()->timestamp;
+        $externalId = 'AUD_'.$auditLog->id.'_'.now()->timestamp;
         $auditLog->update(['external_audit_id' => $externalId]);
     }
 
@@ -333,12 +364,12 @@ class SecurityAuditLog extends Model
         }
 
         // Update audit log with anomalies
-        if (!empty($anomalies)) {
+        if (! empty($anomalies)) {
             $auditLog->update([
                 'metadata' => array_merge($auditLog->metadata ?? [], [
                     'anomalies' => $anomalies,
                     'anomaly_detected_at' => now()->toISOString(),
-                ])
+                ]),
             ]);
 
             // Trigger security alerts
@@ -381,7 +412,7 @@ class SecurityAuditLog extends Model
             return 'high';
         }
 
-        if (!empty($anomalies) || $riskScore >= 40) {
+        if (! empty($anomalies) || $riskScore >= 40) {
             return 'medium';
         }
 
@@ -389,24 +420,95 @@ class SecurityAuditLog extends Model
     }
 
     // Helper methods for IP and location checks
-    private static function getIPCountry(string $ip): string { return 'Unknown'; }
-    private static function getIPRegion(string $ip): string { return 'Unknown'; }
-    private static function getIPCity(string $ip): string { return 'Unknown'; }
-    private static function getIPLatitude(string $ip): ?float { return null; }
-    private static function getIPLongitude(string $ip): ?float { return null; }
-    private static function getIPSProvider(string $ip): string { return 'Unknown'; }
-    private static function isProxyIP(string $ip): bool { return false; }
-    private static function isTorIP(string $ip): bool { return false; }
-    private static function getIPThreatLevel(string $ip): string { return 'low'; }
-    private static function getConcurrentSessions(): int { return 1; }
-    private static function isNewIP(string $ip): bool { return false; }
-    private static function isUnusualTime(): bool { return false; }
-    private static function isHighRiskLocation(string $ip): bool { return false; }
-    private static function hasRecentFailures(?int $userId): bool { return false; }
-    private static function isRapidOperation(self $auditLog): bool { return false; }
-    private static function isUnusualLocation(self $auditLog): bool { return false; }
-    private static function isImpossibleTravel(self $auditLog): bool { return false; }
-    private static function isElevatedFailureRate(self $auditLog): bool { return false; }
+    private static function getIPCountry(string $ip): string
+    {
+        return 'Unknown';
+    }
+
+    private static function getIPRegion(string $ip): string
+    {
+        return 'Unknown';
+    }
+
+    private static function getIPCity(string $ip): string
+    {
+        return 'Unknown';
+    }
+
+    private static function getIPLatitude(string $ip): ?float
+    {
+        return null;
+    }
+
+    private static function getIPLongitude(string $ip): ?float
+    {
+        return null;
+    }
+
+    private static function getIPSProvider(string $ip): string
+    {
+        return 'Unknown';
+    }
+
+    private static function isProxyIP(string $ip): bool
+    {
+        return false;
+    }
+
+    private static function isTorIP(string $ip): bool
+    {
+        return false;
+    }
+
+    private static function getIPThreatLevel(string $ip): string
+    {
+        return 'low';
+    }
+
+    private static function getConcurrentSessions(): int
+    {
+        return 1;
+    }
+
+    private static function isNewIP(string $ip): bool
+    {
+        return false;
+    }
+
+    private static function isUnusualTime(): bool
+    {
+        return false;
+    }
+
+    private static function isHighRiskLocation(string $ip): bool
+    {
+        return false;
+    }
+
+    private static function hasRecentFailures(?int $userId): bool
+    {
+        return false;
+    }
+
+    private static function isRapidOperation(self $auditLog): bool
+    {
+        return false;
+    }
+
+    private static function isUnusualLocation(self $auditLog): bool
+    {
+        return false;
+    }
+
+    private static function isImpossibleTravel(self $auditLog): bool
+    {
+        return false;
+    }
+
+    private static function isElevatedFailureRate(self $auditLog): bool
+    {
+        return false;
+    }
 
     /**
      * Query scopes for filtering audit logs
@@ -461,7 +563,7 @@ class SecurityAuditLog extends Model
      */
     public function getCategoryLabelAttribute(): string
     {
-        return match($this->operation_category) {
+        return match ($this->operation_category) {
             self::CATEGORY_TENANT_MANAGEMENT => 'Gestión de Tenants',
             self::CATEGORY_USER_AUTHENTICATION => 'Autenticación de Usuarios',
             self::CATEGORY_DATA_ACCESS => 'Acceso a Datos',
@@ -478,7 +580,7 @@ class SecurityAuditLog extends Model
      */
     public function getOperationLabelAttribute(): string
     {
-        return match($this->operation_type) {
+        return match ($this->operation_type) {
             self::OPERATION_TENANT_CREATE => 'Creación de Tenant',
             self::OPERATION_TENANT_UPDATE => 'Actualización de Tenant',
             self::OPERATION_TENANT_DEACTIVATE => 'Desactivación de Tenant',
@@ -503,7 +605,7 @@ class SecurityAuditLog extends Model
      */
     public function getRiskColorAttribute(): string
     {
-        return match(true) {
+        return match (true) {
             $this->risk_score >= 80 => 'danger',
             $this->risk_score >= 60 => 'warning',
             $this->risk_score >= 40 => 'info',
@@ -516,7 +618,7 @@ class SecurityAuditLog extends Model
      */
     public function verifyIntegrity(): bool
     {
-        if (!$this->hash_signature) {
+        if (! $this->hash_signature) {
             return false;
         }
 
@@ -529,7 +631,7 @@ class SecurityAuditLog extends Model
             'risk_score' => $this->risk_score,
         ];
 
-        $expectedHash = hash('sha256', json_encode($signatureData) . config('app.audit_salt'));
+        $expectedHash = hash('sha256', json_encode($signatureData).config('app.audit_salt'));
 
         return hash_equals($this->hash_signature, $expectedHash);
     }

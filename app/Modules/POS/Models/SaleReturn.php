@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,18 +12,18 @@
 namespace App\Modules\POS\Models;
 
 use App\Models\Concerns\HasCrossDatabaseUserRelations;
+use App\Models\User;
+use App\Traits\VerifiablePDF;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\User;
-use App\Traits\VerifiablePDF;
 
 class SaleReturn extends Model
 {
+    use HasCrossDatabaseUserRelations;
     use HasFactory;
     use VerifiablePDF;
-    use HasCrossDatabaseUserRelations;
 
     /**
      * La tabla sale_returns está en la base de datos del tenant
@@ -89,6 +89,7 @@ class SaleReturn extends Model
     {
         $date = now()->format('Ymd');
         $count = static::whereDate('created_at', today())->count() + 1;
+
         return sprintf('NCR-%s-%04d', $date, $count);
     }
 
@@ -107,7 +108,7 @@ class SaleReturn extends Model
     {
         return $query->where('status', 'pending');
     }
-    
+
     /**
      * Métodos requeridos por VerifiablePDF trait
      */
@@ -124,17 +125,17 @@ class SaleReturn extends Model
             'items_count' => $this->items()->count(),
         ];
     }
-    
+
     public function getVerificationDocumentType(): string
     {
         return 'sale_return_receipt';
     }
-    
+
     protected function getUserIdForVerification(): ?int
     {
         return $this->processed_by_user_id;
     }
-    
+
     protected function getVerificationMetadata(): array
     {
         return [

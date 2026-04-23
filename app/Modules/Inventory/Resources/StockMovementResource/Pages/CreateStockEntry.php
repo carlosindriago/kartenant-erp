@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,22 +13,22 @@ namespace App\Modules\Inventory\Resources\StockMovementResource\Pages;
 
 use App\Modules\Inventory\Models\Product;
 use App\Services\StockMovementService;
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Resources\Pages\Page;
-use Filament\Actions\Action;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\Page;
 
 class CreateStockEntry extends Page
 {
     protected static string $resource = \App\Modules\Inventory\Resources\StockMovementResource::class;
 
     protected static string $view = 'filament.pages.create-stock-entry';
-    
+
     protected static ?string $title = 'Registrar Entrada de Mercadería';
-    
+
     public ?array $data = [];
-    
+
     public function mount(): void
     {
         // Preseleccionar producto si viene desde query string
@@ -44,7 +44,7 @@ class CreateStockEntry extends Page
             $this->form->fill();
         }
     }
-    
+
     public function form(Form $form): Form
     {
         return $form
@@ -66,12 +66,12 @@ class CreateStockEntry extends Page
                                     $set('current_stock', $product?->stock ?? 0);
                                 }
                             }),
-                            
+
                         Forms\Components\Placeholder::make('current_stock')
                             ->label('Stock Actual')
-                            ->content(fn ($get) => number_format($get('current_stock') ?? 0) . ' unidades'),
+                            ->content(fn ($get) => number_format($get('current_stock') ?? 0).' unidades'),
                     ]),
-                    
+
                 Forms\Components\Section::make('Detalles de la Entrada')
                     ->schema([
                         Forms\Components\Grid::make(2)
@@ -87,12 +87,12 @@ class CreateStockEntry extends Page
                                         $currentStock = $get('current_stock') ?? 0;
                                         $set('new_stock', $currentStock + ($state ?? 0));
                                     }),
-                                    
+
                                 Forms\Components\Placeholder::make('new_stock')
                                     ->label('Stock Resultante')
-                                    ->content(fn ($get) => number_format($get('new_stock') ?? 0) . ' unidades'),
+                                    ->content(fn ($get) => number_format($get('new_stock') ?? 0).' unidades'),
                             ]),
-                            
+
                         Forms\Components\Select::make('reason')
                             ->label('Motivo de la Entrada')
                             ->required()
@@ -107,7 +107,7 @@ class CreateStockEntry extends Page
                             ->searchable()
                             ->reactive(),
                     ]),
-                    
+
                 Forms\Components\Section::make('Información del Proveedor')
                     ->description('Datos del proveedor y documentación (opcional)')
                     ->schema([
@@ -136,6 +136,7 @@ class CreateStockEntry extends Page
                             ->createOptionModalHeading('Registrar Nuevo Proveedor')
                             ->createOptionUsing(function (array $data) {
                                 $supplier = \App\Modules\Inventory\Models\Supplier::create($data);
+
                                 return $supplier->id;
                             })
                             ->helperText('Puedes crear un nuevo proveedor directamente desde aquí'),
@@ -157,18 +158,18 @@ class CreateStockEntry extends Page
                     ])
                     ->collapsible()
                     ->collapsed(),
-                    
+
                 Forms\Components\Section::make('Notas y Referencias')
                     ->schema([
                         Forms\Components\TextInput::make('reference')
                             ->label('Referencia')
                             ->maxLength(255),
-                            
+
                         Forms\Components\Textarea::make('additional_notes')
                             ->label('Notas Adicionales')
                             ->rows(3)
                             ->maxLength(500),
-                            
+
                         Forms\Components\Select::make('pdf_format')
                             ->label('Formato de Comprobante Preferido')
                             ->options([
@@ -183,7 +184,7 @@ class CreateStockEntry extends Page
             ])
             ->statePath('data');
     }
-    
+
     protected function getFormActions(): array
     {
         return [
@@ -198,8 +199,8 @@ class CreateStockEntry extends Page
                     $data = $this->form->getState();
                     $product = Product::find($data['product_id'] ?? null);
                     $quantity = $data['quantity'] ?? 0;
-                    
-                    return $product 
+
+                    return $product
                         ? "¿Confirmas la entrada de {$quantity} unidades de {$product->name}?"
                         : '¿Confirmas esta entrada de mercadería?';
                 })
@@ -207,16 +208,16 @@ class CreateStockEntry extends Page
                 ->action('registerEntry'),
         ];
     }
-    
+
     public function registerEntry(): void
     {
         $data = $this->form->getState();
-        
+
         try {
             $service = app(StockMovementService::class);
             $product = Product::findOrFail($data['product_id']);
             $user = \Filament\Facades\Filament::auth()->user();
-            
+
             $movement = $service->registerEntry(
                 product: $product,
                 quantity: $data['quantity'],
@@ -230,24 +231,24 @@ class CreateStockEntry extends Page
                 reference: $data['reference'] ?? null,
                 pdfFormat: $data['pdf_format'] ?? 'a4'
             );
-            
+
             // Guardar datos en sesión para página de resumen
             session()->flash('stock_movement_registered', [
                 'movement_id' => $movement->id,
                 'type' => 'entrada',
                 'success' => true,
             ]);
-            
+
             // Redirigir a página de resumen
             $this->redirect($this->getResource()::getUrl('view', ['record' => $movement->id]));
-            
+
         } catch (\Exception $e) {
             \Log::error('Error registrando entrada de mercadería', [
                 'data' => $data,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             Notification::make()
                 ->danger()
                 ->title('Error al Registrar Entrada')

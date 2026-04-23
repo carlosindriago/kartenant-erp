@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Cache;
 use App\Mail\TwoFactorCodeMail;
+use App\Models\User;
 use Exception;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Session;
 
 class TwoFactorAuthService
 {
@@ -32,7 +32,7 @@ class TwoFactorAuthService
             // Log error but don't expose to user
             \Log::error('Failed to send 2FA email', [
                 'user_id' => $user->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             throw new Exception('No pudimos enviar el código de verificación. Por favor intenta más tarde.');
@@ -52,9 +52,10 @@ class TwoFactorAuthService
         // Verify the code
         $isValid = $user->verifyEmail2FACode($code);
 
-        if (!$isValid) {
+        if (! $isValid) {
             // Increment failed attempts counter
             $this->incrementFailedAttempts($user);
+
             return false;
         }
 
@@ -72,7 +73,7 @@ class TwoFactorAuthService
      */
     private function incrementFailedAttempts(User $user): void
     {
-        $attemptKey = '2fa_attempts:' . $user->id;
+        $attemptKey = '2fa_attempts:'.$user->id;
         $attempts = Cache::increment($attemptKey, 1);
         Cache::put($attemptKey, $attempts, 1800); // 30 minutes decay
 
@@ -81,7 +82,7 @@ class TwoFactorAuthService
             'user_id' => $user->id,
             'email' => $user->email,
             'attempts' => $attempts,
-            'ip' => request()->ip()
+            'ip' => request()->ip(),
         ]);
     }
 
@@ -127,7 +128,7 @@ class TwoFactorAuthService
     {
         $userId = Session::get('2fa_user_id');
 
-        if (!$userId) {
+        if (! $userId) {
             return null;
         }
 
@@ -149,7 +150,7 @@ class TwoFactorAuthService
     {
         $attemptTime = Session::get('2fa_attempt_time');
 
-        if (!$attemptTime) {
+        if (! $attemptTime) {
             return false;
         }
 
@@ -164,7 +165,7 @@ class TwoFactorAuthService
     {
         $attemptTime = Session::get('2fa_attempt_time');
 
-        if (!$attemptTime) {
+        if (! $attemptTime) {
             return 0;
         }
 
@@ -180,7 +181,7 @@ class TwoFactorAuthService
      */
     private function checkRateLimit(User $user): void
     {
-        $lockoutKey = '2fa_lockout:' . $user->id;
+        $lockoutKey = '2fa_lockout:'.$user->id;
 
         // Check if user is already locked out
         if (Cache::has($lockoutKey)) {
@@ -189,7 +190,7 @@ class TwoFactorAuthService
             throw new Exception("Cuenta bloqueada por seguridad. Intenta en {$hours} horas.");
         }
 
-        $attemptKey = '2fa_attempts:' . $user->id;
+        $attemptKey = '2fa_attempts:'.$user->id;
 
         // Get current attempts (decay in 30 minutes)
         $attempts = Cache::get($attemptKey, 0);
@@ -204,11 +205,11 @@ class TwoFactorAuthService
             } catch (\Exception $e) {
                 \Log::error('Failed to send lockout notification', [
                     'user_id' => $user->id,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
 
-            throw new Exception("Demasiados intentos fallidos. Tu cuenta ha sido bloqueada por 24 horas por seguridad.");
+            throw new Exception('Demasiados intentos fallidos. Tu cuenta ha sido bloqueada por 24 horas por seguridad.');
         }
     }
 
@@ -217,7 +218,7 @@ class TwoFactorAuthService
      */
     private function applyAccountLockout(User $user): void
     {
-        $lockoutKey = '2fa_lockout:' . $user->id;
+        $lockoutKey = '2fa_lockout:'.$user->id;
         $lockoutDuration = 24 * 60 * 60; // 24 hours in seconds
 
         Cache::put($lockoutKey, $lockoutDuration, $lockoutDuration);
@@ -227,7 +228,7 @@ class TwoFactorAuthService
             'user_id' => $user->id,
             'email' => $user->email,
             'lockout_duration' => $lockoutDuration,
-            'ip' => request()->ip()
+            'ip' => request()->ip(),
         ]);
     }
 
@@ -236,7 +237,8 @@ class TwoFactorAuthService
      */
     public function isAccountLocked(User $user): bool
     {
-        $lockoutKey = '2fa_lockout:' . $user->id;
+        $lockoutKey = '2fa_lockout:'.$user->id;
+
         return Cache::has($lockoutKey);
     }
 
@@ -245,7 +247,8 @@ class TwoFactorAuthService
      */
     public function getRemainingLockoutTime(User $user): int
     {
-        $lockoutKey = '2fa_lockout:' . $user->id;
+        $lockoutKey = '2fa_lockout:'.$user->id;
+
         return Cache::get($lockoutKey, 0);
     }
 
@@ -254,7 +257,7 @@ class TwoFactorAuthService
      */
     private function clearTwoFactorAttempts(User $user): void
     {
-        $attemptKey = '2fa_attempts:' . $user->id;
+        $attemptKey = '2fa_attempts:'.$user->id;
         Cache::forget($attemptKey);
     }
 
@@ -274,7 +277,7 @@ class TwoFactorAuthService
         $key = '2fa_resend:'.$user->id.':'.request()->ip();
 
         // Allow resend once every 30 seconds
-        return !RateLimiter::tooManyAttempts($key, 1);
+        return ! RateLimiter::tooManyAttempts($key, 1);
     }
 
     /**
@@ -313,7 +316,7 @@ class TwoFactorAuthService
         } catch (Exception $e) {
             \Log::error('Error completing 2FA authentication', [
                 'user_id' => $user->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return false;

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->enum('type', ['entrada', 'salida']);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            
+
             $table->index(['type', 'is_active']);
         });
     }

@@ -2,19 +2,19 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Filament\Pages\Auth;
 
-use App\Mail\TwoFactorCodeMail;
-use Filament\Facades\Filament;
 use App\Http\Responses\Auth\TwoFactorChallengeResponse;
+use App\Mail\TwoFactorCodeMail;
 use App\Services\AuditLogger;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -129,6 +129,7 @@ class Login extends BaseLogin
                 properties: ['locked_until' => $user->locked_until]
             );
             Notification::make()->title('Tu cuenta está bloqueada temporalmente.')->danger()->send();
+
             return null;
         }
 
@@ -161,7 +162,7 @@ class Login extends BaseLogin
         ])->save();
 
         try {
-            Mail::to($user->email)->send(new TwoFactorCodeMail((string)$code));
+            Mail::to($user->email)->send(new TwoFactorCodeMail((string) $code));
 
             AuditLogger::log(
                 subject: $user,
@@ -180,7 +181,7 @@ class Login extends BaseLogin
             \Log::info('Two factor code sent to admin', [
                 'email' => $user->email,
                 'code' => $code,
-                'expires_at' => $user->two_factor_expires_at
+                'expires_at' => $user->two_factor_expires_at,
             ]);
 
         } catch (\Exception $e) {
@@ -188,7 +189,7 @@ class Login extends BaseLogin
             \Log::error('Failed to send 2FA email, showing code in logs', [
                 'email' => $user->email,
                 'code' => $code,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             // En desarrollo, permitir continuar con el código en los logs

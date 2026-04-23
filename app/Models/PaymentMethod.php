@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -20,14 +20,20 @@ class PaymentMethod extends Model
     use SoftDeletes;
 
     protected $connection = 'landlord';
+
     protected $table = 'payment_methods';
 
     // Payment method types
     const TYPE_CARD = 'card';
+
     const TYPE_BANK_TRANSFER = 'bank_transfer';
+
     const TYPE_PAYPAL = 'paypal';
+
     const TYPE_MERCADOPAGO = 'mercadopago';
+
     const TYPE_CASH = 'cash';
+
     const TYPE_OTHER = 'other';
 
     protected $fillable = [
@@ -107,7 +113,7 @@ class PaymentMethod extends Model
     public function getDisplayName(): string
     {
         if ($this->isCard()) {
-            return ucfirst($this->card_brand) . ' •••• ' . $this->card_last_four;
+            return ucfirst($this->card_brand).' •••• '.$this->card_last_four;
         }
 
         if ($this->isBankTransfer()) {
@@ -127,7 +133,7 @@ class PaymentMethod extends Model
 
     public function getIcon(): string
     {
-        return match($this->type) {
+        return match ($this->type) {
             self::TYPE_CARD => 'heroicon-o-credit-card',
             self::TYPE_BANK_TRANSFER => 'heroicon-o-building-library',
             self::TYPE_PAYPAL => 'heroicon-o-banknotes',
@@ -139,7 +145,7 @@ class PaymentMethod extends Model
 
     public function getBadgeColor(): string
     {
-        return match($this->type) {
+        return match ($this->type) {
             self::TYPE_CARD => 'primary',
             self::TYPE_BANK_TRANSFER => 'success',
             self::TYPE_PAYPAL => 'info',
@@ -150,7 +156,7 @@ class PaymentMethod extends Model
 
     public function isExpired(): bool
     {
-        if (!$this->isCard()) {
+        if (! $this->isCard()) {
             return false;
         }
 
@@ -170,7 +176,7 @@ class PaymentMethod extends Model
 
     public function isExpiringSoon(int $months = 2): bool
     {
-        if (!$this->isCard()) {
+        if (! $this->isCard()) {
             return false;
         }
 

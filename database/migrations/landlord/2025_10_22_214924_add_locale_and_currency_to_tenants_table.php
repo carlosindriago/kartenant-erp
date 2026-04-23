@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::connection('landlord')->table('tenants', function (Blueprint $table) {
 
-            if (!Schema::connection('landlord')->hasColumn('tenants', 'locale')) {
+            if (! Schema::connection('landlord')->hasColumn('tenants', 'locale')) {
                 $table->string('locale', 10)->default('es')->after('timezone');
 
             }
-            if (!Schema::connection('landlord')->hasColumn('tenants', 'locale')) {
+            if (! Schema::connection('landlord')->hasColumn('tenants', 'locale')) {
                 $table->string('currency', 10)->default('USD')->after('locale');
 
             }

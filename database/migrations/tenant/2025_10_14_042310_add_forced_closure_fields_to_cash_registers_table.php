@@ -12,18 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::connection('tenant')->table('cash_registers', function (Blueprint $table) {
-            if (!Schema::connection('tenant')->hasColumn('cash_registers', 'forced_closure')) {
+            if (! Schema::connection('tenant')->hasColumn('cash_registers', 'forced_closure')) {
                 $table->boolean('forced_closure')->default(false)->after('closing_notes');
             }
-            
-            if (!Schema::connection('tenant')->hasColumn('cash_registers', 'forced_by_user_id')) {
+
+            if (! Schema::connection('tenant')->hasColumn('cash_registers', 'forced_by_user_id')) {
                 $table->unsignedBigInteger('forced_by_user_id')->nullable()->after('closing_notes');
             }
-            
-            if (!Schema::connection('tenant')->hasColumn('cash_registers', 'forced_reason')) {
+
+            if (! Schema::connection('tenant')->hasColumn('cash_registers', 'forced_reason')) {
                 $table->text('forced_reason')->nullable()->after('closing_notes');
             }
-            
+
             // No podemos crear foreign key porque users está en landlord DB
             // Solo guardamos el ID como referencia
         });

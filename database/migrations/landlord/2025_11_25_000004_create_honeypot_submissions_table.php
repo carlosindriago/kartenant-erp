@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('submitted_value');
             $table->string('user_agent', 500)->nullable();
             $table->timestamps();
-            
+
             $table->index('created_at');
         });
     }

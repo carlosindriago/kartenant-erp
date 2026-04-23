@@ -5,20 +5,18 @@ namespace App\Filament\Widgets;
 use App\Models\Tenant;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class ArchivedTenantDetailsWidget extends BaseWidget
 {
     protected static ?int $sort = 1;
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     public ?Tenant $record = null;
 
     protected function getStats(): array
     {
-        if (!$this->record) {
+        if (! $this->record) {
             return [];
         }
 
@@ -47,7 +45,7 @@ class ArchivedTenantDetailsWidget extends BaseWidget
                     ->icon('heroicon-o-users')
                     ->color('primary'),
 
-                Stat::make('Tamaño de Datos', number_format($stats['data_size_mb'], 2) . ' MB')
+                Stat::make('Tamaño de Datos', number_format($stats['data_size_mb'], 2).' MB')
                     ->description('Tamaño total de la base de datos')
                     ->icon('heroicon-o-server')
                     ->color('gray'),
@@ -72,7 +70,7 @@ class ArchivedTenantDetailsWidget extends BaseWidget
         return 3;
     }
 
-    public function getColumnSpan(): int | string | array
+    public function getColumnSpan(): int|string|array
     {
         return 'full';
     }

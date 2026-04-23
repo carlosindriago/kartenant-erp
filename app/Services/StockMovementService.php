@@ -2,18 +2,18 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Services;
 
+use App\Models\User;
 use App\Modules\Inventory\Models\Product;
 use App\Modules\Inventory\Models\StockMovement;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -51,7 +51,7 @@ class StockMovementService
             // Obtener stock actual
             $previousStock = $product->stock;
             $newStock = $previousStock + $quantity;
-            
+
             // Crear movimiento
             $movement = new StockMovement([
                 'product_id' => $product->id,
@@ -69,19 +69,19 @@ class StockMovementService
                 'additional_notes' => $additionalNotes,
                 'pdf_format' => $pdfFormat,
             ]);
-            
+
             // Generar número de documento
             $movement->document_number = $movement->generateDocumentNumber();
-            
+
             $movement->save();
-            
+
             // Generar hash de verificación (después de guardar para tener ID)
             $movement->ensureVerificationHash();
 
             // Actualizar stock del producto SIN disparar observers ni eventos
             $product->stock = $newStock;
             $product->saveQuietly();
-            
+
             // Log de auditoría
             activity()
                 ->performedOn($movement)
@@ -95,7 +95,7 @@ class StockMovementService
                     'document_number' => $movement->document_number,
                 ])
                 ->log('Entrada de mercadería registrada');
-            
+
             Log::info('Entrada de mercadería registrada', [
                 'movement_id' => $movement->id,
                 'document_number' => $movement->document_number,
@@ -103,11 +103,11 @@ class StockMovementService
                 'quantity' => $quantity,
                 'user_id' => $registeredBy->id,
             ]);
-            
+
             return $movement->fresh(['product', 'authorizedBy']);
         });
     }
-    
+
     /**
      * Registrar salida de mercadería
      */
@@ -135,11 +135,11 @@ class StockMovementService
             if ($product->stock < $quantity) {
                 throw new \Exception("Stock insuficiente. Disponible: {$product->stock}, Solicitado: {$quantity}");
             }
-            
+
             // Obtener stock actual
             $previousStock = $product->stock;
             $newStock = $previousStock - $quantity;
-            
+
             // Crear movimiento
             $movement = new StockMovement([
                 'product_id' => $product->id,
@@ -155,19 +155,19 @@ class StockMovementService
                 'authorized_at' => $authorizedBy ? now() : null,
                 'pdf_format' => $pdfFormat,
             ]);
-            
+
             // Generar número de documento
             $movement->document_number = $movement->generateDocumentNumber();
-            
+
             $movement->save();
-            
+
             // Generar hash de verificación (después de guardar para tener ID)
             $movement->ensureVerificationHash();
 
             // Actualizar stock del producto SIN disparar observers ni eventos
             $product->stock = $newStock;
             $product->saveQuietly();
-            
+
             // Log de auditoría
             activity()
                 ->performedOn($movement)
@@ -182,7 +182,7 @@ class StockMovementService
                     'authorized_by' => $authorizedBy?->name,
                 ])
                 ->log('Salida de mercadería registrada');
-            
+
             Log::info('Salida de mercadería registrada', [
                 'movement_id' => $movement->id,
                 'document_number' => $movement->document_number,
@@ -191,11 +191,11 @@ class StockMovementService
                 'user_id' => $registeredBy->id,
                 'authorized_by' => $authorizedBy?->id,
             ]);
-            
+
             return $movement->fresh(['product', 'authorizedBy']);
         });
     }
-    
+
     /**
      * Descargar PDF del movimiento
      */
@@ -205,10 +205,10 @@ class StockMovementService
         if ($format && in_array($format, ['thermal', 'a4'])) {
             $movement->update(['pdf_format' => $format]);
         }
-        
+
         return $movement->downloadPdf();
     }
-    
+
     /**
      * Verificar si una salida requiere autorización
      */
@@ -218,12 +218,12 @@ class StockMovementService
         // 1. Cantidad mayor al 50% del stock
         // 2. Valor total mayor a umbral configurado
         // 3. Producto crítico
-        
+
         $halfStock = $product->stock / 2;
-        
+
         return $quantity > $halfStock;
     }
-    
+
     /**
      * Obtener resumen de movimientos por período
      */
@@ -231,9 +231,9 @@ class StockMovementService
     {
         $from = $from ?? now()->startOfMonth();
         $to = $to ?? now()->endOfMonth();
-        
+
         $movements = StockMovement::whereBetween('created_at', [$from, $to])->get();
-        
+
         return [
             'total_entries' => $movements->where('type', 'entrada')->count(),
             'total_exits' => $movements->where('type', 'salida')->count(),

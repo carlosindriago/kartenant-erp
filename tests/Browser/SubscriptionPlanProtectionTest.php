@@ -2,12 +2,12 @@
 
 namespace Tests\Browser;
 
-use Laravel\Dusk\Browser;
-use Tests\DuskTestCase;
-use App\Models\Tenant;
 use App\Models\SubscriptionPlan;
+use App\Models\Tenant;
 use App\Models\TenantSubscription;
 use App\Models\User;
+use Laravel\Dusk\Browser;
+use Tests\DuskTestCase;
 
 class SubscriptionPlanProtectionTest extends DuskTestCase
 {
@@ -23,29 +23,29 @@ class SubscriptionPlanProtectionTest extends DuskTestCase
                 'name' => 'Plan Protección Test',
                 'is_active' => true,
                 'is_visible' => true,
-                'is_featured' => false
+                'is_featured' => false,
             ]);
 
             TenantSubscription::factory()->create([
                 'tenant_id' => $tenant->id,
                 'subscription_plan_id' => $plan->id,
-                'status' => 'active'
+                'status' => 'active',
             ]);
 
             $browser->visit('/admin/login')
-                    ->type('email', 'admin@emporiodigital.com')
-                    ->type('password', 'password')
-                    ->press('Ingresar')
-                    ->waitForText('Dashboard')
-                    ->assertPathIs('/admin')
-                    ->visit('/admin/subscription-plans')
-                    ->waitForText('Planes de Suscripción')
-                    ->selectRecord($plan->id)
-                    ->click('button[filament-action="delete"]')
-                    ->waitForText('¿Estás seguro?')
-                    ->press('Eliminar')
-                    ->pause(500) // Esperar posible excepción
-                    ->assertSee('No se puede eliminar el plan porque tiene suscripciones activas');
+                ->type('email', 'admin@emporiodigital.com')
+                ->type('password', 'password')
+                ->press('Ingresar')
+                ->waitForText('Dashboard')
+                ->assertPathIs('/admin')
+                ->visit('/admin/subscription-plans')
+                ->waitForText('Planes de Suscripción')
+                ->selectRecord($plan->id)
+                ->click('button[filament-action="delete"]')
+                ->waitForText('¿Estás seguro?')
+                ->press('Eliminar')
+                ->pause(500) // Esperar posible excepción
+                ->assertSee('No se puede eliminar el plan porque tiene suscripciones activas');
 
             // Limpiar datos de prueba
             TenantSubscription::where('subscription_plan_id', $plan->id)->delete();
@@ -65,18 +65,18 @@ class SubscriptionPlanProtectionTest extends DuskTestCase
                 'name' => 'Plan Activo Test',
                 'is_active' => true,
                 'is_visible' => true,
-                'is_featured' => true
+                'is_featured' => true,
             ]);
 
             $browser->loginAs(User::where('email', 'admin@emporiodigital.com')->first())
-                    ->visit('/admin/subscription-plans')
-                    ->waitForText('Planes de Suscripción')
-                    ->selectRecord($plan->id)
-                    ->click('button[filament-action="delete"]')
-                    ->waitForText('¿Estás seguro?')
-                    ->press('Eliminar')
-                    ->pause(500) // Esperar posible excepción
-                    ->assertSee('No se puede eliminar un plan que está activo');
+                ->visit('/admin/subscription-plans')
+                ->waitForText('Planes de Suscripción')
+                ->selectRecord($plan->id)
+                ->click('button[filament-action="delete"]')
+                ->waitForText('¿Estás seguro?')
+                ->press('Eliminar')
+                ->pause(500) // Esperar posible excepción
+                ->assertSee('No se puede eliminar un plan que está activo');
 
             $plan->delete();
         });
@@ -89,17 +89,17 @@ class SubscriptionPlanProtectionTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->loginAs(User::where('email', 'admin@emporiodigital.com')->first())
-                    ->visit('/admin/subscription-plans')
-                    ->waitForText('Planes de Suscripción')
+                ->visit('/admin/subscription-plans')
+                ->waitForText('Planes de Suscripción')
                     // Verificar que solo muestra planes activos (deberían ser 2 registros como se menciona)
-                    ->assertSeeIn('[data-component="filament-tables-table"]', 'Basic') // Plan activo
-                    ->assertSeeIn('[data-component="filament-tables-table"]', 'Premium') // Plan activo
+                ->assertSeeIn('[data-component="filament-tables-table"]', 'Basic') // Plan activo
+                ->assertSeeIn('[data-component="filament-tables-table"]', 'Premium') // Plan activo
                     // Verificar botón de navegación a archivados
-                    ->clickLink('Ver Planes Archivados')
-                    ->waitForLocation('/admin/subscription-plans/archived')
-                    ->waitForText('Planes Archivados')
+                ->clickLink('Ver Planes Archivados')
+                ->waitForLocation('/admin/subscription-plans/archived')
+                ->waitForText('Planes Archivados')
                     // Verificar que muestra planes archivados (deberían ser muchos más)
-                    ->assertSeeIn('[data-component="filament-tables-table"]', 'Inactive');
+                ->assertSeeIn('[data-component="filament-tables-table"]', 'Inactive');
         });
     }
 
@@ -110,14 +110,14 @@ class SubscriptionPlanProtectionTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->loginAs(User::where('email', 'admin@emporiodigital.com')->first())
-                    ->visit('/admin/subscription-plans/archived')
-                    ->waitForText('Planes Archivados')
+                ->visit('/admin/subscription-plans/archived')
+                ->waitForText('Planes Archivados')
                     // Verificar que existen bulk actions específicas para archivados
-                    ->assertSee('Activar seleccionados')
-                    ->assertSee('Restaurar seleccionados')
-                    ->assertSee('Eliminar seleccionados')
+                ->assertSee('Activar seleccionados')
+                ->assertSee('Restaurar seleccionados')
+                ->assertSee('Eliminar seleccionados')
                     // Verificar que no aparece el botón de archivar (porque ya están archivados)
-                    ->assertDontSee('Archivar seleccionados');
+                ->assertDontSee('Archivar seleccionados');
         });
     }
 
@@ -132,22 +132,22 @@ class SubscriptionPlanProtectionTest extends DuskTestCase
                 'name' => 'Plan Eliminable Test',
                 'is_active' => false,
                 'is_visible' => false,
-                'is_featured' => false
+                'is_featured' => false,
             ]);
 
             $browser->loginAs(User::where('email', 'admin@emporiodigital.com')->first())
-                    ->visit('/admin/subscription-plans')
-                    ->waitForText('Planes de Suscripción')
+                ->visit('/admin/subscription-plans')
+                ->waitForText('Planes de Suscripción')
                     // Buscar el plan eliminable
-                    ->click('[data-component="filament-tables-search-input"] input')
-                    ->type('[data-component="filament-tables-search-input"] input', 'Plan Eliminable Test')
-                    ->pause(1000)
-                    ->selectRecord($deletablePlan->id)
-                    ->click('button[filament-action="delete"]')
-                    ->waitForText('¿Estás seguro?')
-                    ->press('Eliminar')
-                    ->waitForText('Eliminado')
-                    ->assertDontSee('Plan Eliminable Test');
+                ->click('[data-component="filament-tables-search-input"] input')
+                ->type('[data-component="filament-tables-search-input"] input', 'Plan Eliminable Test')
+                ->pause(1000)
+                ->selectRecord($deletablePlan->id)
+                ->click('button[filament-action="delete"]')
+                ->waitForText('¿Estás seguro?')
+                ->press('Eliminar')
+                ->waitForText('Eliminado')
+                ->assertDontSee('Plan Eliminable Test');
 
             // Verificar que el plan fue eliminado (soft-deleted)
             $this->assertSoftDeleted('subscription_plans', ['id' => $deletablePlan->id]);
@@ -161,13 +161,13 @@ class SubscriptionPlanProtectionTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->loginAs(User::where('email', 'admin@emporiodigital.com')->first())
-                    ->visit('/admin/subscription-plans')
-                    ->waitForText('Planes de Suscripción')
+                ->visit('/admin/subscription-plans')
+                ->waitForText('Planes de Suscripción')
                     // Verificar que el link no tiene target="_blank
-                    ->assertAttributeMissing('a[href*="archived"]', 'target')
-                    ->clickLink('Ver Planes Archivados')
-                    ->waitForLocation('/admin/subscription-plans/archived')
-                    ->assertPathIs('/admin/subscription-plans/archived');
+                ->assertAttributeMissing('a[href*="archived"]', 'target')
+                ->clickLink('Ver Planes Archivados')
+                ->waitForLocation('/admin/subscription-plans/archived')
+                ->assertPathIs('/admin/subscription-plans/archived');
         });
     }
 }

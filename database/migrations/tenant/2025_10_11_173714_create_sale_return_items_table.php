@@ -23,7 +23,7 @@ return new class extends Migration
             $table->decimal('line_total', 10, 2); // quantity * unit_price
             $table->text('return_reason')->nullable(); // Razón específica del producto
             $table->timestamps();
-            
+
             $table->index('sale_return_id');
             $table->index('product_id');
         });

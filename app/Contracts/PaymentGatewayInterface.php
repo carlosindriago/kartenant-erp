@@ -19,7 +19,7 @@ interface PaymentGatewayInterface
 
     /**
      * Create a checkout session for a subscription
-     * 
+     *
      * @return array ['type' => 'manual|redirect|embedded', 'data' => mixed]
      */
     public function createCheckoutSession(TenantSubscription $subscription): array;

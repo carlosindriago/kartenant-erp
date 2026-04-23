@@ -4,7 +4,6 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
 class UserStoreRequest extends FormRequest
 {
@@ -16,7 +15,7 @@ class UserStoreRequest extends FormRequest
         $user = Auth::guard('superadmin')->user();
 
         // User must be authenticated and have admin users creation permission
-        if (!$user || !$user->is_super_admin) {
+        if (! $user || ! $user->is_super_admin) {
             return false;
         }
 
@@ -44,45 +43,45 @@ class UserStoreRequest extends FormRequest
                 $isSuperAdmin ? 'sometimes' : 'prohibited',
                 'boolean',
                 function ($attribute, $value, $fail) use ($user) {
-                    if ($user && !$user->is_super_admin && $value) {
+                    if ($user && ! $user->is_super_admin && $value) {
                         $fail('No puedes asignar privilegios de Super Admin.');
                     }
-                }
+                },
             ],
 
             'is_active' => [
                 $isSuperAdmin ? 'sometimes' : 'prohibited',
-                'boolean'
+                'boolean',
             ],
 
             'force_renew_password' => [
                 $isSuperAdmin ? 'sometimes' : 'prohibited',
-                'boolean'
+                'boolean',
             ],
 
             'must_change_password' => [
                 $isSuperAdmin ? 'sometimes' : 'prohibited',
-                'boolean'
+                'boolean',
             ],
 
             // Role and permission assignments - only for authorized users
             'roles' => [
                 $isSuperAdmin ? 'sometimes' : 'prohibited',
                 'array',
-                'exists:roles,id'
+                'exists:roles,id',
             ],
 
             'permissions' => [
                 $isSuperAdmin ? 'sometimes' : 'prohibited',
                 'array',
-                'exists:permissions,id'
+                'exists:permissions,id',
             ],
 
             // Tenant assignments - only for authorized users
             'tenants' => [
                 $isSuperAdmin ? 'sometimes' : 'prohibited',
                 'array',
-                'exists:tenants,id'
+                'exists:tenants,id',
             ],
         ];
     }
@@ -117,7 +116,7 @@ class UserStoreRequest extends FormRequest
         $data['must_change_password'] = $data['must_change_password'] ?? false;
 
         // Only superadmins can create other superadmins
-        if (!$user?->is_super_admin) {
+        if (! $user?->is_super_admin) {
             $data['is_super_admin'] = false;
         }
 

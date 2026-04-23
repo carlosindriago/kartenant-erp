@@ -3,23 +3,19 @@
 namespace App\Modules\Reporting\Exports;
 
 use App\Modules\Reporting\Services\ABCAnalysisService;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use Illuminate\Support\Collection;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ABCAnalysisExport implements
-    FromCollection,
-    WithHeadings,
-    WithStyles,
-    WithTitle,
-    ShouldAutoSize
+class ABCAnalysisExport implements FromCollection, ShouldAutoSize, WithHeadings, WithStyles, WithTitle
 {
     protected ABCAnalysisService $service;
+
     protected ?int $days;
 
     public function __construct(?int $days = 90)
@@ -58,7 +54,7 @@ class ABCAnalysisExport implements
             $distribution['total_products'],
             '',
             'Ingresos Totales',
-            '$' . number_format($distribution['total_revenue'], 2),
+            '$'.number_format($distribution['total_revenue'], 2),
         ]);
 
         // Empty row
@@ -78,10 +74,10 @@ class ABCAnalysisExport implements
 
         $rows->push([
             'Clase A',
-            $distribution['class_a']['count'] . ' productos',
-            number_format($distribution['class_a']['percentage'], 1) . '% de productos',
-            '$' . number_format($distribution['class_a']['total_revenue'], 2),
-            number_format($distribution['class_a']['revenue_percentage'], 1) . '% de ingresos',
+            $distribution['class_a']['count'].' productos',
+            number_format($distribution['class_a']['percentage'], 1).'% de productos',
+            '$'.number_format($distribution['class_a']['total_revenue'], 2),
+            number_format($distribution['class_a']['revenue_percentage'], 1).'% de ingresos',
             '',
             '',
             '',
@@ -89,10 +85,10 @@ class ABCAnalysisExport implements
 
         $rows->push([
             'Clase B',
-            $distribution['class_b']['count'] . ' productos',
-            number_format($distribution['class_b']['percentage'], 1) . '% de productos',
-            '$' . number_format($distribution['class_b']['total_revenue'], 2),
-            number_format($distribution['class_b']['revenue_percentage'], 1) . '% de ingresos',
+            $distribution['class_b']['count'].' productos',
+            number_format($distribution['class_b']['percentage'], 1).'% de productos',
+            '$'.number_format($distribution['class_b']['total_revenue'], 2),
+            number_format($distribution['class_b']['revenue_percentage'], 1).'% de ingresos',
             '',
             '',
             '',
@@ -100,10 +96,10 @@ class ABCAnalysisExport implements
 
         $rows->push([
             'Clase C',
-            $distribution['class_c']['count'] . ' productos',
-            number_format($distribution['class_c']['percentage'], 1) . '% de productos',
-            '$' . number_format($distribution['class_c']['total_revenue'], 2),
-            number_format($distribution['class_c']['revenue_percentage'], 1) . '% de ingresos',
+            $distribution['class_c']['count'].' productos',
+            number_format($distribution['class_c']['percentage'], 1).'% de productos',
+            '$'.number_format($distribution['class_c']['total_revenue'], 2),
+            number_format($distribution['class_c']['revenue_percentage'], 1).'% de ingresos',
             '',
             '',
             '',
@@ -136,16 +132,16 @@ class ABCAnalysisExport implements
                 $product->sku,
                 $product->category_name ?? 'Sin categoría',
                 number_format($product->total_sold),
-                '$' . number_format($product->total_revenue, 2),
-                number_format($product->revenue_percentage, 2) . '%',
-                number_format($product->cumulative_percentage, 2) . '%',
+                '$'.number_format($product->total_revenue, 2),
+                number_format($product->revenue_percentage, 2).'%',
+                number_format($product->cumulative_percentage, 2).'%',
             ]);
         }
 
         // Footer
         $rows->push(['', '', '', '', '', '', '', '']);
         $rows->push([
-            'Reporte generado el: ' . now()->format('d/m/Y H:i'),
+            'Reporte generado el: '.now()->format('d/m/Y H:i'),
             '',
             '',
             '',

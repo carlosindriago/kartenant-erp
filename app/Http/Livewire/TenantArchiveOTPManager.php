@@ -2,24 +2,34 @@
 
 namespace App\Http\Livewire;
 
-use App\Models\User;
 use App\Models\Tenant;
+use App\Models\User;
 use App\Services\TenantSecurityService;
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class TenantArchiveOTPManager extends Component
 {
     public ?Tenant $tenant = null;
+
     public ?User $admin = null;
+
     public string $otpCode = '';
+
     public string $contextCode = '';
+
     public string $emailToken = '';
+
     public string $expiresAt = '';
+
     public int $maxAttempts = 3;
+
     public bool $otpGenerated = false;
+
     public bool $generating = false;
+
     public string $error = '';
+
     public string $success = '';
 
     protected TenantSecurityService $securityService;
@@ -55,8 +65,9 @@ class TenantArchiveOTPManager extends Component
             // Send OTP via email
             $emailSent = $this->securityService->sendArchiveOTPEmail($this->admin, $this->tenant, $otpData);
 
-            if (!$emailSent) {
+            if (! $emailSent) {
                 $this->error = 'Error al enviar el código por email. Intenta nuevamente.';
+
                 return;
             }
 
@@ -96,9 +107,11 @@ class TenantArchiveOTPManager extends Component
 
             if ($result['valid']) {
                 $this->success = 'OTP validado correctamente.';
+
                 return ['valid' => true];
             } else {
                 $this->error = $result['error'];
+
                 return [
                     'valid' => false,
                     'error' => $result['error'],
@@ -107,6 +120,7 @@ class TenantArchiveOTPManager extends Component
             }
         } catch (\Exception $e) {
             $this->error = $e->getMessage();
+
             return ['valid' => false, 'error' => $e->getMessage()];
         }
     }
@@ -120,6 +134,7 @@ class TenantArchiveOTPManager extends Component
             return $this->securityService->validateArchiveEmailToken($this->admin, $token, $this->tenant);
         } catch (\Exception $e) {
             $this->error = $e->getMessage();
+
             return false;
         }
     }
@@ -150,7 +165,7 @@ class TenantArchiveOTPManager extends Component
      */
     public function getOTPStatus(): array
     {
-        if (!$this->otpGenerated) {
+        if (! $this->otpGenerated) {
             return [
                 'generated' => false,
                 'message' => 'No se ha generado ningún código',
@@ -158,7 +173,7 @@ class TenantArchiveOTPManager extends Component
         }
 
         $pending = $this->hasPendingOTP();
-        if (!$pending) {
+        if (! $pending) {
             return [
                 'generated' => true,
                 'expired' => true,

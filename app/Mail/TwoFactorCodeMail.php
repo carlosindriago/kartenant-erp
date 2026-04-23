@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,7 +12,6 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -25,15 +24,11 @@ class TwoFactorCodeMail extends Mailable
     /**
      * El código de verificación de 6 dígitos.
      * Al ser pública, esta propiedad estará disponible automáticamente en tu vista de Blade.
-     *
-     * @var string
      */
     public string $code;
 
     /**
      * Crea una nueva instancia del mensaje.
-     *
-     * @param string $code
      */
     public function __construct(string $code)
     {
@@ -42,8 +37,6 @@ class TwoFactorCodeMail extends Mailable
 
     /**
      * Define el "sobre" del mensaje (asunto, remitente, etc.).
-     *
-     * @return \Illuminate\Mail\Mailables\Envelope
      */
     public function envelope(): Envelope
     {
@@ -54,8 +47,6 @@ class TwoFactorCodeMail extends Mailable
 
     /**
      * Define el contenido del mensaje.
-     *
-     * @return \Illuminate\Mail\Mailables\Content
      */
     public function content(): Content
     {

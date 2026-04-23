@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Middleware RequireInternalVerificationPermission
- * 
+ *
  * Valida que el usuario tenga permisos para acceder a verificaciones internas
  */
 class RequireInternalVerificationPermission
@@ -30,7 +30,7 @@ class RequireInternalVerificationPermission
     public function handle(Request $request, Closure $next): Response
     {
         // Verificar que el usuario esté autenticado
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return redirect()->route('filament.app.auth.login')
                 ->with('error', 'Debe iniciar sesión para verificar documentos internos.');
         }

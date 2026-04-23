@@ -2,17 +2,17 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Http\Controllers\API\V1;
 
-use App\Http\Resources\API\V1\UserResource;
 use App\Http\Resources\API\V1\TenantResource;
+use App\Http\Resources\API\V1\UserResource;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -21,7 +21,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Authentication Controller
@@ -39,9 +38,6 @@ class AuthController extends BaseApiController
 {
     /**
      * Login user and return token
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function login(Request $request): JsonResponse
     {
@@ -60,7 +56,7 @@ class AuthController extends BaseApiController
         // Find tenant by domain
         $tenant = Tenant::where('domain', $request->tenant_domain)->first();
 
-        if (!$tenant) {
+        if (! $tenant) {
             Log::warning('[API Auth] Tenant not found during login', [
                 'tenant_domain' => $request->tenant_domain,
                 'email' => $request->email,
@@ -94,7 +90,7 @@ class AuthController extends BaseApiController
         $user = User::where('email', $request->email)->first();
 
         // Verify user exists and password is correct
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             Log::warning('[API Auth] Failed login attempt', [
                 'email' => $request->email,
                 'tenant_domain' => $request->tenant_domain,
@@ -111,7 +107,7 @@ class AuthController extends BaseApiController
         // Check if user belongs to the tenant
         $belongsToTenant = $user->tenants()->where('tenants.id', $tenant->id)->exists();
 
-        if (!$belongsToTenant) {
+        if (! $belongsToTenant) {
             Log::warning('[API Auth] User does not belong to tenant', [
                 'user_id' => $user->id,
                 'email' => $user->email,
@@ -159,16 +155,13 @@ class AuthController extends BaseApiController
 
     /**
      * Logout user (revoke current token)
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function logout(Request $request): JsonResponse
     {
         // Get current user
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return $this->unauthorizedResponse('No autenticado');
         }
 
@@ -185,15 +178,12 @@ class AuthController extends BaseApiController
 
     /**
      * Refresh token (create new token and revoke old one)
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function refresh(Request $request): JsonResponse
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return $this->unauthorizedResponse('No autenticado');
         }
 
@@ -222,15 +212,12 @@ class AuthController extends BaseApiController
 
     /**
      * Get current authenticated user
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return $this->unauthorizedResponse('No autenticado');
         }
 
@@ -250,9 +237,6 @@ class AuthController extends BaseApiController
      * Forgot password (send reset link)
      *
      * TODO: Implement email sending
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function forgotPassword(Request $request): JsonResponse
     {
@@ -276,9 +260,6 @@ class AuthController extends BaseApiController
      * Reset password
      *
      * TODO: Implement password reset logic
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function resetPassword(Request $request): JsonResponse
     {

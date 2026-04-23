@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Tenant;
 use App\Services\UsageAlertService;
 use Illuminate\Console\Command;
-use App\Models\Tenant;
 
 class UsageTestAlertCommand extends Command
 {
@@ -19,8 +19,9 @@ class UsageTestAlertCommand extends Command
         $tenantId = $this->option('tenant');
         $alertType = $this->option('type');
 
-        if (!in_array($alertType, ['warning', 'overdraft', 'critical'])) {
+        if (! in_array($alertType, ['warning', 'overdraft', 'critical'])) {
             $this->error('Invalid alert type. Must be: warning, overdraft, or critical');
+
             return Command::FAILURE;
         }
 
@@ -36,8 +37,9 @@ class UsageTestAlertCommand extends Command
     private function testTenantAlert(int $tenantId, string $alertType, UsageAlertService $alertService): void
     {
         $tenant = Tenant::find($tenantId);
-        if (!$tenant) {
+        if (! $tenant) {
             $this->error("Tenant with ID {$tenantId} not found");
+
             return;
         }
 
@@ -61,6 +63,6 @@ class UsageTestAlertCommand extends Command
             }
         });
 
-        $this->info("✅ Test alerts sent to all tenants");
+        $this->info('✅ Test alerts sent to all tenants');
     }
 }

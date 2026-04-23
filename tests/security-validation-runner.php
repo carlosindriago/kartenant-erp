@@ -15,22 +15,23 @@
  *
  * RUN: php tests/security-validation-runner.php
  */
-
 echo "\n🔒 MULTI-TENANT SECURITY VALIDATION RUNNER 🔒\n";
 echo "================================================\n\n";
 
 $issuesFound = 0;
 
-function validateCriticalSecurityFixes() {
+function validateCriticalSecurityFixes()
+{
     global $issuesFound;
 
     echo "🔍 VALIDATING CRITICAL SECURITY FIXES...\n";
 
     // Check 1: AuthController has validateTenantMembershipCritical method
-    $authControllerPath = __DIR__ . '/../app/Http/Controllers/Tenant/AuthController.php';
-    if (!file_exists($authControllerPath)) {
+    $authControllerPath = __DIR__.'/../app/Http/Controllers/Tenant/AuthController.php';
+    if (! file_exists($authControllerPath)) {
         echo "  ❌ AuthController is missing\n";
         $issuesFound++;
+
         return;
     }
 
@@ -60,7 +61,7 @@ function validateCriticalSecurityFixes() {
     }
 
     // Check 4: EnforceTenantIsolation middleware exists
-    $isolationMiddlewarePath = __DIR__ . '/../app/Http/Middleware/EnforceTenantIsolation.php';
+    $isolationMiddlewarePath = __DIR__.'/../app/Http/Middleware/EnforceTenantIsolation.php';
     if (file_exists($isolationMiddlewarePath)) {
         echo "  ✅ EnforceTenantIsolation middleware exists\n";
     } else {
@@ -69,7 +70,7 @@ function validateCriticalSecurityFixes() {
     }
 
     // Check 5: Security test exists
-    $securityTestPath = __DIR__ . '/Feature/Security/MultiTenantIsolationTest.php';
+    $securityTestPath = __DIR__.'/Feature/Security/MultiTenantIsolationTest.php';
     if (file_exists($securityTestPath)) {
         echo "  ✅ Multi-tenant isolation security test exists\n";
     } else {
@@ -80,17 +81,19 @@ function validateCriticalSecurityFixes() {
     echo "\n";
 }
 
-function validateMiddlewareConfiguration() {
+function validateMiddlewareConfiguration()
+{
     global $issuesFound;
 
     echo "🔍 VALIDATING MIDDLEWARE CONFIGURATION...\n";
 
     // Check EnforceTenantIsolation has required methods
-    $middlewarePath = __DIR__ . '/../app/Http/Middleware/EnforceTenantIsolation.php';
-    if (!file_exists($middlewarePath)) {
+    $middlewarePath = __DIR__.'/../app/Http/Middleware/EnforceTenantIsolation.php';
+    if (! file_exists($middlewarePath)) {
         echo "  ❌ EnforceTenantIsolation middleware is missing\n";
         $issuesFound++;
         echo "\n";
+
         return;
     }
 
@@ -100,7 +103,7 @@ function validateMiddlewareConfiguration() {
         'validateTenantMembershipSecure',
         'validateSessionIntegrity',
         'detectTenantContextSwitch',
-        'logCriticalSecurityEvent'
+        'logCriticalSecurityEvent',
     ];
 
     foreach ($requiredMethods as $method) {
@@ -123,13 +126,14 @@ function validateMiddlewareConfiguration() {
     echo "\n";
 }
 
-function validateCodeIntegrity() {
+function validateCodeIntegrity()
+{
     global $issuesFound;
 
     echo "🔍 VALIDATING CODE INTEGRITY...\n";
 
     // Check User model has proper connection
-    $userModelPath = __DIR__ . '/../app/Models/User.php';
+    $userModelPath = __DIR__.'/../app/Models/User.php';
     if (file_exists($userModelPath)) {
         $userModelContent = file_get_contents($userModelPath);
 
@@ -145,7 +149,7 @@ function validateCodeIntegrity() {
     }
 
     // Check Tenant model is properly configured
-    $tenantModelPath = __DIR__ . '/../app/Models/Tenant.php';
+    $tenantModelPath = __DIR__.'/../app/Models/Tenant.php';
     if (file_exists($tenantModelPath)) {
         echo "  ✅ Tenant model exists and is configured\n";
     } else {
@@ -154,7 +158,7 @@ function validateCodeIntegrity() {
     }
 
     // Check migrations exist for tenant_user table
-    $migrationPath = __DIR__ . '/../database/migrations/landlord/2025_08_16_161533_create_tenant_user_pivot_table.php';
+    $migrationPath = __DIR__.'/../database/migrations/landlord/2025_08_16_161533_create_tenant_user_pivot_table.php';
     if (file_exists($migrationPath)) {
         echo "  ✅ Tenant user pivot table migration exists\n";
     } else {
@@ -165,13 +169,14 @@ function validateCodeIntegrity() {
     echo "\n";
 }
 
-function validateRouteConfiguration() {
+function validateRouteConfiguration()
+{
     global $issuesFound;
 
     echo "🔍 VALIDATING ROUTE CONFIGURATION...\n";
 
     // Check routes tenant file applies security middleware
-    $routesPath = __DIR__ . '/../routes/tenant.php';
+    $routesPath = __DIR__.'/../routes/tenant.php';
     if (file_exists($routesPath)) {
         $routesContent = file_get_contents($routesPath);
 
@@ -189,7 +194,8 @@ function validateRouteConfiguration() {
     echo "\n";
 }
 
-function generateSecurityReport() {
+function generateSecurityReport()
+{
     global $issuesFound;
 
     echo "📋 SECURITY VALIDATION REPORT\n";

@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,7 +12,6 @@
 namespace App\Modules\Reporting\Services;
 
 use App\Modules\Inventory\Models\Product;
-use App\Modules\POS\Models\SaleItem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -25,26 +24,25 @@ class ABCAnalysisService
      * B: Next 15% of revenue (usually ~30% of products)
      * C: Last 5% of revenue (usually ~50% of products)
      *
-     * @param int|null $days Optional: Only consider sales from last N days
-     * @return Collection
+     * @param  int|null  $days  Optional: Only consider sales from last N days
      */
     public function classifyProducts(?int $days = null): Collection
     {
         // Get products with their revenue
         $query = Product::select(
-                'products.id',
-                'products.name',
-                'products.sku',
-                'products.stock',
-                'products.price',
-                'products.cost_price',
-                'categories.name as category_name',
-                DB::raw('COALESCE(SUM(sale_items.quantity), 0) as total_sold'),
-                DB::raw('COALESCE(SUM(sale_items.total), 0) as total_revenue'),
-                DB::raw('COALESCE(SUM(sale_items.quantity * products.cost_price), 0) as total_cost')
-            )
+            'products.id',
+            'products.name',
+            'products.sku',
+            'products.stock',
+            'products.price',
+            'products.cost_price',
+            'categories.name as category_name',
+            DB::raw('COALESCE(SUM(sale_items.quantity), 0) as total_sold'),
+            DB::raw('COALESCE(SUM(sale_items.total), 0) as total_revenue'),
+            DB::raw('COALESCE(SUM(sale_items.quantity * products.cost_price), 0) as total_cost')
+        )
             ->leftJoin('sale_items', 'products.id', '=', 'sale_items.product_id')
-            ->leftJoin('sales', function($join) use ($days) {
+            ->leftJoin('sales', function ($join) use ($days) {
                 $join->on('sale_items.sale_id', '=', 'sales.id')
                     ->where('sales.status', '=', 'completed');
 
@@ -69,6 +67,7 @@ class ABCAnalysisService
                 $product->profit_margin = 0;
                 $product->revenue_percentage = 0;
                 $product->cumulative_percentage = 0;
+
                 return $product;
             });
         }
@@ -105,9 +104,6 @@ class ABCAnalysisService
 
     /**
      * Get ABC distribution summary
-     *
-     * @param int|null $days
-     * @return array
      */
     public function getABCDistribution(?int $days = null): array
     {
@@ -156,21 +152,17 @@ class ABCAnalysisService
     /**
      * Get products by specific ABC class
      *
-     * @param string $class A, B, or C
-     * @param int|null $days
-     * @return Collection
+     * @param  string  $class  A, B, or C
      */
     public function getProductsByClass(string $class, ?int $days = null): Collection
     {
         $classified = $this->classifyProducts($days);
+
         return $classified->where('abc_class', strtoupper($class))->values();
     }
 
     /**
      * Get recommendations based on ABC analysis
-     *
-     * @param int|null $days
-     * @return array
      */
     public function getRecommendations(?int $days = null): array
     {

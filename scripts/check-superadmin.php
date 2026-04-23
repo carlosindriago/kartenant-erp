@@ -13,13 +13,13 @@ if ($superadmins->isEmpty()) {
     echo "❌ No hay superadmins en el sistema.\n";
     echo "✅ Puedes crear uno con: php artisan kartenant:make-superadmin\n";
 } else {
-    echo "✅ Superadmins encontrados: " . $superadmins->count() . "\n\n";
+    echo '✅ Superadmins encontrados: '.$superadmins->count()."\n\n";
     foreach ($superadmins as $user) {
         echo "ID: {$user->id}\n";
         echo "Nombre: {$user->name}\n";
         echo "Email: {$user->email}\n";
-        echo "Force Renew: " . ($user->force_renew_password ? 'true' : 'false') . "\n";
-        echo "Last Change: " . ($user->last_password_change_at ?? 'null') . "\n";
-        echo str_repeat('-', 50) . "\n";
+        echo 'Force Renew: '.($user->force_renew_password ? 'true' : 'false')."\n";
+        echo 'Last Change: '.($user->last_password_change_at ?? 'null')."\n";
+        echo str_repeat('-', 50)."\n";
     }
 }

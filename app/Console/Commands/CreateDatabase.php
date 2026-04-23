@@ -8,23 +8,23 @@ use Illuminate\Support\Facades\DB;
 class CreateDatabase extends Command
 {
     protected $signature = 'db:create {name : The name of the database to create}';
-    
+
     protected $description = 'Create a new PostgreSQL database';
 
     public function handle()
     {
         $databaseName = $this->argument('name');
-        
+
         try {
             // Create the database using the landlord connection
             DB::connection('landlord')->statement("CREATE DATABASE {$databaseName}");
-            
+
             $this->info("✅ Database '{$databaseName}' created successfully");
-            
+
             return self::SUCCESS;
         } catch (\Exception $e) {
-            $this->error("❌ Failed to create database '{$databaseName}': " . $e->getMessage());
-            
+            $this->error("❌ Failed to create database '{$databaseName}': ".$e->getMessage());
+
             return self::FAILURE;
         }
     }

@@ -3,11 +3,9 @@
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Resources\InvoiceResource;
-use Filament\Actions;
-use Filament\Resources\Pages\CreateRecord;
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
-use App\Models\SubscriptionPlan;
+use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
 class CreateInvoice extends CreateRecord
@@ -24,7 +22,7 @@ class CreateInvoice extends CreateRecord
         }
 
         // Calculate totals if not provided
-        if (isset($data['subtotal']) && !isset($data['total_amount'])) {
+        if (isset($data['subtotal']) && ! isset($data['total_amount'])) {
             $taxAmount = $data['subtotal'] * 0.16; // 16% tax
             $data['tax_amount'] = $taxAmount;
             $data['total_amount'] = $data['subtotal'] + $taxAmount;
@@ -52,7 +50,7 @@ class CreateInvoice extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         // Create line items if not provided
-        if (!isset($data['line_items'])) {
+        if (! isset($data['line_items'])) {
             $data['line_items'] = [
                 [
                     'description' => $data['plan_name'] ?? 'Servicio',

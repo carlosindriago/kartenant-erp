@@ -2,10 +2,10 @@
 
 namespace Tests\Browser;
 
+use App\Models\Tenant;
+use App\Models\User;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
-use App\Models\User;
-use App\Models\Tenant;
 
 class SimpleTenantEditTest extends DuskTestCase
 {
@@ -31,13 +31,13 @@ class SimpleTenantEditTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $tenant = Tenant::find(10);
 
-            if (!$tenant) {
+            if (! $tenant) {
                 $this->markTestSkipped('Tenant not found');
             }
 
             $browser->loginAs($this->user)
-                    ->visit('/admin/tenants/' . $tenant->id . '/edit')
-                    ->pause(3000); // Wait for page to fully load
+                ->visit('/admin/tenants/'.$tenant->id.'/edit')
+                ->pause(3000); // Wait for page to fully load
 
             // Debug: Check if we're on the correct page
             $currentUrl = $browser->driver->getCurrentURL();
@@ -91,7 +91,7 @@ class SimpleTenantEditTest extends DuskTestCase
                 }
 
             } catch (Exception $e) {
-                echo "Error getting page source: " . $e->getMessage() . "\n";
+                echo 'Error getting page source: '.$e->getMessage()."\n";
             }
         });
     }

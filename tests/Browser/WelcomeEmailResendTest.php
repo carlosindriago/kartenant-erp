@@ -2,10 +2,10 @@
 
 namespace Tests\Browser;
 
+use App\Models\Tenant;
+use App\Models\User;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
-use App\Models\User;
-use App\Models\Tenant;
 
 class WelcomeEmailResendTest extends DuskTestCase
 {

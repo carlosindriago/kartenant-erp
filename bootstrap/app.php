@@ -1,9 +1,9 @@
 <?php
 
+use App\Services\ErrorMonitoringService;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use App\Services\ErrorMonitoringService;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -48,7 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Solo procesar errores si NO estamos en consola O si la app está completamente booteada
         $exceptions->reportable(function (Throwable $e) {
             // Verificar que la aplicación esté completamente inicializada
-            if (!app()->isBooted() || !app()->bound('db')) {
+            if (! app()->isBooted() || ! app()->bound('db')) {
                 // Si la app no está lista, no intentar reportar
                 return;
             }
@@ -66,7 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 // Si falla el reporte, no romper la aplicación
                 logger()->error('Failed to report error', [
                     'original_error' => $e->getMessage(),
-                    'reporting_error' => $reportException->getMessage()
+                    'reporting_error' => $reportException->getMessage(),
                 ]);
             }
         });

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->jsonb('config')->nullable();
             $table->integer('sort_order')->default(0);
             $table->timestamps();
-            
+
             $table->index('is_active');
         });
     }

@@ -4,36 +4,28 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ArchivedTenantResource\Pages;
 use App\Models\Tenant;
-use App\Models\User;
-use App\Services\TenantSecurityService;
 use App\Services\TenantBackupService;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components;
+use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Infolists\Infolist;
-use Filament\Infolists\Components;
-use Filament\Notifications\Notification;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
-use Carbon\Carbon;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\HtmlString;
 
 class ArchivedTenantResource extends Resource
 {
-
     protected static ?string $model = Tenant::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-archive-box-arrow-down';
@@ -100,7 +92,7 @@ class ArchivedTenantResource extends Resource
                                     ->label('Estado')
                                     ->badge()
                                     ->color(fn ($record): string => $record->status_color)
-                                    ->formatStateUsing(fn ($state): string => match($state) {
+                                    ->formatStateUsing(fn ($state): string => match ($state) {
                                         'archived' => 'Archivado 📦',
                                         default => $state,
                                     }),
@@ -142,8 +134,7 @@ class ArchivedTenantResource extends Resource
 
                                 Components\TextEntry::make('timezone')
                                     ->label('Zona Horaria')
-                                    ->formatStateUsing(fn (string $state): string =>
-                                        str_replace(['America/', '_'], ['', ' '], $state)
+                                    ->formatStateUsing(fn (string $state): string => str_replace(['America/', '_'], ['', ' '], $state)
                                     ),
                             ]),
                     ])
@@ -250,7 +241,7 @@ class ArchivedTenantResource extends Resource
 
                                 Components\TextEntry::make('archive_info.backup_size')
                                     ->label('Tamaño del Backup')
-                                    ->formatStateUsing(fn ($state) => $state ? round($state / 1024 / 1024, 2) . ' MB' : 'N/A')
+                                    ->formatStateUsing(fn ($state) => $state ? round($state / 1024 / 1024, 2).' MB' : 'N/A')
                                     ->placeholder('N/A'),
 
                                 Components\TextEntry::make('archive_info.ip_address')
@@ -305,6 +296,7 @@ class ArchivedTenantResource extends Resource
                     ->sortable()
                     ->description(function ($record) {
                         $diff = $record->deleted_at->diffForHumans(now());
+
                         return "Hace {$diff}";
                     })
                     ->tooltip('Fecha de archivado')
@@ -324,7 +316,7 @@ class ArchivedTenantResource extends Resource
                     ->weight('bold')
                     ->color(fn ($record) => $record->health_score_color)
                     ->tooltip(fn ($record) => $record->health_score_tooltip)
-                    ->icon(fn ($record) => match(true) {
+                    ->icon(fn ($record) => match (true) {
                         $record->archived_health_score >= 90 => 'heroicon-o-face-smile',
                         $record->archived_health_score >= 75 => 'heroicon-o-face-smile',
                         $record->archived_health_score >= 60 => 'heroicon-o-face-frown',
@@ -364,15 +356,13 @@ class ArchivedTenantResource extends Resource
             ->filters([
                 Filters\Filter::make('archived_recently')
                     ->label('Archivados Recientemente (últimos 30 días)')
-                    ->query(fn (Builder $query) =>
-                        $query->where('deleted_at', '>=', now()->subDays(30))
+                    ->query(fn (Builder $query) => $query->where('deleted_at', '>=', now()->subDays(30))
                     )
                     ->toggle(),
 
                 Filters\Filter::make('archived_long_ago')
                     ->label('Archivados Antiguos (+90 días)')
-                    ->query(fn (Builder $query) =>
-                        $query->where('deleted_at', '<=', now()->subDays(90))
+                    ->query(fn (Builder $query) => $query->where('deleted_at', '<=', now()->subDays(90))
                     )
                     ->toggle(),
 
@@ -383,7 +373,7 @@ class ArchivedTenantResource extends Resource
                         'no_backups' => 'Sin Backups',
                     ])
                     ->query(function (Builder $query, array $data) {
-                        if (!isset($data['value'])) {
+                        if (! isset($data['value'])) {
                             return $query;
                         }
 
@@ -399,9 +389,9 @@ class ArchivedTenantResource extends Resource
                 Filters\Filter::make('large_storage')
                     ->label('Almacenamiento > 100MB')
                     ->query(function (Builder $query) {
-                        return $query->whereRaw("
+                        return $query->whereRaw('
                             pg_database_size(database) > 100 * 1024 * 1024
-                        ");
+                        ');
                     })
                     ->toggle(),
             ])
@@ -446,13 +436,12 @@ class ArchivedTenantResource extends Resource
                         ->color('success')
                         ->requiresConfirmation()
                         ->modalHeading('🔄 Restaurar Tenants Archivados')
-                        ->modalDescription(fn ($records) =>
-                            "**¿Estás seguro de restaurar {$records->count()} tenant(s) archivado(s)?**\n\n" .
-                            "Esta acción:\n" .
-                            "• Reactivará todos los tenants seleccionados\n" .
-                            "• Restaurará el acceso para los usuarios\n" .
-                            "• Generará backups previos a la restauración\n" .
-                            "• Procesará cada tenant individualmente"
+                        ->modalDescription(fn ($records) => "**¿Estás seguro de restaurar {$records->count()} tenant(s) archivado(s)?**\n\n".
+                            "Esta acción:\n".
+                            "• Reactivará todos los tenants seleccionados\n".
+                            "• Restaurará el acceso para los usuarios\n".
+                            "• Generará backups previos a la restauración\n".
+                            '• Procesará cada tenant individualmente'
                         )
                         ->modalSubmitActionLabel('Restaurar Tenants')
                         ->form([
@@ -486,9 +475,10 @@ class ArchivedTenantResource extends Resource
                                             'pre_bulk_restore'
                                         );
 
-                                        if (!$backupResult['success']) {
+                                        if (! $backupResult['success']) {
                                             $errorDetails[] = "Backup fallido para {$tenant->name}: {$backupResult['error']}";
                                             $failedCount++;
+
                                             continue;
                                         }
                                     }
@@ -535,7 +525,7 @@ class ArchivedTenantResource extends Resource
                                         Tables\Actions\Action::make('view_errors')
                                             ->label('Ver Errores')
                                             ->color('danger')
-                                            ->action(function () use ($errorDetails) {
+                                            ->action(function () {
                                                 // TODO: Show error details in a modal or log
                                             }),
                                     ])
@@ -551,8 +541,7 @@ class ArchivedTenantResource extends Resource
                         ->color('info')
                         ->requiresConfirmation()
                         ->modalHeading('Crear Backups de Tenants Archivados')
-                        ->modalDescription(fn ($records) =>
-                            "Se crearán backups de {$records->count()} tenant(s) archivado(s).\n\n" .
+                        ->modalDescription(fn ($records) => "Se crearán backups de {$records->count()} tenant(s) archivado(s).\n\n".
                             "Los backups serán guardados con la etiqueta 'archived_bulk'."
                         )
                         ->modalSubmitActionLabel('Crear Backups')
@@ -599,10 +588,9 @@ class ArchivedTenantResource extends Resource
                         ->color('warning')
                         ->requiresConfirmation()
                         ->modalHeading('Exportar Datos de Tenants Archivados')
-                        ->modalDescription(fn ($records) =>
-                            "Se iniciará la exportación de datos de {$records->count()} tenant(s) archivado(s).\n\n" .
-                            "Esta acción puede tardar varios minutos dependiendo del volumen de datos.\n" .
-                            "Recibirás notificaciones cuando cada exportación esté lista."
+                        ->modalDescription(fn ($records) => "Se iniciará la exportación de datos de {$records->count()} tenant(s) archivado(s).\n\n".
+                            "Esta acción puede tardar varios minutos dependiendo del volumen de datos.\n".
+                            'Recibirás notificaciones cuando cada exportación esté lista.'
                         )
                         ->modalSubmitActionLabel('Iniciar Exportación en Lote')
                         ->action(function ($records) {
@@ -622,13 +610,12 @@ class ArchivedTenantResource extends Resource
                         ->color('danger')
                         ->requiresConfirmation()
                         ->modalHeading('⚠️ ELIMINAR PERMANENTEMENTE EN LOTE')
-                        ->modalDescription(fn ($records) =>
-                            "**ADVERTENCIA: Esta acción es IRREVERSIBLE**\n\n" .
-                            "Eliminar permanentemente {$records->count()} tenant(s) archivado(s) significa:\n\n" .
-                            "• Todos los datos serán borrados para siempre\n" .
-                            "• No se podrá recuperar ninguna información\n" .
-                            "• Los backups podrían ser eliminados también\n" .
-                            "• Esta acción no puede deshacerse bajo ninguna circunstancia"
+                        ->modalDescription(fn ($records) => "**ADVERTENCIA: Esta acción es IRREVERSIBLE**\n\n".
+                            "Eliminar permanentemente {$records->count()} tenant(s) archivado(s) significa:\n\n".
+                            "• Todos los datos serán borrados para siempre\n".
+                            "• No se podrá recuperar ninguna información\n".
+                            "• Los backups podrían ser eliminados también\n".
+                            '• Esta acción no puede deshacerse bajo ninguna circunstancia'
                         )
                         ->modalSubmitActionLabel('Entiendo, Eliminar Permanentemente')
                         ->form([
@@ -664,12 +651,13 @@ class ArchivedTenantResource extends Resource
                             $failedCount = 0;
 
                             // Validate admin password
-                            if (!Hash::check($data['admin_password'], $admin->password)) {
+                            if (! Hash::check($data['admin_password'], $admin->password)) {
                                 Notification::make()
                                     ->title('Error de Autenticación')
                                     ->body('La contraseña de administrador es incorrecta.')
                                     ->danger()
                                     ->send();
+
                                 return;
                             }
 
@@ -680,6 +668,7 @@ class ArchivedTenantResource extends Resource
                                     ->body('La palabra clave es incorrecta. Eliminación en lote cancelada.')
                                     ->danger()
                                     ->send();
+
                                 return;
                             }
 
@@ -745,6 +734,7 @@ class ArchivedTenantResource extends Resource
     public static function shouldRegisterNavigation(): bool
     {
         $user = auth('superadmin')->user();
+
         return $user?->is_super_admin || ($user?->hasPermissionTo('admin.archived_tenants.view', 'superadmin') ?? false);
     }
 
@@ -771,10 +761,10 @@ class ArchivedTenantResource extends Resource
     {
         try {
             return Cache::remember("archived_storage_{$database}", 600, function () use ($database) {
-                $result = \Illuminate\Support\Facades\DB::select("
+                $result = \Illuminate\Support\Facades\DB::select('
                     SELECT pg_size_pretty(pg_database_size(?)) as size
                     FROM pg_database WHERE datname = ?
-                ", [$database, $database]);
+                ', [$database, $database]);
 
                 return $result[0]->size ?? '0 MB';
             });
@@ -786,7 +776,7 @@ class ArchivedTenantResource extends Resource
     private static function getTenantProductCount(string $database): int
     {
         try {
-            return Cache::remember("archived_products_{$database}", 600, function () use ($database) {
+            return Cache::remember("archived_products_{$database}", 600, function () {
                 // Switch to tenant connection temporarily
                 $originalConnection = config('database.default');
                 config(['database.default' => 'tenant']);
@@ -794,9 +784,11 @@ class ArchivedTenantResource extends Resource
                 try {
                     $count = \App\Modules\Inventory\Models\Product::count();
                     config(['database.default' => $originalConnection]);
+
                     return $count;
                 } catch (\Exception $e) {
                     config(['database.default' => $originalConnection]);
+
                     return 0;
                 }
             });
@@ -808,7 +800,7 @@ class ArchivedTenantResource extends Resource
     private static function getTenantSalesCount(string $database): int
     {
         try {
-            return Cache::remember("archived_sales_{$database}", 600, function () use ($database) {
+            return Cache::remember("archived_sales_{$database}", 600, function () {
                 // Switch to tenant connection temporarily
                 $originalConnection = config('database.default');
                 config(['database.default' => 'tenant']);
@@ -816,9 +808,11 @@ class ArchivedTenantResource extends Resource
                 try {
                     $count = \App\Modules\POS\Models\Sale::count();
                     config(['database.default' => $originalConnection]);
+
                     return $count;
                 } catch (\Exception $e) {
                     config(['database.default' => $originalConnection]);
+
                     return 0;
                 }
             });
@@ -835,9 +829,12 @@ class ArchivedTenantResource extends Resource
                     ->latest('created_at')
                     ->first();
 
-                if (!$activity) return 'Sin actividad';
+                if (! $activity) {
+                    return 'Sin actividad';
+                }
 
                 $diff = $activity->created_at->diffForHumans(now());
+
                 return "Hace {$diff}";
             });
         } catch (\Exception $e) {
@@ -850,7 +847,9 @@ class ArchivedTenantResource extends Resource
         try {
             return Cache::remember("archived_files_{$tenantId}", 600, function () use ($tenantId) {
                 $storagePath = storage_path("app/tenant-uploads/{$tenantId}");
-                if (!is_dir($storagePath)) return 0;
+                if (! is_dir($storagePath)) {
+                    return 0;
+                }
 
                 $fileCount = 0;
                 $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($storagePath));
@@ -874,7 +873,7 @@ class ArchivedTenantResource extends Resource
                 ->latest('created_at')
                 ->first();
 
-            if (!$latestBackup) {
+            if (! $latestBackup) {
                 return 'Nunca';
             }
 
@@ -895,7 +894,7 @@ class ArchivedTenantResource extends Resource
                 ->latest('created_at')
                 ->first();
 
-            if (!$latestBackup) {
+            if (! $latestBackup) {
                 return 'gray';
             }
 
@@ -928,10 +927,13 @@ class ArchivedTenantResource extends Resource
 
     private static function getAdminName(?int $adminId): string
     {
-        if (!$adminId) return 'Desconocido';
+        if (! $adminId) {
+            return 'Desconocido';
+        }
 
         try {
             $admin = \App\Models\User::find($adminId);
+
             return $admin ? $admin->name : 'Desconocido';
         } catch (\Exception $e) {
             return 'Desconocido';

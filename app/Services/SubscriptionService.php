@@ -2,16 +2,16 @@
 
 namespace App\Services;
 
+use App\Models\Invoice;
+use App\Models\PaymentProof;
+use App\Models\PaymentTransaction;
+use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
-use App\Models\SubscriptionPlan;
-use App\Models\PaymentTransaction;
-use App\Models\PaymentProof;
-use App\Models\Invoice;
-use App\Models\User;
 use App\Models\TenantUsage;
-use App\Settings\PaymentSettings;
+use App\Models\User;
 use App\Settings\BillingSettings;
+use App\Settings\PaymentSettings;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -107,7 +107,7 @@ class SubscriptionService
                 'payer_name' => $proofData['payer_name'] ?? null,
                 'notes' => $proofData['notes'] ?? null,
                 'file_paths' => $filePaths,
-                'file_type' => !empty($filePaths) ? pathinfo($filePaths[0], PATHINFO_EXTENSION) : null,
+                'file_type' => ! empty($filePaths) ? pathinfo($filePaths[0], PATHINFO_EXTENSION) : null,
                 'total_file_size_mb' => $totalSize,
                 'status' => PaymentProof::STATUS_PENDING,
                 'ip_address' => request()->ip(),
@@ -139,7 +139,7 @@ class SubscriptionService
             $paymentProof->approve($approver, $notes);
 
             $subscription = $paymentProof->subscription;
-            if (!$subscription) {
+            if (! $subscription) {
                 return false;
             }
 
@@ -290,7 +290,7 @@ class SubscriptionService
     public function renewSubscription(TenantSubscription $subscription): bool
     {
         return DB::connection('landlord')->transaction(function () use ($subscription) {
-            if (!$subscription->auto_renew) {
+            if (! $subscription->auto_renew) {
                 return false;
             }
 
@@ -449,7 +449,7 @@ class SubscriptionService
             'amount' => $paymentProof->amount,
             'currency' => $paymentProof->currency,
             'status' => PaymentTransaction::STATUS_PENDING,
-            'transaction_id' => 'MANUAL-' . uniqid(),
+            'transaction_id' => 'MANUAL-'.uniqid(),
             'proof_of_payment' => json_encode($paymentProof->file_paths),
             'metadata' => [
                 'payment_proof_id' => $paymentProof->id,
@@ -468,13 +468,13 @@ class SubscriptionService
         $tenant = $subscription->tenant;
         $plan = $subscription->plan;
 
-        if (!$tenant || !$plan) {
+        if (! $tenant || ! $plan) {
             return;
         }
 
         $currentUsage = TenantUsage::getCurrentUsage($tenant->id);
 
-        if (!$currentUsage) {
+        if (! $currentUsage) {
             return;
         }
 
@@ -514,16 +514,16 @@ class SubscriptionService
     public function canTenantPerformAction(Tenant $tenant, string $action): bool
     {
         $subscription = $tenant->subscription;
-        if (!$subscription || $subscription->status !== 'active') {
+        if (! $subscription || $subscription->status !== 'active') {
             return false;
         }
 
         $usage = TenantUsage::getCurrentUsage($tenant->id);
-        if (!$usage) {
+        if (! $usage) {
             return true; // No usage recorded yet
         }
 
-        return match($action) {
+        return match ($action) {
             'create_product' => $usage->canCreateProduct(),
             'create_user' => $usage->canCreateUser(),
             'make_sale' => $usage->canMakeSale(),
@@ -540,7 +540,7 @@ class SubscriptionService
         $plan = $subscription->plan ?? null;
         $usage = TenantUsage::getCurrentUsage($tenant->id);
 
-        if (!$usage) {
+        if (! $usage) {
             return [
                 'status' => 'unknown',
                 'metrics' => [],
@@ -558,7 +558,7 @@ class SubscriptionService
             $allowsOverage = $plan->allowsOverage();
 
             foreach ($plan->getAvailableMetrics() as $metric) {
-                $current = match($metric) {
+                $current = match ($metric) {
                     'monthly_sales' => $usage->sales_count,
                     'products' => $usage->products_count,
                     'users' => $usage->users_count,
@@ -621,7 +621,7 @@ class SubscriptionService
 
         $plan->activeSubscriptions()
             ->with('tenant')
-            ->chunk(100, function ($subscriptions) use (&$updatedCount, $plan) {
+            ->chunk(100, function ($subscriptions) use (&$updatedCount) {
                 foreach ($subscriptions as $subscription) {
                     $this->updateTenantUsageLimits($subscription);
                     $updatedCount++;
@@ -636,13 +636,10 @@ class SubscriptionService
 
         return $updatedCount;
     }
-<<<<<<< HEAD
-=======
 
     /**
      * Calculate total monthly cost for tenant (Plan + Active Modules)
      *
-     * @param Tenant $tenant
      * @return array ['plan_price' => float, 'modules_price' => float, 'total' => float]
      */
     public function calculateMonthlyTotal(Tenant $tenant): array
@@ -687,5 +684,5 @@ class SubscriptionService
             'subscription_id' => $activeSubscription?->id,
             'subscription_status' => $activeSubscription?->status,
         ];
-  }
+    }
 }

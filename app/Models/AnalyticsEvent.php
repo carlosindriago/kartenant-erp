@@ -2,22 +2,23 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Carbon\Carbon;
 
 class AnalyticsEvent extends Model
 {
     protected $connection = 'landlord';
+
     protected $table = 'analytics_events';
 
     public $timestamps = false; // Only using created_at
@@ -69,7 +70,7 @@ class AnalyticsEvent extends Model
     {
         return $query->whereBetween('created_at', [
             Carbon::now()->startOfWeek(),
-            Carbon::now()->endOfWeek()
+            Carbon::now()->endOfWeek(),
         ]);
     }
 
@@ -77,20 +78,20 @@ class AnalyticsEvent extends Model
     {
         return $query->whereBetween('created_at', [
             Carbon::now()->subWeek()->startOfWeek(),
-            Carbon::now()->subWeek()->endOfWeek()
+            Carbon::now()->subWeek()->endOfWeek(),
         ]);
     }
 
     public function scopeThisMonth($query)
     {
         return $query->whereMonth('created_at', Carbon::now()->month)
-                    ->whereYear('created_at', Carbon::now()->year);
+            ->whereYear('created_at', Carbon::now()->year);
     }
 
     public function scopeLastMonth($query)
     {
         return $query->whereMonth('created_at', Carbon::now()->subMonth()->month)
-                    ->whereYear('created_at', Carbon::now()->subMonth()->year);
+            ->whereYear('created_at', Carbon::now()->subMonth()->year);
     }
 
     public function scopeThisYear($query)
@@ -149,7 +150,7 @@ class AnalyticsEvent extends Model
     {
         $query = self::distinct('user_id')->whereNotNull('user_id');
 
-        return match($period) {
+        return match ($period) {
             'today' => $query->today()->count('user_id'),
             'week' => $query->thisWeek()->count('user_id'),
             'month' => $query->thisMonth()->count('user_id'),
@@ -164,7 +165,7 @@ class AnalyticsEvent extends Model
     {
         $query = self::distinct('tenant_id')->whereNotNull('tenant_id');
 
-        return match($period) {
+        return match ($period) {
             'today' => $query->today()->count('tenant_id'),
             'week' => $query->thisWeek()->count('tenant_id'),
             'month' => $query->thisMonth()->count('tenant_id'),
@@ -179,7 +180,7 @@ class AnalyticsEvent extends Model
     {
         $query = self::featureUsage();
 
-        $query = match($period) {
+        $query = match ($period) {
             'today' => $query->today(),
             'week' => $query->thisWeek(),
             'month' => $query->thisMonth(),
@@ -225,7 +226,7 @@ class AnalyticsEvent extends Model
     {
         $query = self::query();
 
-        $query = match($period) {
+        $query = match ($period) {
             'today' => $query->today(),
             'week' => $query->thisWeek(),
             'month' => $query->thisMonth(),

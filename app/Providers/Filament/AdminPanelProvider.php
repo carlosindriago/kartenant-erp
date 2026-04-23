@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,9 +12,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\Login;
-use App\Filament\Pages\Auth\TwoFactorChallenge;
-use App\Models\User;
 use App\Http\Middleware\UseLandlordPermissionRegistrar;
+use App\Models\User;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -23,10 +22,10 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Illuminate\Database\Eloquent\Model;
-// ... otros imports
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+// ... otros imports
 use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
@@ -82,9 +81,8 @@ class AdminPanelProvider extends PanelProvider
                     ->forceRenewPassword(forceRenewColumn: 'force_renew_password') // Activar forzado
                     ->timestampColumn('last_password_change_at')
                     ->routeUri('cambiar-contrasena') // Ruta en español
-            )
-            // ... resto de la configuración
-            ;
+            );
+        // ... resto de la configuración
     }
 
     public function canAccessPanel(Model $user): bool

@@ -2,10 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Tenant;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use App\Models\Tenant;
 
 class EnsureActiveSubscription
 {
@@ -18,17 +18,17 @@ class EnsureActiveSubscription
     public function handle(Request $request, Closure $next): Response
     {
         // Solo aplicar en contexto de tenant
-        if (!tenant()) {
+        if (! tenant()) {
             return $next($request);
         }
 
         $tenant = tenant();
-        
+
         // Obtener la suscripción activa del tenant
         $subscription = $tenant->activeSubscription();
 
         // Caso 1: No tiene suscripción
-        if (!$subscription) {
+        if (! $subscription) {
             return $this->handleNoSubscription($request, $tenant);
         }
 

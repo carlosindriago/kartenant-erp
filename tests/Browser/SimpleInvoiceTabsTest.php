@@ -14,27 +14,27 @@ class SimpleInvoiceTabsTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit('https://nginx/admin/login')
-                    ->waitForText('Iniciar Sesión', 10)
-                    ->assertSee('Iniciar Sesión')
-                    ->type('email', 'admin@emporiodigital.test')
-                    ->type('password', 'emporiodigital123')
-                    ->press('Iniciar Sesión')
-                    ->waitForLocation('/admin', 15)
-                    ->assertPathIs('/admin')
-                    ->visit('https://nginx/admin/invoices')
-                    ->waitFor('.filament-resources-page', 15)
-                    ->assertSee('Facturas')
-                    ->screenshot('invoice-page-success');
+                ->waitForText('Iniciar Sesión', 10)
+                ->assertSee('Iniciar Sesión')
+                ->type('email', 'admin@emporiodigital.test')
+                ->type('password', 'emporiodigital123')
+                ->press('Iniciar Sesión')
+                ->waitForLocation('/admin', 15)
+                ->assertPathIs('/admin')
+                ->visit('https://nginx/admin/invoices')
+                ->waitFor('.filament-resources-page', 15)
+                ->assertSee('Facturas')
+                ->screenshot('invoice-page-success');
 
             // Check for the 7 Spanish tabs
             $expectedTabs = [
                 'Todas',
-                'Borrador', 
+                'Borrador',
                 'Enviadas',
                 'Pagadas',
                 'Vencidas',
                 'Este Mes',
-                'Vencen este Mes'
+                'Vencen este Mes',
             ];
 
             foreach ($expectedTabs as $tabLabel) {
@@ -43,9 +43,9 @@ class SimpleInvoiceTabsTest extends DuskTestCase
 
             // Verify no Filament compatibility errors
             $browser->assertDontSee('Method does not exist')
-                    ->assertDontSee('Whoops')
-                    ->assertDontSee('Server Error')
-                    ->screenshot('invoice-tabs-verified');
+                ->assertDontSee('Whoops')
+                ->assertDontSee('Server Error')
+                ->screenshot('invoice-tabs-verified');
 
             echo "✅ InvoiceResource tabs test passed - all tabs visible and working\n";
         });

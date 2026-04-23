@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Illuminate\Support\Facades\Auth;
 
 class UserPolicy
 {
@@ -15,7 +14,7 @@ class UserPolicy
      */
     public function viewAny(?User $user): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -28,7 +27,7 @@ class UserPolicy
      */
     public function view(?User $user, User $model): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -51,7 +50,7 @@ class UserPolicy
      */
     public function create(?User $user): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -64,7 +63,7 @@ class UserPolicy
      */
     public function update(?User $user, User $model): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -87,7 +86,7 @@ class UserPolicy
      */
     public function delete(?User $user, User $model): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -97,7 +96,7 @@ class UserPolicy
         }
 
         // Only superadmins can delete users
-        if (!$user->is_super_admin) {
+        if (! $user->is_super_admin) {
             return false;
         }
 
@@ -118,7 +117,7 @@ class UserPolicy
     public function forceDelete(?User $user, User $model): bool
     {
         // Only superadmins can force delete
-        if (!$user?->is_super_admin) {
+        if (! $user?->is_super_admin) {
             return false;
         }
 
@@ -130,6 +129,7 @@ class UserPolicy
         // Cannot force delete the last superadmin
         if ($model->is_super_admin) {
             $superadminCount = User::where('is_super_admin', true)->count();
+
             return $superadminCount > 1;
         }
 
@@ -141,7 +141,7 @@ class UserPolicy
      */
     public function modifySuperAdminStatus(?User $user, User $model): bool
     {
-        if (!$user || !$user->is_super_admin) {
+        if (! $user || ! $user->is_super_admin) {
             return false;
         }
 
@@ -158,7 +158,7 @@ class UserPolicy
      */
     public function modifyActiveStatus(?User $user, User $model): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -168,7 +168,7 @@ class UserPolicy
         }
 
         // Only superadmins can modify active status
-        if (!$user->is_super_admin) {
+        if (! $user->is_super_admin) {
             return false;
         }
 
@@ -177,6 +177,7 @@ class UserPolicy
             $activeSuperadminCount = User::where('is_super_admin', true)
                 ->where('is_active', true)
                 ->count();
+
             return $activeSuperadminCount > 1;
         }
 
@@ -188,7 +189,7 @@ class UserPolicy
      */
     public function assignRoles(?User $user, User $model): bool
     {
-        if (!$user || !$user->is_super_admin) {
+        if (! $user || ! $user->is_super_admin) {
             return false;
         }
 
@@ -205,7 +206,7 @@ class UserPolicy
      */
     public function assignPermissions(?User $user, User $model): bool
     {
-        if (!$user || !$user->is_super_admin) {
+        if (! $user || ! $user->is_super_admin) {
             return false;
         }
 
@@ -222,7 +223,7 @@ class UserPolicy
      */
     public function manageTenants(?User $user, User $model): bool
     {
-        if (!$user || !$user->is_super_admin) {
+        if (! $user || ! $user->is_super_admin) {
             return false;
         }
 
@@ -234,7 +235,7 @@ class UserPolicy
      */
     public function forcePasswordRenewal(?User $user, User $model): bool
     {
-        if (!$user || !$user->is_super_admin) {
+        if (! $user || ! $user->is_super_admin) {
             return false;
         }
 
@@ -251,7 +252,7 @@ class UserPolicy
      */
     public function accessSecuritySettings(?User $user, User $model): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -269,7 +270,7 @@ class UserPolicy
      */
     public function modify2FASettings(?User $user, User $model): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -287,7 +288,7 @@ class UserPolicy
      */
     public function viewAuditLogs(?User $user, User $model): bool
     {
-        if (!$user || !$user->is_super_admin) {
+        if (! $user || ! $user->is_super_admin) {
             return false;
         }
 
@@ -299,7 +300,7 @@ class UserPolicy
      */
     public function impersonate(?User $user, User $model): bool
     {
-        if (!$user || !$user->is_super_admin) {
+        if (! $user || ! $user->is_super_admin) {
             return false;
         }
 
@@ -321,20 +322,22 @@ class UserPolicy
      */
     public function canModifyField(?User $user, User $model, string $field): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
         // Users can always modify their own basic fields
         if ($user->id === $model->id) {
             $allowedSelfFields = ['name', 'email', 'password'];
+
             return in_array($field, $allowedSelfFields);
         }
 
         // Superadmins can modify most fields
         if ($user->is_super_admin) {
             $restrictedFields = [];
-            return !in_array($field, $restrictedFields);
+
+            return ! in_array($field, $restrictedFields);
         }
 
         return false;
@@ -343,7 +346,7 @@ class UserPolicy
     /**
      * Additional security checks before model operations
      */
-    public function before(?User $user, string $ability): bool|null
+    public function before(?User $user, string $ability): ?bool
     {
         if ($user === null) {
             return false;

@@ -10,7 +10,7 @@ services:
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
-            - '1025:1025'
+            - '1026:1025'
             - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
         environment:
             WWWUSER: '${WWWUSER}'
@@ -31,7 +31,7 @@ services:
         image: nginx:alpine
         ports:
             - '${APP_PORT:-80}:80'
-            - '443:443'
+            - '444:443'
         volumes:
             - '.:/var/www/html'
             - './docker/nginx/ssl:/etc/nginx/ssl:ro'

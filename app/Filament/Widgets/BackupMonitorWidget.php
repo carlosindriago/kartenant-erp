@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -27,7 +27,7 @@ class BackupMonitorWidget extends Widget
 {
     protected static string $view = 'filament.widgets.backup-monitor';
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     protected static ?int $sort = 1; // Mostrar en la parte superior del dashboard
 
@@ -38,6 +38,7 @@ class BackupMonitorWidget extends Widget
     {
         // Use filament() helper for proper panel context with null checks
         $panel = filament()->getCurrentPanel();
+
         return $panel && $panel->getId() === 'admin' && filament()->auth()->check();
     }
 
@@ -47,6 +48,7 @@ class BackupMonitorWidget extends Widget
     public function getStatistics(): array
     {
         $service = app(TenantBackupService::class);
+
         return $service->getSystemStatistics();
     }
 
@@ -56,6 +58,7 @@ class BackupMonitorWidget extends Widget
     public function getProblematicTenants(): array
     {
         $service = app(TenantBackupService::class);
+
         return $service->getProblematicTenants();
     }
 
@@ -109,7 +112,7 @@ class BackupMonitorWidget extends Widget
             $unitIndex++;
         }
 
-        return round($size, 2) . ' ' . $units[$unitIndex];
+        return round($size, 2).' '.$units[$unitIndex];
     }
 
     /**

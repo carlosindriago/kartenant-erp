@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -39,7 +39,7 @@ class TenantArchiveOTPController extends Controller
                 'otp' => Hash::make($otp),
                 'expires_at' => now()->addMinutes(15),
                 'tenant_id' => $tenant->id,
-                'admin_id' => $admin->id
+                'admin_id' => $admin->id,
             ], now()->addMinutes(15));
 
             return response()->json([
@@ -74,7 +74,7 @@ class TenantArchiveOTPController extends Controller
             $key = "tenant_archive_otp_{$admin->id}_{$tenant->id}";
             $cached = Cache::get($key);
 
-            if (!$cached) {
+            if (! $cached) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Código no válido o ha expirado',
@@ -84,6 +84,7 @@ class TenantArchiveOTPController extends Controller
             // Check expiration
             if (now()->gt($cached['expires_at'])) {
                 Cache::forget($key);
+
                 return response()->json([
                     'success' => false,
                     'error' => 'Código ha expirado',
@@ -91,7 +92,7 @@ class TenantArchiveOTPController extends Controller
             }
 
             // Verify OTP
-            if (!Hash::check($request->otp_code, $cached['otp'])) {
+            if (! Hash::check($request->otp_code, $cached['otp'])) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Código incorrecto',

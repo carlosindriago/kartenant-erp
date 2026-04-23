@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentProofResource\Pages;
 use App\Models\PaymentProof;
-use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -12,8 +11,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\HtmlString;
 
 class PaymentProofResource extends Resource
 {
@@ -52,6 +49,7 @@ class PaymentProofResource extends Resource
                                         ->get()
                                         ->mapWithKeys(function ($subscription) {
                                             $planName = $subscription->plan->name ?? 'Unknown';
+
                                             return [$subscription->id => "{$planName} - {$subscription->billing_cycle} (\${$subscription->price})"];
                                         });
 
@@ -96,6 +94,7 @@ class PaymentProofResource extends Resource
                                 if ($expectedAmount && abs($state - $expectedAmount) > 0.01) {
                                     throw new \Exception('El monto no coincide con el monto esperado de la suscripción');
                                 }
+
                                 return $state;
                             }),
 
@@ -164,6 +163,7 @@ class PaymentProofResource extends Resource
                                         $totalSize += $file['size'];
                                     }
                                 }
+
                                 return $totalSize / 1024 / 1024;
                             }),
                     ]),
@@ -190,7 +190,7 @@ class PaymentProofResource extends Resource
 
                         Forms\Components\Textarea::make('review_notes')
                             ->label('Notas de Revisión')
-                            ->rows=3,
+                            ->rows = 3,
 
                         Forms\Components\Select::make('reviewed_by')
                             ->label('Revisado por')
@@ -232,7 +232,7 @@ class PaymentProofResource extends Resource
                         'success' => 'approved',
                         'danger' => 'rejected',
                     ])
-                    ->formatStateUsing(fn ($state) => match($state) {
+                    ->formatStateUsing(fn ($state) => match ($state) {
                         'pending' => 'Pendiente',
                         'under_review' => 'En Revisión',
                         'approved' => 'Aprobado',
@@ -242,7 +242,7 @@ class PaymentProofResource extends Resource
 
                 Tables\Columns\TextColumn::make('payment_method')
                     ->label('Método')
-                    ->formatStateUsing(fn ($state) => match($state) {
+                    ->formatStateUsing(fn ($state) => match ($state) {
                         'bank_transfer' => 'Transferencia',
                         'cash' => 'Efectivo',
                         'mobile_money' => 'Dinero Móvil',
@@ -277,7 +277,7 @@ class PaymentProofResource extends Resource
 
                 Tables\Columns\TextColumn::make('total_file_size_mb')
                     ->label('Tamaño')
-                    ->formatStateUsing(fn ($state) => number_format($state, 2) . ' MB')
+                    ->formatStateUsing(fn ($state) => number_format($state, 2).' MB')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
@@ -402,7 +402,7 @@ class PaymentProofResource extends Resource
                     ->action(function ($record) {
                         // TODO: Implement file download logic
                     })
-                    ->visible(fn ($record) => !empty($record->file_paths)),
+                    ->visible(fn ($record) => ! empty($record->file_paths)),
                 Tables\Actions\DeleteAction::make()
                     ->visible(fn ($record) => in_array($record->status, ['pending', 'rejected'])),
             ])
@@ -512,7 +512,7 @@ class PaymentProofResource extends Resource
                     $filePaths[] = $file['path'];
                     $totalSize += $file['size'] ?? 0;
 
-                    if (!$mainFileType) {
+                    if (! $mainFileType) {
                         $mainFileType = pathinfo($file['path'], PATHINFO_EXTENSION);
                     }
                 }

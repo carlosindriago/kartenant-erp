@@ -22,7 +22,7 @@ return new class extends Migration
             $table->decimal('captcha_score', 3, 2)->nullable()->comment('Score para reCAPTCHA v3');
             $table->string('blocked_reason')->nullable();
             $table->timestamps();
-            
+
             $table->index(['ip_address', 'last_attempt_at']);
         });
     }

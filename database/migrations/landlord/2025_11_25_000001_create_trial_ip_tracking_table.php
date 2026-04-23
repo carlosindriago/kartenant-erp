@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamp('trial_ends_at');
             $table->enum('status', ['active', 'expired', 'converted'])->default('active');
             $table->timestamps();
-            
+
             $table->index('ip_address');
             $table->index('trial_ends_at');
         });

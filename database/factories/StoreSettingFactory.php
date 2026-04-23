@@ -86,8 +86,8 @@ class StoreSettingFactory extends Factory
         ];
 
         return [
-            'logo_path' => 'store-settings/logos/' . $this->faker->uuid() . '.png',
-            'background_image_path' => 'store-settings/backgrounds/' . $this->faker->uuid() . '.jpg',
+            'logo_path' => 'store-settings/logos/'.$this->faker->uuid().'.png',
+            'background_image_path' => 'store-settings/backgrounds/'.$this->faker->uuid().'.jpg',
             'brand_color' => $this->faker->randomElement($brandColors),
             'welcome_message' => $this->faker->randomElement($welcomeMessages),
             'store_name' => $this->faker->randomElement($businessNames),
@@ -151,8 +151,8 @@ class StoreSettingFactory extends Factory
     public function fullSocialMedia(): static
     {
         return $this->state(fn (array $attributes) => [
-            'facebook_url' => 'https://facebook.com/' . $this->faker->userName,
-            'instagram_url' => 'https://instagram.com/' . $this->faker->userName,
+            'facebook_url' => 'https://facebook.com/'.$this->faker->userName,
+            'instagram_url' => 'https://instagram.com/'.$this->faker->userName,
             'whatsapp_number' => $this->faker->numerify('##########'),
             'contact_email' => $this->faker->companyEmail(),
         ]);
@@ -209,7 +209,7 @@ class StoreSettingFactory extends Factory
     /**
      * Create a store setting with a specific business type (ferretería).
      */
-    public function ferreteria(string $name = null): static
+    public function ferreteria(?string $name = null): static
     {
         $ferreteriaNames = [
             'Ferretería El Constructor',

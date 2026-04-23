@@ -2,14 +2,13 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DefaultRolesSeeder extends Seeder
 {
     /**
      * Run the database seeder.
-     * 
+     *
      * This seeder creates default roles with appropriate permissions
      * for common business scenarios. Designed for tenant databases.
      */
@@ -17,11 +16,11 @@ class DefaultRolesSeeder extends Seeder
     {
         // Ensure permissions exist first
         $this->call(DefaultPermissionsSeeder::class);
-        
+
         // Get models from config (will use tenant models in tenant context)
         $roleClass = config('permission.models.role');
         $permissionClass = config('permission.models.permission');
-        
+
         // Define default roles with their permissions
         $roles = [
             'Administrador' => [
@@ -78,7 +77,7 @@ class DefaultRolesSeeder extends Seeder
                 ],
             ],
         ];
-        
+
         // Create roles and assign permissions
         foreach ($roles as $roleName => $roleData) {
             // Create or get the role
@@ -91,7 +90,7 @@ class DefaultRolesSeeder extends Seeder
                     'description' => $roleData['description'],
                 ]
             );
-            
+
             // Assign permissions
             if ($roleData['permissions'] === 'all') {
                 // Assign all available permissions
@@ -101,12 +100,12 @@ class DefaultRolesSeeder extends Seeder
                 // Assign specific permissions
                 $role->syncPermissions($roleData['permissions']);
             }
-            
-            $this->command->info("✅ Rol '{$roleName}' creado con " . $role->permissions->count() . " permisos.");
+
+            $this->command->info("✅ Rol '{$roleName}' creado con ".$role->permissions->count().' permisos.');
         }
-        
-        $this->command->info('🎉 ' . count($roles) . ' roles predeterminados creados exitosamente.');
-        
+
+        $this->command->info('🎉 '.count($roles).' roles predeterminados creados exitosamente.');
+
         // Seed predefined movement reasons
         $this->call(MovementReasonsSeeder::class);
     }

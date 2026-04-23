@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Models\User;
 use App\Models\Tenant;
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -34,7 +34,7 @@ final class EnforceTenantIsolation
     public function handle(Request $request, Closure $next): Response
     {
         // Skip isolation checks for guest routes
-        if (!Auth::guard('tenant')->check()) {
+        if (! Auth::guard('tenant')->check()) {
             return $next($request);
         }
 
@@ -42,19 +42,21 @@ final class EnforceTenantIsolation
         $currentTenant = tenant();
 
         // CRITICAL SECURITY: Validate tenant context exists
-        if (!$currentTenant) {
+        if (! $currentTenant) {
             $this->logCriticalSecurityEvent('no_tenant_context', $request, $user, null);
+
             return $this->denyAccess('Contexto de tenant no válido', $request);
         }
 
         // CRITICAL SECURITY: Validate tenant is active
-        if (!$currentTenant->isActive()) {
+        if (! $currentTenant->isActive()) {
             $this->logCriticalSecurityEvent('inactive_tenant_access', $request, $user, $currentTenant);
+
             return $this->denyAccess('Tenant no activo', $request);
         }
 
         // CRITICAL SECURITY: Validate user belongs to current tenant
-        if (!$this->validateTenantMembershipSecure($user, $currentTenant)) {
+        if (! $this->validateTenantMembershipSecure($user, $currentTenant)) {
             $this->logCriticalSecurityEvent('unauthorized_tenant_access', $request, $user, $currentTenant);
 
             // Immediate logout to prevent session persistence
@@ -64,7 +66,7 @@ final class EnforceTenantIsolation
         }
 
         // CRITICAL SECURITY: Validate session integrity
-        if (!$this->validateSessionIntegrity($request, $user, $currentTenant)) {
+        if (! $this->validateSessionIntegrity($request, $user, $currentTenant)) {
             $this->logCriticalSecurityEvent('session_tampering_detected', $request, $user, $currentTenant);
 
             // Logout and invalidate session
@@ -109,14 +111,15 @@ final class EnforceTenantIsolation
                 ->where('tenant_id', $currentTenant->id)
                 ->exists();
 
-            if (!$membership) {
+            if (! $membership) {
                 Log::critical('SECURITY BREACH: User without tenant membership attempted access', [
                     'user_id' => $user->id,
                     'user_email' => $user->email,
                     'attempted_tenant_id' => $currentTenant->id,
                     'attempted_tenant_domain' => $currentTenant->domain,
-                    'timestamp' => now()->toISOString()
+                    'timestamp' => now()->toISOString(),
                 ]);
+
                 return false;
             }
 
@@ -127,14 +130,15 @@ final class EnforceTenantIsolation
                 ->where('is_active', true)
                 ->exists();
 
-            if (!$userActive) {
+            if (! $userActive) {
                 Log::critical('SECURITY BREACH: Inactive user attempted access', [
                     'user_id' => $user->id,
                     'user_email' => $user->email,
                     'attempted_tenant_id' => $currentTenant->id,
                     'attempted_tenant_domain' => $currentTenant->domain,
-                    'timestamp' => now()->toISOString()
+                    'timestamp' => now()->toISOString(),
                 ]);
+
                 return false;
             }
 
@@ -145,7 +149,7 @@ final class EnforceTenantIsolation
                 'user_id' => $user->id,
                 'tenant_id' => $currentTenant->id,
                 'error' => $e->getMessage(),
-                'timestamp' => now()->toISOString()
+                'timestamp' => now()->toISOString(),
             ]);
 
             // Fail secure - deny access on validation errors
@@ -168,8 +172,9 @@ final class EnforceTenantIsolation
                 Log::warning('Session integrity violation: user ID mismatch', [
                     'session_user_id' => $sessionUserId,
                     'auth_user_id' => $user->id,
-                    'timestamp' => now()->toISOString()
+                    'timestamp' => now()->toISOString(),
                 ]);
+
                 return false;
             }
 
@@ -177,18 +182,20 @@ final class EnforceTenantIsolation
                 Log::warning('Session integrity violation: tenant ID mismatch', [
                     'session_tenant_id' => $sessionTenantId,
                     'current_tenant_id' => $currentTenant->id,
-                    'timestamp' => now()->toISOString()
+                    'timestamp' => now()->toISOString(),
                 ]);
+
                 return false;
             }
 
             // Validate authentication timestamp is reasonable
-            if (!$authenticatedAt || (time() - $authenticatedAt) > (24 * 60 * 60)) {
+            if (! $authenticatedAt || (time() - $authenticatedAt) > (24 * 60 * 60)) {
                 Log::warning('Session integrity violation: expired authentication', [
                     'authenticated_at' => $authenticatedAt,
                     'current_time' => time(),
-                    'timestamp' => now()->toISOString()
+                    'timestamp' => now()->toISOString(),
                 ]);
+
                 return false;
             }
 
@@ -197,7 +204,7 @@ final class EnforceTenantIsolation
         } catch (\Exception $e) {
             Log::error('Session integrity validation error', [
                 'error' => $e->getMessage(),
-                'timestamp' => now()->toISOString()
+                'timestamp' => now()->toISOString(),
             ]);
 
             // Fail secure - deny access on validation errors
@@ -215,9 +222,10 @@ final class EnforceTenantIsolation
             $previousTenantDomain = $request->session()->get('previous_secure_tenant_domain');
 
             // First access - establish baseline
-            if (!$previousTenantId) {
+            if (! $previousTenantId) {
                 $request->session()->put('previous_secure_tenant_id', $currentTenant->id);
                 $request->session()->put('previous_secure_tenant_domain', $currentTenant->domain);
+
                 return false;
             }
 
@@ -237,7 +245,7 @@ final class EnforceTenantIsolation
                     ->where('tenant_id', $currentTenant->id)
                     ->exists();
 
-                if (!$userBelongsToCurrent) {
+                if (! $userBelongsToCurrent) {
                     // User doesn't belong to current tenant - definitely malicious
                     return true;
                 }
@@ -246,6 +254,7 @@ final class EnforceTenantIsolation
                     // User belongs to both tenants - legitimate context switch
                     $request->session()->put('previous_secure_tenant_id', $currentTenant->id);
                     $request->session()->put('previous_secure_tenant_domain', $currentTenant->domain);
+
                     return false;
                 }
             }
@@ -255,7 +264,7 @@ final class EnforceTenantIsolation
         } catch (\Exception $e) {
             Log::error('Tenant context switch detection error', [
                 'error' => $e->getMessage(),
-                'timestamp' => now()->toISOString()
+                'timestamp' => now()->toISOString(),
             ]);
 
             // Fail secure - deny access on detection errors
@@ -285,7 +294,7 @@ final class EnforceTenantIsolation
      */
     private function logCriticalSecurityEvent(string $eventType, Request $request, User $user, ?Tenant $tenant): void
     {
-        Log::critical('CRITICAL SECURITY EVENT: ' . $eventType, [
+        Log::critical('CRITICAL SECURITY EVENT: '.$eventType, [
             'event_type' => $eventType,
             'user_id' => $user->id,
             'user_email' => $user->email,
@@ -324,7 +333,7 @@ final class EnforceTenantIsolation
                      str_starts_with($request->path(), 'tenant/admin') ||
                      (random_int(1, 10) === 1);
 
-        if (!$shouldLog) {
+        if (! $shouldLog) {
             return;
         }
 
@@ -335,7 +344,7 @@ final class EnforceTenantIsolation
             'request_path' => $request->path(),
             'request_method' => $request->method(),
             'request_ip' => $request->ip(),
-            'timestamp' => now()->toISOString()
+            'timestamp' => now()->toISOString(),
         ]);
     }
 
@@ -350,7 +359,7 @@ final class EnforceTenantIsolation
                 'success' => false,
                 'message' => $message,
                 'error_code' => 'unauthorized_tenant_access',
-                'timestamp' => now()->toISOString()
+                'timestamp' => now()->toISOString(),
             ], $statusCode);
         }
 

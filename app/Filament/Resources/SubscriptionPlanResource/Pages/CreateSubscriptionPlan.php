@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -41,7 +41,7 @@ class CreateSubscriptionPlan extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Auto-generate slug if not provided
-        if (empty($data['slug']) && !empty($data['name'])) {
+        if (empty($data['slug']) && ! empty($data['name'])) {
             $data['slug'] = \Illuminate\Support\Str::slug($data['name']);
         }
 

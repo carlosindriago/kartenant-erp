@@ -2,8 +2,8 @@
 
 namespace App\Mail;
 
-use App\Models\User;
-use App\Models\Tenant; // <-- Añade este import
+use App\Models\Tenant;
+use App\Models\User; // <-- Añade este import
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -15,7 +15,9 @@ class WelcomeNewTenant extends Mailable
     use Queueable, SerializesModels;
 
     public User $user;
+
     public Tenant $tenant; // <-- Añade la propiedad para el tenant
+
     public string $temporaryPassword;
 
     /**

@@ -17,7 +17,7 @@ return [
      * for the given request.
      *
      * This class should extend `Spatie\Multitenancy\TenantFinder\TenantFinder`
-     * 
+     *
      * NOTE: Set to null to disable automatic tenant resolution
      * Tenant resolution is handled by MakeSpatieTenantCurrent middleware
      * which is ONLY applied in AppPanelProvider (tenant panel)
@@ -38,9 +38,9 @@ return [
      */
     'switch_tenant_tasks' => [
         // \Spatie\Multitenancy\Tasks\PrefixCacheTask::class,
-         \Spatie\Multitenancy\Tasks\SwitchTenantDatabaseTask::class,
-         \App\Services\Multitenancy\SpatiePermissionsBootstrapper::class,
-         \App\Services\Multitenancy\TenantTimezoneBootstrapper::class,
+        \Spatie\Multitenancy\Tasks\SwitchTenantDatabaseTask::class,
+        \App\Services\Multitenancy\SpatiePermissionsBootstrapper::class,
+        \App\Services\Multitenancy\TenantTimezoneBootstrapper::class,
         // \Spatie\Multitenancy\Tasks\SwitchRouteCacheTask::class,
     ],
 

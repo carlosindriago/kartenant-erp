@@ -34,7 +34,7 @@ class ArchivedTenantAccessTest extends TestCase
         $this->assertTrue(class_exists(\App\Filament\Resources\ArchivedTenantResource::class));
 
         // Try to get the form schema without errors
-        $resource = new \App\Filament\Resources\ArchivedTenantResource();
+        $resource = new \App\Filament\Resources\ArchivedTenantResource;
         $this->assertNotNull($resource);
     }
 }

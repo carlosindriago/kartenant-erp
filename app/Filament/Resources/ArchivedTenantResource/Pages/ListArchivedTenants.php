@@ -4,12 +4,12 @@ namespace App\Filament\Resources\ArchivedTenantResource\Pages;
 
 use App\Filament\Resources\ArchivedTenantResource;
 use App\Filament\Resources\TenantResource;
-use Filament\Resources\Pages\ListRecords;
-use Filament\Actions;
-use Illuminate\Database\Eloquent\Builder;
 use App\Models\Tenant;
-use Illuminate\Support\Facades\Cache;
+use Filament\Actions;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\ListRecords;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 
 class ListArchivedTenants extends ListRecords
 {
@@ -60,6 +60,7 @@ class ListArchivedTenants extends ListRecords
                                 ->body('No se encontraron tenants archivados para realizar backups.')
                                 ->info()
                                 ->send();
+
                             return;
                         }
 
@@ -123,6 +124,7 @@ class ListArchivedTenants extends ListRecords
 
                         $exportData = $archivedTenants->map(function ($tenant) {
                             $latestBackup = $tenant->backupLogs->first();
+
                             return [
                                 'ID' => $tenant->id,
                                 'Nombre' => $tenant->name,
@@ -143,18 +145,18 @@ class ListArchivedTenants extends ListRecords
 
                         // Generate CSV content
                         $csv = "\xEF\xBB\xBF"; // UTF-8 BOM
-                        $csv .= implode(',', array_keys($exportData->first())) . "\n";
+                        $csv .= implode(',', array_keys($exportData->first()))."\n";
 
                         foreach ($exportData as $row) {
                             $csv .= implode(',', array_map(function ($value) {
-                                return '"' . str_replace('"', '""', $value) . '"';
-                            }, $row)) . "\n";
+                                return '"'.str_replace('"', '""', $value).'"';
+                            }, $row))."\n";
                         }
 
                         // Return download response
                         return response()->streamDownload(function () use ($csv) {
                             echo $csv;
-                        }, 'tenants_archivados_' . now()->format('Y-m-d_H-i-s') . '.csv', [
+                        }, 'tenants_archivados_'.now()->format('Y-m-d_H-i-s').'.csv', [
                             'Content-Type' => 'text/csv; charset=utf-8',
                         ]);
 

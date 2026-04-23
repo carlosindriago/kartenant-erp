@@ -76,7 +76,7 @@ class StoreSetting extends Model
      */
     public function getLogoUrlAttribute(): ?string
     {
-        if (!$this->logo_path) {
+        if (! $this->logo_path) {
             return null;
         }
 
@@ -88,7 +88,7 @@ class StoreSetting extends Model
      */
     public function getBackgroundImageUrlAttribute(): ?string
     {
-        if (!$this->background_image_path) {
+        if (! $this->background_image_path) {
             return null;
         }
 
@@ -160,12 +160,12 @@ class StoreSetting extends Model
      */
     public function setBrandColorAttribute($value): void
     {
-        if ($value && !Str::startsWith($value, '#')) {
-            $value = '#' . $value;
+        if ($value && ! Str::startsWith($value, '#')) {
+            $value = '#'.$value;
         }
 
         // Validate hex color format
-        if ($value && !preg_match('/^#[0-9A-Fa-f]{6}$/', $value)) {
+        if ($value && ! preg_match('/^#[0-9A-Fa-f]{6}$/', $value)) {
             throw new \InvalidArgumentException('El color debe estar en formato hexadecimal (#FF5733)');
         }
 
@@ -210,7 +210,7 @@ class StoreSetting extends Model
      */
     public function getWhatsappUrlAttribute(): ?string
     {
-        if (!$this->whatsapp_number) {
+        if (! $this->whatsapp_number) {
             return null;
         }
 
@@ -222,9 +222,9 @@ class StoreSetting extends Model
      */
     public function hasSocialMedia(): bool
     {
-        return !empty($this->facebook_url) ||
-               !empty($this->instagram_url) ||
-               !empty($this->whatsapp_number);
+        return ! empty($this->facebook_url) ||
+               ! empty($this->instagram_url) ||
+               ! empty($this->whatsapp_number);
     }
 
     /**
@@ -247,7 +247,7 @@ class StoreSetting extends Model
     {
         $color = $this->effective_brand_color;
 
-        return "--primary-color: {$color}; --primary-hover: " . $this->adjustBrightness($color, -20) . ";";
+        return "--primary-color: {$color}; --primary-hover: ".$this->adjustBrightness($color, -20).';';
     }
 
     /**
@@ -265,8 +265,8 @@ class StoreSetting extends Model
         $g = max(0, min(255, $g + ($g * $percent / 100)));
         $b = max(0, min(255, $b + ($b * $percent / 100)));
 
-        return '#' . str_pad(dechex($r), 2, '0', STR_PAD_LEFT) .
-               str_pad(dechex($g), 2, '0', STR_PAD_LEFT) .
+        return '#'.str_pad(dechex($r), 2, '0', STR_PAD_LEFT).
+               str_pad(dechex($g), 2, '0', STR_PAD_LEFT).
                str_pad(dechex($b), 2, '0', STR_PAD_LEFT);
     }
 
@@ -278,14 +278,14 @@ class StoreSetting extends Model
     {
         $settings = static::first();
 
-        if (!$settings) {
+        if (! $settings) {
             // Get current tenant using Spatie's helper
             $containerKey = config('multitenancy.current_tenant_container_key', 'currentTenant');
             $currentTenant = app()->bound($containerKey) ? app($containerKey) : null;
 
             $settings = static::create([
                 'store_name' => $currentTenant?->name ?? config('app.name'),
-                'welcome_message' => '¡Bienvenido a ' . ($currentTenant?->name ?? 'tu tienda') . '! Gestiona tu inventario de forma sencilla y eficiente.',
+                'welcome_message' => '¡Bienvenido a '.($currentTenant?->name ?? 'tu tienda').'! Gestiona tu inventario de forma sencilla y eficiente.',
             ]);
         }
 
@@ -352,7 +352,7 @@ class StoreSetting extends Model
             } catch (\Exception $e) {
                 \Log::warning('Error deleting logo file', [
                     'path' => $this->logo_path,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
 
@@ -375,7 +375,7 @@ class StoreSetting extends Model
             } catch (\Exception $e) {
                 \Log::warning('Error deleting background file', [
                     'path' => $this->background_image_path,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
 
@@ -391,11 +391,12 @@ class StoreSetting extends Model
      */
     public function getLogoPublicUrl(): ?string
     {
-        if (!$this->logo_path) {
+        if (! $this->logo_path) {
             return null;
         }
 
         $disk = config('multitenancy.tenant_uploads_disk', 'tenant_uploads');
+
         return \Storage::disk($disk)->url($this->logo_path);
     }
 
@@ -404,11 +405,12 @@ class StoreSetting extends Model
      */
     public function getBackgroundPublicUrl(): ?string
     {
-        if (!$this->background_image_path) {
+        if (! $this->background_image_path) {
             return null;
         }
 
         $disk = config('multitenancy.tenant_uploads_disk', 'tenant_uploads');
+
         return \Storage::disk($disk)->url($this->background_image_path);
     }
 
@@ -417,11 +419,12 @@ class StoreSetting extends Model
      */
     public function hasLogo(): bool
     {
-        if (!$this->logo_path) {
+        if (! $this->logo_path) {
             return false;
         }
 
         $disk = config('multitenancy.tenant_uploads_disk', 'tenant_uploads');
+
         return \Storage::disk($disk)->exists($this->logo_path);
     }
 
@@ -430,11 +433,12 @@ class StoreSetting extends Model
      */
     public function hasBackground(): bool
     {
-        if (!$this->background_image_path) {
+        if (! $this->background_image_path) {
             return false;
         }
 
         $disk = config('multitenancy.tenant_uploads_disk', 'tenant_uploads');
+
         return \Storage::disk($disk)->exists($this->background_image_path);
     }
 
@@ -443,13 +447,14 @@ class StoreSetting extends Model
      */
     public function getLogoSize(): ?string
     {
-        if (!$this->logo_path) {
+        if (! $this->logo_path) {
             return null;
         }
 
         try {
             $disk = config('multitenancy.tenant_uploads_disk', 'tenant_uploads');
             $size = \Storage::disk($disk)->size($this->logo_path);
+
             return $this->formatBytes($size);
         } catch (\Exception $e) {
             return null;
@@ -461,13 +466,14 @@ class StoreSetting extends Model
      */
     public function getBackgroundSize(): ?string
     {
-        if (!$this->background_image_path) {
+        if (! $this->background_image_path) {
             return null;
         }
 
         try {
             $disk = config('multitenancy.tenant_uploads_disk', 'tenant_uploads');
             $size = \Storage::disk($disk)->size($this->background_image_path);
+
             return $this->formatBytes($size);
         } catch (\Exception $e) {
             return null;
@@ -485,7 +491,7 @@ class StoreSetting extends Model
             $bytes /= 1024;
         }
 
-        return round($bytes, $precision) . ' ' . $units[$i];
+        return round($bytes, $precision).' '.$units[$i];
     }
 
     /**
@@ -497,6 +503,6 @@ class StoreSetting extends Model
         $timestamp = now()->format('Y-m-d_H-i-s');
         $random = Str::random(6);
 
-        return ($prefix ? $prefix . '_' : '') . $timestamp . '_' . $random . '.' . $extension;
+        return ($prefix ? $prefix.'_' : '').$timestamp.'_'.$random.'.'.$extension;
     }
 }

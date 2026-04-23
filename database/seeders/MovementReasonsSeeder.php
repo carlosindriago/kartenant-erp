@@ -9,21 +9,22 @@ class MovementReasonsSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * 
+     *
      * Creates predefined movement reasons for inventory management.
      * Includes common entry and exit reasons for stock movements.
      */
     public function run(): void
     {
         $tenant = \Spatie\Multitenancy\Models\Tenant::current();
-        
-        if (!$tenant) {
+
+        if (! $tenant) {
             $this->command->error('❌ No tenant context found. This seeder must run within a tenant context.');
+
             return;
         }
-        
+
         $tenantId = $tenant->id;
-        
+
         // Motivos de Entrada predeterminados
         $entryReasons = [
             'Compra a Proveedor',
@@ -32,7 +33,7 @@ class MovementReasonsSeeder extends Seeder
             'Producción Interna',
             'Donación Recibida',
         ];
-        
+
         // Motivos de Salida predeterminados
         $exitReasons = [
             'Venta',
@@ -43,7 +44,7 @@ class MovementReasonsSeeder extends Seeder
             'Donación Entregada',
             'Merma o Vencimiento',
         ];
-        
+
         MovementReason::withoutEvents(function () use ($entryReasons, $exitReasons) {
             foreach ($entryReasons as $reason) {
                 MovementReason::firstOrCreate(
@@ -56,7 +57,7 @@ class MovementReasonsSeeder extends Seeder
                     ]
                 );
             }
-            
+
             foreach ($exitReasons as $reason) {
                 MovementReason::firstOrCreate(
                     [
@@ -69,8 +70,8 @@ class MovementReasonsSeeder extends Seeder
                 );
             }
         });
-        
+
         $totalReasons = count($entryReasons) + count($exitReasons);
-        $this->command->info("✅ {$totalReasons} motivos de movimiento predeterminados creados (" . count($entryReasons) . " entrada, " . count($exitReasons) . " salida).");
+        $this->command->info("✅ {$totalReasons} motivos de movimiento predeterminados creados (".count($entryReasons).' entrada, '.count($exitReasons).' salida).');
     }
 }

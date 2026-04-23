@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -20,7 +20,7 @@ class DocumentVerificationLog extends Model
      * Conexión a base de datos landlord
      */
     protected $connection = 'landlord';
-    
+
     protected $fillable = [
         'verification_id',
         'ip_address',
@@ -28,14 +28,14 @@ class DocumentVerificationLog extends Model
         'verified_at',
         'result',
     ];
-    
+
     protected function casts(): array
     {
         return [
             'verified_at' => 'datetime',
         ];
     }
-    
+
     /**
      * Verificación asociada
      */
@@ -43,7 +43,7 @@ class DocumentVerificationLog extends Model
     {
         return $this->belongsTo(\App\Models\DocumentVerification::class, 'verification_id');
     }
-    
+
     /**
      * Scope: Filtrar por resultado
      */
@@ -51,7 +51,7 @@ class DocumentVerificationLog extends Model
     {
         return $query->where('result', $result);
     }
-    
+
     /**
      * Scope: Solo verificaciones válidas
      */
@@ -59,7 +59,7 @@ class DocumentVerificationLog extends Model
     {
         return $query->where('result', 'valid');
     }
-    
+
     /**
      * Scope: Solo verificaciones inválidas
      */
@@ -67,7 +67,7 @@ class DocumentVerificationLog extends Model
     {
         return $query->where('result', 'invalid');
     }
-    
+
     /**
      * Scope: Verificaciones recientes (últimas 24 horas)
      */

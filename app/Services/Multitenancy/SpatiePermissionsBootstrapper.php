@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -22,7 +22,7 @@ class SpatiePermissionsBootstrapper implements SwitchTenantTask
         config([
             'permission.models.permission' => \App\Models\Tenant\Permission::class,
             'permission.models.role' => \App\Models\Tenant\Role::class,
-            'permission.cache.key' => 'spatie.permission.cache.tenant.' . $tenant->id,
+            'permission.cache.key' => 'spatie.permission.cache.tenant.'.$tenant->id,
         ]);
 
         // Clear permission cache for tenant context

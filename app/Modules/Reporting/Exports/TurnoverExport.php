@@ -3,23 +3,19 @@
 namespace App\Modules\Reporting\Exports;
 
 use App\Modules\Reporting\Services\TurnoverService;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use Illuminate\Support\Collection;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class TurnoverExport implements
-    FromCollection,
-    WithHeadings,
-    WithStyles,
-    WithTitle,
-    ShouldAutoSize
+class TurnoverExport implements FromCollection, ShouldAutoSize, WithHeadings, WithStyles, WithTitle
 {
     protected TurnoverService $service;
+
     protected int $days;
 
     public function __construct(int $days = 30)
@@ -64,10 +60,10 @@ class TurnoverExport implements
 
         $rows->push([
             'Tasa de Rotación Promedio',
-            number_format($summary['average_turnover_rate'], 2) . 'x',
+            number_format($summary['average_turnover_rate'], 2).'x',
             '',
             'DSI Promedio',
-            number_format($summary['average_dsi'], 1) . ' días',
+            number_format($summary['average_dsi'], 1).' días',
             '',
             '',
             '',
@@ -75,10 +71,10 @@ class TurnoverExport implements
 
         $rows->push([
             'Alta Rotación',
-            $summary['fast_movers'] . ' productos',
+            $summary['fast_movers'].' productos',
             '',
             'Rotación Normal',
-            $summary['normal_movers'] . ' productos',
+            $summary['normal_movers'].' productos',
             '',
             '',
             '',
@@ -86,10 +82,10 @@ class TurnoverExport implements
 
         $rows->push([
             'Baja Rotación',
-            $summary['slow_movers'] . ' productos',
+            $summary['slow_movers'].' productos',
             '',
             'Estancados (0 ventas)',
-            $summary['stagnant'] . ' productos',
+            $summary['stagnant'].' productos',
             '',
             '',
             '',
@@ -124,8 +120,8 @@ class TurnoverExport implements
                 $product->category->name ?? 'Sin categoría',
                 number_format($product->stock),
                 number_format($turnoverData['units_sold']),
-                number_format($turnoverData['turnover_rate'], 2) . 'x',
-                number_format($turnoverData['days_sales_of_inventory'], 1) . ' días',
+                number_format($turnoverData['turnover_rate'], 2).'x',
+                number_format($turnoverData['days_sales_of_inventory'], 1).' días',
                 $turnoverData['recommendation'],
             ]);
         }
@@ -159,10 +155,10 @@ class TurnoverExport implements
                 $product->category->name ?? 'Sin categoría',
                 number_format($product->stock),
                 number_format($turnoverData['units_sold']),
-                number_format($turnoverData['turnover_rate'], 2) . 'x',
+                number_format($turnoverData['turnover_rate'], 2).'x',
                 $turnoverData['days_sales_of_inventory'] > 999
                     ? '+999 días'
-                    : number_format($turnoverData['days_sales_of_inventory'], 1) . ' días',
+                    : number_format($turnoverData['days_sales_of_inventory'], 1).' días',
                 $turnoverData['recommendation'],
             ]);
         }
@@ -170,7 +166,7 @@ class TurnoverExport implements
         // Footer
         $rows->push(['', '', '', '', '', '', '', '']);
         $rows->push([
-            'Reporte generado el: ' . now()->format('d/m/Y H:i'),
+            'Reporte generado el: '.now()->format('d/m/Y H:i'),
             '',
             '',
             '',

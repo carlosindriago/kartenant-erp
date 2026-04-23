@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,8 +13,8 @@ namespace App\Filament\App\Pages;
 
 use App\Models\Tenant;
 use App\Services\SubscriptionLimitService;
-use Filament\Pages\Page;
 use Filament\Actions\Action;
+use Filament\Pages\Page;
 
 class SubscriptionStatus extends Page
 {
@@ -46,7 +46,7 @@ class SubscriptionStatus extends Page
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return 'Sin plan activo';
         }
 
@@ -84,7 +84,7 @@ class SubscriptionStatus extends Page
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return [
                 'limits' => [],
                 'warnings' => [],

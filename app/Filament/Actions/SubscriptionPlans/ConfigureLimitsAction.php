@@ -2,10 +2,8 @@
 
 namespace App\Filament\Actions\SubscriptionPlans;
 
-use App\Models\SubscriptionPlan;
 use Filament\Actions\Action;
 use Filament\Forms;
-use Filament\Support\Colors\Color;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 
@@ -25,8 +23,7 @@ class ConfigureLimitsAction extends Action
             ->icon('heroicon-o-cog-6-tooth')
             ->color('primary')
             ->tooltip('Configurar estrategia de límites y tolerancia')
-            ->modalHeading(fn (Model $record): string =>
-                'Configurar Límites Flexibles: ' . $record->name
+            ->modalHeading(fn (Model $record): string => 'Configurar Límites Flexibles: '.$record->name
             )
             ->modalDescription('Define cómo el sistema manejará los excesos de límites en este plan')
             ->modalIcon('heroicon-o-shield-check')
@@ -35,6 +32,7 @@ class ConfigureLimitsAction extends Action
             ->modalCancelActionLabel('Cancelar')
             ->fillForm(function (Model $record): array {
                 $limits = $record->limits ?? [];
+
                 return [
                     'max_sales_per_month' => $limits['monthly_sales'] ?? $record->max_sales_per_month,
                     'max_users' => $limits['users'] ?? $record->max_users ?? 1,
@@ -111,8 +109,7 @@ class ConfigureLimitsAction extends Action
                                         'soft_limit' => '🟢 Flexible (Permitir exceso)',
                                     ])
                                     ->live()
-                                    ->afterStateUpdated(fn ($state, callable $set) =>
-                                        $set('show_tolerance', $state === 'soft_limit')
+                                    ->afterStateUpdated(fn ($state, callable $set) => $set('show_tolerance', $state === 'soft_limit')
                                     )
                                     ->helperText('El POS nunca se bloqueará, solo acciones administrativas'),
 
@@ -156,8 +153,7 @@ class ConfigureLimitsAction extends Action
                                     ->schema([
                                         Forms\Components\TextInput::make('overage_percentage')
                                             ->label('Porcentaje de Tolerancia')
-                                            ->helperText(fn (callable $get): string =>
-                                                $get('max_sales_per_month') && $get('overage_strategy') === 'soft_limit'
+                                            ->helperText(fn (callable $get): string => $get('max_sales_per_month') && $get('overage_strategy') === 'soft_limit'
                                                     ? sprintf(
                                                         'Con límite de %d ventas y tolerancia de %d%%, el bloqueo ocurrirá en %d ventas',
                                                         $get('max_sales_per_month'),
@@ -192,8 +188,7 @@ class ConfigureLimitsAction extends Action
 
                                         Forms\Components\Placeholder::make('tolerance_preview')
                                             ->label('Vista Previa de Límites')
-                                            ->content(fn (callable $get): string =>
-                                                $get('overage_strategy') === 'soft_limit' && $get('max_sales_per_month') && $get('overage_percentage')
+                                            ->content(fn (callable $get): string => $get('overage_strategy') === 'soft_limit' && $get('max_sales_per_month') && $get('overage_percentage')
                                                     ? sprintf(
                                                         '📊 Límite base: %d | 📈 Límite con tolerancia: %d | 💪 Exceso permitido: %d',
                                                         $get('max_sales_per_month'),
@@ -202,8 +197,7 @@ class ConfigureLimitsAction extends Action
                                                     )
                                                     : ''
                                             )
-                                            ->visible(fn (callable $get) =>
-                                                $get('overage_strategy') === 'soft_limit' && $get('max_sales_per_month')
+                                            ->visible(fn (callable $get) => $get('overage_strategy') === 'soft_limit' && $get('max_sales_per_month')
                                             ),
                                     ])
                                     ->visible(fn (callable $get) => $get('overage_strategy') === 'soft_limit'),
@@ -219,21 +213,21 @@ class ConfigureLimitsAction extends Action
                             ->content(function (callable $get): string {
                                 $strategy = $get('overage_strategy');
                                 $strategyText = $strategy === 'soft_limit'
-                                    ? '🟢 Flexible con ' . ($get('overage_percentage') ?? 20) . '% tolerancia'
+                                    ? '🟢 Flexible con '.($get('overage_percentage') ?? 20).'% tolerancia'
                                     : '🔴 Estricto sin tolerancia';
 
                                 return new \Illuminate\Support\HtmlString('
                                     <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-4">
                                         <h4 class="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">Resumen de Límites</h4>
                                         <div class="grid grid-cols-2 gap-2 text-xs">
-                                            <div>💰 Ventas: ' . ($get('max_sales_per_month') ?: 'Ilimitado') . '</div>
-                                            <div>👥 Usuarios: ' . ($get('max_users') ?? 1) . '</div>
-                                            <div>💾 Almacenamiento: ' . ($get('max_storage_mb') ?? 1024) . ' MB</div>
-                                            <div>📦 Productos: ' . ($get('max_products') ?: 'Ilimitado') . '</div>
+                                            <div>💰 Ventas: '.($get('max_sales_per_month') ?: 'Ilimitado').'</div>
+                                            <div>👥 Usuarios: '.($get('max_users') ?? 1).'</div>
+                                            <div>💾 Almacenamiento: '.($get('max_storage_mb') ?? 1024).' MB</div>
+                                            <div>📦 Productos: '.($get('max_products') ?: 'Ilimitado').'</div>
                                         </div>
                                         <div class="mt-3 pt-2 border-t border-blue-300 dark:border-blue-700">
                                             <div class="text-xs font-medium text-blue-800 dark:text-blue-200">
-                                                Estrategia: ' . $strategyText . '
+                                                Estrategia: '.$strategyText.'
                                             </div>
                                             <div class="text-xs text-blue-700 dark:text-blue-300 mt-1">
                                                 ⚡ El POS nunca se bloqueará - solo acciones administrativas
@@ -263,7 +257,7 @@ class ConfigureLimitsAction extends Action
                 ]);
 
                 $strategyText = $data['overage_strategy'] === 'soft_limit'
-                    ? 'Flexible con ' . $data['overage_percentage'] . '% tolerancia'
+                    ? 'Flexible con '.$data['overage_percentage'].'% tolerancia'
                     : 'Estricta sin tolerancia';
 
                 Notification::make()
@@ -273,10 +267,9 @@ class ConfigureLimitsAction extends Action
                     ->send();
             })
             ->requiresConfirmation()
-            ->modalSubmitAction(fn () =>
-                \Filament\Actions\StaticAction::make('save')
-                    ->label('💾 Guardar Configuración')
-                    ->color('success')
+            ->modalSubmitAction(fn () => \Filament\Actions\StaticAction::make('save')
+                ->label('💾 Guardar Configuración')
+                ->color('success')
             )
             ->successNotificationTitle('Límites flexibles configurados correctamente');
     }

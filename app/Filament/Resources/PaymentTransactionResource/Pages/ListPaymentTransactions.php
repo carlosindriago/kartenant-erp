@@ -3,10 +3,9 @@
 namespace App\Filament\Resources\PaymentTransactionResource\Pages;
 
 use App\Filament\Resources\PaymentTransactionResource;
-use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
 use App\Models\PaymentTransaction;
+use Filament\Resources\Components\Tab;
+use Filament\Resources\Pages\ListRecords;
 
 class ListPaymentTransactions extends ListRecords
 {

@@ -3,15 +3,14 @@
 namespace App\Filament\Resources\TenantResource\RelationManagers;
 
 use App\Models\Module;
-use App\Models\TenantModule;
 use App\Models\ModuleUsageLog;
+use App\Models\TenantModule;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ModulesRelationManager extends RelationManager
 {
@@ -100,9 +99,10 @@ class ModulesRelationManager extends RelationManager
                     ->getStateUsing(function ($record) {
                         $pivot = $record->pivot;
                         if ($pivot && $pivot->price_override) {
-                            return '$' . number_format($pivot->price_override, 2);
+                            return '$'.number_format($pivot->price_override, 2);
                         }
-                        return '$' . number_format($record->base_price_monthly, 2);
+
+                        return '$'.number_format($record->base_price_monthly, 2);
                     })
                     ->sortable(),
 
@@ -124,8 +124,7 @@ class ModulesRelationManager extends RelationManager
                     ->dateTime('d/m/Y')
                     ->placeholder('Ilimitado')
                     ->sortable()
-                    ->color(fn ($record) =>
-                        $record->pivot->expires_at && $record->pivot->expires_at->isPast()
+                    ->color(fn ($record) => $record->pivot->expires_at && $record->pivot->expires_at->isPast()
                             ? 'danger'
                             : null
                     ),
@@ -156,6 +155,7 @@ class ModulesRelationManager extends RelationManager
                             ->options(function (RelationManager $livewire) {
                                 // Get modules that are not already attached to this tenant
                                 $attachedModuleIds = $livewire->getOwnerRecord()->modules()->pluck('module_id');
+
                                 return Module::active()
                                     ->whereNotIn('id', $attachedModuleIds)
                                     ->ordered()

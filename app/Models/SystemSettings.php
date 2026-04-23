@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Cache;
 class SystemSettings extends Model
 {
     protected $connection = 'landlord';
+
     protected $table = 'system_settings';
 
     protected $fillable = [
@@ -40,7 +41,7 @@ class SystemSettings extends Model
         return Cache::remember("system_settings.{$key}", 3600, function () use ($key, $default) {
             $setting = self::where('key', $key)->first();
 
-            if (!$setting) {
+            if (! $setting) {
                 return $default;
             }
 
@@ -86,6 +87,7 @@ class SystemSettings extends Model
     public static function forget(string $key): bool
     {
         Cache::forget("system_settings.{$key}");
+
         return (bool) self::where('key', $key)->delete();
     }
 
@@ -159,7 +161,7 @@ class SystemSettings extends Model
 
     public static function isSlackEnabled(): bool
     {
-        return (bool) self::get('slack_enabled', false) && !empty(self::getSlackWebhook());
+        return (bool) self::get('slack_enabled', false) && ! empty(self::getSlackWebhook());
     }
 
     public static function getSmtpConfig(): array

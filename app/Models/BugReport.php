@@ -2,24 +2,24 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\DB;
 use App\Models\Concerns\BelongsToTenant;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class BugReport extends Model
 {
-    use SoftDeletes, BelongsToTenant;
+    use BelongsToTenant, SoftDeletes;
 
     protected $connection = 'landlord';
 
@@ -59,12 +59,12 @@ class BugReport extends Model
     public static function generateTicketNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'BUG-' . $date;
+        $prefix = 'BUG-'.$date;
 
         // Find last ticket number for today
         $lastTicket = DB::connection('landlord')
             ->table('bug_reports')
-            ->where('ticket_number', 'like', $prefix . '%')
+            ->where('ticket_number', 'like', $prefix.'%')
             ->orderBy('ticket_number', 'desc')
             ->value('ticket_number');
 
@@ -76,7 +76,7 @@ class BugReport extends Model
             $newNumber = 1;
         }
 
-        return $prefix . '-' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+        return $prefix.'-'.str_pad($newNumber, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -139,7 +139,7 @@ class BugReport extends Model
      */
     public function getSeverityColorAttribute(): string
     {
-        return match($this->severity) {
+        return match ($this->severity) {
             'critical' => 'danger',
             'high' => 'warning',
             'medium' => 'info',
@@ -150,7 +150,7 @@ class BugReport extends Model
 
     public function getStatusColorAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'pending' => 'warning',
             'in_progress' => 'info',
             'waiting_feedback' => 'gray',
@@ -162,7 +162,7 @@ class BugReport extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'pending' => 'Pendiente',
             'in_progress' => 'En Progreso',
             'waiting_feedback' => 'Esperando Feedback',
@@ -174,7 +174,7 @@ class BugReport extends Model
 
     public function getSeverityLabelAttribute(): string
     {
-        return match($this->severity) {
+        return match ($this->severity) {
             'critical' => '🔴 Crítico',
             'high' => '🟠 Alto',
             'medium' => '🟡 Medio',

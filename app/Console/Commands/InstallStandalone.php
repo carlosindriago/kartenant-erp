@@ -2,19 +2,19 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Artisan;
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 
 class InstallStandalone extends Command
 {
@@ -41,6 +41,7 @@ class InstallStandalone extends Command
 
         if (env('APP_MODE', 'saas') !== 'standalone') {
             $this->error('Error: APP_MODE no está configurado como "standalone" en el archivo .env.');
+
             return Command::FAILURE;
         }
 
@@ -87,7 +88,7 @@ class InstallStandalone extends Command
         );
 
         // Vincular usuario al tenant
-        if (!$tenant->users()->where('users.id', $user->id)->exists()) {
+        if (! $tenant->users()->where('users.id', $user->id)->exists()) {
             $tenant->users()->attach($user->id);
         }
 
@@ -97,7 +98,7 @@ class InstallStandalone extends Command
         $this->info('');
         $this->info('✅ ¡Instalación Completada!');
         $this->info('Puedes acceder al sistema operativo ingresando a la URL de tu aplicación (ej. http://localhost/app).');
-        
+
         return Command::SUCCESS;
     }
 }

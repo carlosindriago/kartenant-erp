@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CashRegisterClosing extends Model
 {
-    use HasFactory, SoftDeletes, HasInternalVerification;
+    use HasFactory, HasInternalVerification, SoftDeletes;
 
     protected $fillable = [
         'closing_number',
@@ -88,7 +88,8 @@ class CashRegisterClosing extends Model
     {
         $date = now()->format('Ymd');
         $last = self::whereDate('created_at', today())->count() + 1;
-        return "CLOSE-{$date}-" . str_pad($last, 4, '0', STR_PAD_LEFT);
+
+        return "CLOSE-{$date}-".str_pad($last, 4, '0', STR_PAD_LEFT);
     }
 
     public function opening(): BelongsTo
@@ -142,13 +143,13 @@ class CashRegisterClosing extends Model
     public function downloadPdf()
     {
         $format = $this->pdf_format ?? 'thermal';
-        
-        $viewName = $format === 'thermal' 
-            ? 'pdf.cash-register.closing-thermal' 
+
+        $viewName = $format === 'thermal'
+            ? 'pdf.cash-register.closing-thermal'
             : 'pdf.cash-register.closing-a4';
 
         $currentTenant = tenant();
-        
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($viewName, [
             'closing' => $this,
             'opening' => $this->opening,
@@ -160,20 +161,20 @@ class CashRegisterClosing extends Model
         if ($format === 'thermal') {
             $pdf->setPaper([0, 0, 226.77, 708.66], 'portrait');
         }
-        
+
         return $pdf->download("cierre-caja-{$this->closing_number}.pdf");
     }
 
     public function streamPdf()
     {
         $format = $this->pdf_format ?? 'thermal';
-        
-        $viewName = $format === 'thermal' 
-            ? 'pdf.cash-register.closing-thermal' 
+
+        $viewName = $format === 'thermal'
+            ? 'pdf.cash-register.closing-thermal'
             : 'pdf.cash-register.closing-a4';
 
         $currentTenant = tenant();
-        
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($viewName, [
             'closing' => $this,
             'opening' => $this->opening,
@@ -185,7 +186,25 @@ class CashRegisterClosing extends Model
         if ($format === 'thermal') {
             $pdf->setPaper([0, 0, 226.77, 708.66], 'portrait');
         }
-        
+
         return $pdf->stream("cierre-caja-{$this->closing_number}.pdf");
+    }
+
+    public function getDocumentName(): string
+    {
+        return 'Cierre de Caja';
+    }
+
+    public function generatePdf(): \Barryvdh\DomPDF\PDF
+    {
+        $tenant = \Spatie\Multitenancy\Models\Tenant::current();
+        
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.cash-register.closing-a4', [
+            'closing' => $this,
+            'tenant' => $tenant,
+            'qrCode' => app(\App\Services\QRCodeService::class)->generateVerificationQrForModel($this)
+        ]);
+
+        return $pdf;
     }
 }

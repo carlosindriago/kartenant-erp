@@ -2,17 +2,17 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Modules\POS\Resources;
 
-use App\Modules\POS\Resources\SaleReturnResource\Pages;
 use App\Modules\POS\Models\SaleReturn;
+use App\Modules\POS\Resources\SaleReturnResource\Pages;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -27,19 +27,19 @@ class SaleReturnResource extends Resource
     protected static ?string $model = SaleReturn::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-uturn-left';
-    
+
     protected static ?string $navigationLabel = 'Devoluciones';
-    
+
     protected static ?string $modelLabel = 'Devolución';
-    
+
     protected static ?string $pluralModelLabel = 'Devoluciones';
-    
+
     protected static ?string $navigationGroup = 'Punto de Venta';
-    
+
     protected static ?int $navigationSort = 3;
-    
+
     protected static bool $isScopedToTenant = false;
-    
+
     public static function getEloquentQuery(): Builder
     {
         // En database-per-tenant, no necesitamos filtrar por tenant_id
@@ -143,14 +143,14 @@ class SaleReturnResource extends Resource
                         'pending' => 'Pendiente',
                         'cancelled' => 'Cancelada',
                     ]),
-                
+
                 Tables\Filters\SelectFilter::make('return_type')
                     ->label('Tipo')
                     ->options([
                         'full' => 'Completa',
                         'partial' => 'Parcial',
                     ]),
-                
+
                 Tables\Filters\SelectFilter::make('refund_method')
                     ->label('Método de Reembolso')
                     ->options([
@@ -159,7 +159,7 @@ class SaleReturnResource extends Resource
                         'transfer' => 'Transferencia',
                         'credit_note' => 'Nota de Crédito',
                     ]),
-                
+
                 Tables\Filters\Filter::make('created_at')
                     ->form([
                         Forms\Components\DatePicker::make('from')
@@ -189,7 +189,7 @@ class SaleReturnResource extends Resource
                     ->color('danger')
                     ->url(fn (SaleReturn $record) => route('tenant.pos.credit-note.pdf', [
                         'tenant' => \Spatie\Multitenancy\Models\Tenant::current()->domain,
-                        'saleReturn' => $record->id
+                        'saleReturn' => $record->id,
                     ]))
                     ->openUrlInNewTab(),
 
@@ -208,14 +208,14 @@ class SaleReturnResource extends Resource
             ])
             ->defaultSort('created_at', 'desc');
     }
-    
+
     public static function getRelations(): array
     {
         return [
             //
         ];
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -223,7 +223,7 @@ class SaleReturnResource extends Resource
             'view' => Pages\ViewSaleReturn::route('/{record}'),
         ];
     }
-    
+
     public static function canCreate(): bool
     {
         // No permitir crear devoluciones directamente, solo desde las ventas

@@ -69,7 +69,7 @@ class InternalVerificationPermissionsSeeder extends Seeder
         // ===== ASIGNAR PERMISOS A ROLES =====
         // Limpiar cache de permisos para que se reconozcan los nuevos
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-        
+
         $this->assignPermissionsToRoles($guard);
 
         $this->command->info('✅ Permisos de verificación interna creados exitosamente');
@@ -100,11 +100,11 @@ class InternalVerificationPermissionsSeeder extends Seeder
                     'verify_customer_creation',
                     'verify_employee_creation',
                 ])->where('guard_name', $guard)->get();
-                
+
                 $admin->syncPermissions($permissions);
                 $this->command->info('  ✓ Admin: Todos los permisos asignados');
             } catch (\Exception $e) {
-                $this->command->warn('  ⚠ Error asignando permisos a Admin: ' . $e->getMessage());
+                $this->command->warn('  ⚠ Error asignando permisos a Admin: '.$e->getMessage());
             }
         }
 
@@ -121,11 +121,11 @@ class InternalVerificationPermissionsSeeder extends Seeder
                     'verify_stock_movements',
                     'verify_stock_adjustments',
                 ])->where('guard_name', $guard)->get();
-                
+
                 $gerente->syncPermissions($permissions);
                 $this->command->info('  ✓ Gerente: Permisos de verificación asignados');
             } catch (\Exception $e) {
-                $this->command->warn('  ⚠ Error asignando permisos a Gerente: ' . $e->getMessage());
+                $this->command->warn('  ⚠ Error asignando permisos a Gerente: '.$e->getMessage());
             }
         }
 
@@ -140,11 +140,11 @@ class InternalVerificationPermissionsSeeder extends Seeder
                     'manage_cash_register',
                     'view_cash_register_reports',
                 ])->where('guard_name', $guard)->get();
-                
+
                 $supervisor->syncPermissions($permissions);
                 $this->command->info('  ✓ Supervisor: Permisos de caja asignados');
             } catch (\Exception $e) {
-                $this->command->warn('  ⚠ Error asignando permisos a Supervisor: ' . $e->getMessage());
+                $this->command->warn('  ⚠ Error asignando permisos a Supervisor: '.$e->getMessage());
             }
         }
 
@@ -153,14 +153,14 @@ class InternalVerificationPermissionsSeeder extends Seeder
             $cajero = Role::firstOrCreate(
                 ['name' => 'cajero', 'guard_name' => $guard]
             );
-            
+
             $permissions = Permission::where('name', 'manage_cash_register')
                 ->where('guard_name', $guard)->get();
-            
+
             $cajero->syncPermissions($permissions);
             $this->command->info('  ✓ Cajero: Permisos de caja asignados');
         } catch (\Exception $e) {
-            $this->command->warn('  ⚠ Error asignando permisos a Cajero: ' . $e->getMessage());
+            $this->command->warn('  ⚠ Error asignando permisos a Cajero: '.$e->getMessage());
         }
     }
 }

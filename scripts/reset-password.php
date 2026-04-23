@@ -12,12 +12,12 @@ echo "=== Reset Password para Superadmin ===\n\n";
 
 $user = \App\Models\User::where('email', $email)->first();
 
-if (!$user) {
+if (! $user) {
     echo "❌ Usuario no encontrado: {$email}\n";
     exit(1);
 }
 
-if (!$user->is_super_admin) {
+if (! $user->is_super_admin) {
     echo "❌ El usuario no es superadmin\n";
     exit(1);
 }

@@ -2,13 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Models\User;
+use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use Exception;
 
 class InstallCommand extends Command
 {
@@ -33,55 +32,57 @@ class InstallCommand extends Command
         $this->newLine();
 
         // Check if already installed
-        if (!$this->option('force') && ($this->isInstalled() || $this->hasSuperAdmin())) {
+        if (! $this->option('force') && ($this->isInstalled() || $this->hasSuperAdmin())) {
             $this->error('❌ Sistema ya instalado. Use --force para reinstalar.');
+
             return 1;
         }
 
         try {
             // Collect configuration
             $config = $this->collectConfiguration();
-            
+
             // Validate configuration
             $this->validateConfiguration($config);
-            
+
             // Generate .env file
             $this->info('📝 Generando archivo de configuración...');
             $this->generateEnvFile($config);
-            
+
             // Test database connection
             $this->info('🔌 Probando conexión a la base de datos...');
             $this->testDatabaseConnection($config);
-            
+
             // Run migrations
             $this->info('🗄️  Ejecutando migraciones...');
             Artisan::call('migrate:fresh', ['--force' => true]);
-            
+
             // Seed permissions
             $this->info('🔐 Configurando permisos...');
             Artisan::call('db:seed', ['--class' => 'LandlordAdminSeeder', '--force' => true]);
-            
+
             // Create superadmin
             $this->info('👤 Creando cuenta de administrador...');
             $this->createSuperAdmin($config);
-            
+
             // Create installation lock
             $this->info('🔒 Finalizando instalación...');
             $this->createInstallationLock();
-            
+
             $this->newLine();
             $this->info('✅ ¡Instalación completada exitosamente!');
             $this->newLine();
             $this->line('📋 <info>Detalles de acceso:</info>');
             $this->line("   URL: <comment>{$config['app_url']}/admin</comment>");
             $this->line("   Email: <comment>{$config['admin_email']}</comment>");
-            $this->line("   Contraseña: <comment>[la que configuraste]</comment>");
+            $this->line('   Contraseña: <comment>[la que configuraste]</comment>');
             $this->newLine();
-            
+
             return 0;
-            
+
         } catch (Exception $e) {
             $this->error("❌ Error durante la instalación: {$e->getMessage()}");
+
             return 1;
         }
     }
@@ -100,8 +101,8 @@ class InstallCommand extends Command
         // Admin configuration
         $config['admin_name'] = $this->option('admin-name') ?: $this->ask('Nombre del administrador');
         $config['admin_email'] = $this->option('admin-email') ?: $this->ask('Email del administrador');
-        
-        if (!$this->option('admin-password')) {
+
+        if (! $this->option('admin-password')) {
             do {
                 $password = $this->secret('Contraseña del administrador (mín. 12 caracteres)');
                 if (strlen($password) < 12) {
@@ -123,14 +124,14 @@ class InstallCommand extends Command
     private function validateConfiguration(array $config): void
     {
         $required = ['db_database', 'db_username', 'admin_name', 'admin_email', 'admin_password'];
-        
+
         foreach ($required as $field) {
             if (empty($config[$field])) {
                 throw new Exception("Campo requerido faltante: {$field}");
             }
         }
 
-        if (!filter_var($config['admin_email'], FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($config['admin_email'], FILTER_VALIDATE_EMAIL)) {
             throw new Exception('Email de administrador inválido.');
         }
 
@@ -143,7 +144,7 @@ class InstallCommand extends Command
     {
         $envContent = "APP_NAME=\"{$config['app_name']}\"
 APP_ENV=production
-APP_KEY=" . config('app.key') . "
+APP_KEY=".config('app.key')."
 APP_DEBUG=false
 APP_TIMEZONE=America/Mexico_City
 APP_URL={$config['app_url']}
@@ -207,7 +208,7 @@ LANDLORD_DB_PASSWORD={$config['db_password']}";
         File::put(base_path('.installed'), json_encode([
             'installed_at' => now()->toISOString(),
             'version' => '1.0.0',
-            'method' => 'cli'
+            'method' => 'cli',
         ]));
     }
 

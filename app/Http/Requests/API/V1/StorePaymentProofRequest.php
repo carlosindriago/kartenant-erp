@@ -2,10 +2,9 @@
 
 namespace App\Http\Requests\API\V1;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
@@ -14,15 +13,11 @@ use Illuminate\Validation\Rule;
  *
  * Validates payment proof submission data for tenant billing API
  * Includes file validation, payment data, and tenant security checks
- *
- * @package App\Http\Requests\API\V1
  */
 class StorePaymentProofRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -53,16 +48,17 @@ class StorePaymentProofRequest extends FormRequest
             'files.*' => [
                 'required',
                 'file',
-                'max:' . ($maxFileSize * 1024), // Convert MB to KB
+                'max:'.($maxFileSize * 1024), // Convert MB to KB
                 function ($attribute, $value, $fail) use ($allowedTypes) {
-                    if (!$value instanceof \Illuminate\Http\UploadedFile) {
+                    if (! $value instanceof \Illuminate\Http\UploadedFile) {
                         $fail('El archivo no es válido');
+
                         return;
                     }
 
                     $extension = strtolower($value->getClientOriginalExtension());
-                    if (!in_array($extension, $allowedTypes)) {
-                        $fail("El tipo de archivo '{$extension}' no está permitido. Tipos permitidos: " . implode(', ', $allowedTypes));
+                    if (! in_array($extension, $allowedTypes)) {
+                        $fail("El tipo de archivo '{$extension}' no está permitido. Tipos permitidos: ".implode(', ', $allowedTypes));
                     }
                 },
             ],
@@ -89,7 +85,7 @@ class StorePaymentProofRequest extends FormRequest
                 'required',
                 'date',
                 'before_or_equal:today',
-                'after_or_equal:' . now()->subDays(90)->toDateString(), // Max 90 days old
+                'after_or_equal:'.now()->subDays(90)->toDateString(), // Max 90 days old
             ],
             'reference_number' => [
                 'nullable',
@@ -178,7 +174,6 @@ class StorePaymentProofRequest extends FormRequest
      * Configure the validator instance.
      *
      * @param  \Illuminate\Validation\Validator  $validator
-     * @return void
      */
     public function withValidator($validator): void
     {
@@ -207,14 +202,16 @@ class StorePaymentProofRequest extends FormRequest
         }
 
         // Validate tenant exists
-        if (!$tenant) {
+        if (! $tenant) {
             $validator->errors()->add('tenant', 'Tenant no válido');
+
             return;
         }
 
         // Validate subscription exists for payment amount validation
-        if (!$subscription) {
+        if (! $subscription) {
             $validator->errors()->add('subscription', 'No se encontró una suscripción activa');
+
             return;
         }
 
@@ -268,8 +265,6 @@ class StorePaymentProofRequest extends FormRequest
     /**
      * Handle a failed validation attempt.
      *
-     * @param  \Illuminate\Contracts\Validation\Validator  $validator
-     * @return void
      *
      * @throws \Illuminate\Http\Exceptions\HttpResponseException
      */
@@ -292,8 +287,6 @@ class StorePaymentProofRequest extends FormRequest
 
     /**
      * Prepare the data for validation.
-     *
-     * @return void
      */
     protected function prepareForValidation(): void
     {
@@ -314,8 +307,6 @@ class StorePaymentProofRequest extends FormRequest
 
     /**
      * Get the sanitized validated data.
-     *
-     * @return array
      */
     public function getValidatedData(): array
     {

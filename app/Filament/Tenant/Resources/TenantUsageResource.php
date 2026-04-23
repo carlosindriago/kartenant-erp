@@ -11,7 +11,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TenantUsageResource extends Resource
 {
@@ -55,29 +54,25 @@ class TenantUsageResource extends Resource
                             ->schema([
                                 Forms\Components\Placeholder::make('max_sales_display')
                                     ->label('Ventas Mensuales')
-                                    ->content(fn ($record) =>
-                                        $record->max_sales_per_month
+                                    ->content(fn ($record) => $record->max_sales_per_month
                                             ? number_format($record->max_sales_per_month)
                                             : 'Ilimitado'
                                     ),
                                 Forms\Components\Placeholder::make('max_products_display')
                                     ->label('Productos')
-                                    ->content(fn ($record) =>
-                                        $record->max_products
+                                    ->content(fn ($record) => $record->max_products
                                             ? number_format($record->max_products)
                                             : 'Ilimitado'
                                     ),
                                 Forms\Components\Placeholder::make('max_users_display')
                                     ->label('Usuarios')
-                                    ->content(fn ($record) =>
-                                        $record->max_users
+                                    ->content(fn ($record) => $record->max_users
                                             ? number_format($record->max_users)
                                             : 'Ilimitado'
                                     ),
                                 Forms\Components\Placeholder::make('max_storage_display')
                                     ->label('Almacenamiento (MB)')
-                                    ->content(fn ($record) =>
-                                        $record->max_storage_mb
+                                    ->content(fn ($record) => $record->max_storage_mb
                                             ? number_format($record->max_storage_mb)
                                             : 'Ilimitado'
                                     ),
@@ -91,53 +86,65 @@ class TenantUsageResource extends Resource
                                 Forms\Components\Placeholder::make('sales_usage')
                                     ->label('Ventas Realizadas')
                                     ->content(function ($record) {
-                                        if (!$record) return '-';
+                                        if (! $record) {
+                                            return '-';
+                                        }
                                         $percentage = number_format($record->sales_percentage, 1);
                                         $color = $record->getZoneForMetric('sales') === 'critical' ? 'red' :
                                                 ($record->getZoneForMetric('sales') === 'overdraft' ? 'orange' :
                                                 ($record->getZoneForMetric('sales') === 'warning' ? 'yellow' : 'green'));
+
                                         return new \Illuminate\Support\HtmlString(
-                                            "<div style='color: {$color}; font-weight: bold;'>" .
-                                            number_format($record->sales_count) . " ({$percentage}%)</div>"
+                                            "<div style='color: {$color}; font-weight: bold;'>".
+                                            number_format($record->sales_count)." ({$percentage}%)</div>"
                                         );
                                     }),
                                 Forms\Components\Placeholder::make('products_usage')
                                     ->label('Productos Creados')
                                     ->content(function ($record) {
-                                        if (!$record) return '-';
+                                        if (! $record) {
+                                            return '-';
+                                        }
                                         $percentage = number_format($record->products_percentage, 1);
                                         $color = $record->getZoneForMetric('products') === 'critical' ? 'red' :
                                                 ($record->getZoneForMetric('products') === 'overdraft' ? 'orange' :
                                                 ($record->getZoneForMetric('products') === 'warning' ? 'yellow' : 'green'));
+
                                         return new \Illuminate\Support\HtmlString(
-                                            "<div style='color: {$color}; font-weight: bold;'>" .
-                                            number_format($record->products_count) . " ({$percentage}%)</div>"
+                                            "<div style='color: {$color}; font-weight: bold;'>".
+                                            number_format($record->products_count)." ({$percentage}%)</div>"
                                         );
                                     }),
                                 Forms\Components\Placeholder::make('users_usage')
                                     ->label('Usuarios Activos')
                                     ->content(function ($record) {
-                                        if (!$record) return '-';
+                                        if (! $record) {
+                                            return '-';
+                                        }
                                         $percentage = number_format($record->users_percentage, 1);
                                         $color = $record->getZoneForMetric('users') === 'critical' ? 'red' :
                                                 ($record->getZoneForMetric('users') === 'overdraft' ? 'orange' :
                                                 ($record->getZoneForMetric('users') === 'warning' ? 'yellow' : 'green'));
+
                                         return new \Illuminate\Support\HtmlString(
-                                            "<div style='color: {$color}; font-weight: bold;'>" .
-                                            number_format($record->users_count) . " ({$percentage}%)</div>"
+                                            "<div style='color: {$color}; font-weight: bold;'>".
+                                            number_format($record->users_count)." ({$percentage}%)</div>"
                                         );
                                     }),
                                 Forms\Components\Placeholder::make('storage_usage')
                                     ->label('Almacenamiento (MB)')
                                     ->content(function ($record) {
-                                        if (!$record) return '-';
+                                        if (! $record) {
+                                            return '-';
+                                        }
                                         $percentage = number_format($record->storage_percentage, 1);
                                         $color = $record->getZoneForMetric('storage') === 'critical' ? 'red' :
                                                 ($record->getZoneForMetric('storage') === 'overdraft' ? 'orange' :
                                                 ($record->getZoneForMetric('storage') === 'warning' ? 'yellow' : 'green'));
+
                                         return new \Illuminate\Support\HtmlString(
-                                            "<div style='color: {$color}; font-weight: bold;'>" .
-                                            number_format($record->storage_size_mb) . " MB ({$percentage}%)</div>"
+                                            "<div style='color: {$color}; font-weight: bold;'>".
+                                            number_format($record->storage_size_mb)." MB ({$percentage}%)</div>"
                                         );
                                     }),
                             ]),
@@ -150,7 +157,9 @@ class TenantUsageResource extends Resource
                                 Forms\Components\Placeholder::make('status_display')
                                     ->label('Estado General')
                                     ->content(function ($record) {
-                                        if (!$record) return '-';
+                                        if (! $record) {
+                                            return '-';
+                                        }
 
                                         $statusConfig = [
                                             'normal' => ['color' => 'green', 'icon' => '✅', 'text' => 'Normal'],
@@ -162,7 +171,7 @@ class TenantUsageResource extends Resource
                                         $config = $statusConfig[$record->status] ?? $statusConfig['normal'];
 
                                         return new \Illuminate\Support\HtmlString(
-                                            "<div style='color: {$config['color']}; font-weight: bold; font-size: 1.1em;'>" .
+                                            "<div style='color: {$config['color']}; font-weight: bold; font-size: 1.1em;'>".
                                             "{$config['icon']} {$config['text']}</div>"
                                         );
                                     }),
@@ -209,11 +218,9 @@ class TenantUsageResource extends Resource
                 Tables\Columns\TextColumn::make('sales_count')
                     ->label('Ventas')
                     ->suffix(' / ')
-                    ->formatStateUsing(fn (TenantUsage $record) =>
-                        $record->max_sales_per_month ? number_format($record->max_sales_per_month) : '∞'
+                    ->formatStateUsing(fn (TenantUsage $record) => $record->max_sales_per_month ? number_format($record->max_sales_per_month) : '∞'
                     )
-                    ->color(fn (TenantUsage $record): string =>
-                        $record->getZoneForMetric('sales') === 'critical' ? 'danger' :
+                    ->color(fn (TenantUsage $record): string => $record->getZoneForMetric('sales') === 'critical' ? 'danger' :
                         ($record->getZoneForMetric('sales') === 'overdraft' ? 'warning' :
                         ($record->getZoneForMetric('sales') === 'warning' ? 'warning' : 'success'))
                     ),
@@ -221,11 +228,9 @@ class TenantUsageResource extends Resource
                 Tables\Columns\TextColumn::make('products_count')
                     ->label('Productos')
                     ->suffix(' / ')
-                    ->formatStateUsing(fn (TenantUsage $record) =>
-                        $record->max_products ? number_format($record->max_products) : '∞'
+                    ->formatStateUsing(fn (TenantUsage $record) => $record->max_products ? number_format($record->max_products) : '∞'
                     )
-                    ->color(fn (TenantUsage $record): string =>
-                        $record->getZoneForMetric('products') === 'critical' ? 'danger' :
+                    ->color(fn (TenantUsage $record): string => $record->getZoneForMetric('products') === 'critical' ? 'danger' :
                         ($record->getZoneForMetric('products') === 'overdraft' ? 'warning' :
                         ($record->getZoneForMetric('products') === 'warning' ? 'warning' : 'success'))
                     ),
@@ -233,11 +238,9 @@ class TenantUsageResource extends Resource
                 Tables\Columns\TextColumn::make('users_count')
                     ->label('Usuarios')
                     ->suffix(' / ')
-                    ->formatStateUsing(fn (TenantUsage $record) =>
-                        $record->max_users ? number_format($record->max_users) : '∞'
+                    ->formatStateUsing(fn (TenantUsage $record) => $record->max_users ? number_format($record->max_users) : '∞'
                     )
-                    ->color(fn (TenantUsage $record): string =>
-                        $record->getZoneForMetric('users') === 'critical' ? 'danger' :
+                    ->color(fn (TenantUsage $record): string => $record->getZoneForMetric('users') === 'critical' ? 'danger' :
                         ($record->getZoneForMetric('users') === 'overdraft' ? 'warning' :
                         ($record->getZoneForMetric('users') === 'warning' ? 'warning' : 'success'))
                     ),
@@ -245,11 +248,9 @@ class TenantUsageResource extends Resource
                 Tables\Columns\TextColumn::make('storage_size_mb')
                     ->label('Almacenamiento')
                     ->suffix(' MB / ')
-                    ->formatStateUsing(fn (TenantUsage $record) =>
-                        $record->max_storage_mb ? number_format($record->max_storage_mb) . ' MB' : '∞'
+                    ->formatStateUsing(fn (TenantUsage $record) => $record->max_storage_mb ? number_format($record->max_storage_mb).' MB' : '∞'
                     )
-                    ->color(fn (TenantUsage $record): string =>
-                        $record->getZoneForMetric('storage') === 'critical' ? 'danger' :
+                    ->color(fn (TenantUsage $record): string => $record->getZoneForMetric('storage') === 'critical' ? 'danger' :
                         ($record->getZoneForMetric('storage') === 'overdraft' ? 'warning' :
                         ($record->getZoneForMetric('storage') === 'warning' ? 'warning' : 'success'))
                     ),
@@ -280,8 +281,7 @@ class TenantUsageResource extends Resource
 
                 Tables\Filters\Filter::make('requires_upgrade')
                     ->label('Requiere Actualización')
-                    ->query(fn (Builder $query): Builder =>
-                        $query->where('upgrade_required_next_cycle', true)
+                    ->query(fn (Builder $query): Builder => $query->where('upgrade_required_next_cycle', true)
                     )
                     ->toggle(),
             ])

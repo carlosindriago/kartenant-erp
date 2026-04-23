@@ -3,19 +3,10 @@
 namespace App\Providers\Filament;
 
 use App\Models\Tenant;
-use App\Services\BugReportService;
 use Filament\Facades\Filament;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Navigation\NavigationGroup;
-use Filament\Notifications\Notification;
-use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -167,7 +158,7 @@ class AppPanelProvider extends PanelProvider
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return 'Kartenant';
         }
 
@@ -187,7 +178,7 @@ class AppPanelProvider extends PanelProvider
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return null;
         }
 
@@ -206,7 +197,7 @@ class AppPanelProvider extends PanelProvider
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return null;
         }
 

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class PaymentSettings extends Model
 {
     protected $connection = 'landlord';
+
     protected $table = 'payment_settings';
 
     protected $fillable = [
@@ -112,9 +113,9 @@ class PaymentSettings extends Model
      */
     public function isBankTransferConfigured(): bool
     {
-        return !empty($this->bank_name) &&
-               !empty($this->bank_account_number) &&
-               !empty($this->bank_account_holder);
+        return ! empty($this->bank_name) &&
+               ! empty($this->bank_account_number) &&
+               ! empty($this->bank_account_holder);
     }
 
     /**
@@ -130,7 +131,7 @@ class PaymentSettings extends Model
      */
     public function getAllowedFileExtensionsAttribute(): string
     {
-        return implode(',', array_map(fn($ext) => ".{$ext}", $this->allowed_file_types ?? []));
+        return implode(',', array_map(fn ($ext) => ".{$ext}", $this->allowed_file_types ?? []));
     }
 
     /**

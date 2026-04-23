@@ -2,22 +2,22 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Filament\App\Pages\Auth;
 
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Pages\SimplePage;
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 use Filament\Notifications\Notification;
-use App\Models\User;
+use Filament\Pages\SimplePage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
@@ -26,22 +26,25 @@ class ResetPassword extends SimplePage
     protected static string $view = 'filament.app.pages.auth.reset-password';
 
     public ?array $data = [];
+
     public $user;
 
     public function mount(): void
     {
         // Verificar que las preguntas de seguridad fueron verificadas
-        if (!session('security_questions_verified') || !session('password_reset_email')) {
+        if (! session('security_questions_verified') || ! session('password_reset_email')) {
             $this->redirect(route('tenant.forgot-password', ['tenant' => Filament::getTenant()]));
+
             return;
         }
 
         // Obtener el usuario
         $this->user = User::where('email', session('password_reset_email'))->first();
-        
-        if (!$this->user) {
+
+        if (! $this->user) {
             session()->forget(['password_reset_code', 'password_reset_email', 'password_reset_expires', 'security_code_verified', 'security_questions_verified']);
             $this->redirect(route('tenant.forgot-password', ['tenant' => Filament::getTenant()]));
+
             return;
         }
 
@@ -58,7 +61,7 @@ class ResetPassword extends SimplePage
                     ->required()
                     ->rule(Password::min(8)->mixedCase()->numbers()->symbols())
                     ->helperText('Mínimo 8 caracteres, incluye mayúsculas, minúsculas, números y símbolos'),
-                    
+
                 TextInput::make('password_confirmation')
                     ->label('Confirmar Nueva Contraseña')
                     ->password()
@@ -72,7 +75,7 @@ class ResetPassword extends SimplePage
     public function resetPassword(): void
     {
         $data = $this->form->getState();
-        
+
         // Actualizar la contraseña del usuario
         $this->user->update([
             'password' => Hash::make($data['password']),
@@ -81,11 +84,11 @@ class ResetPassword extends SimplePage
 
         // Limpiar todas las sesiones de reset
         session()->forget([
-            'password_reset_code', 
-            'password_reset_email', 
-            'password_reset_expires', 
-            'security_code_verified', 
-            'security_questions_verified'
+            'password_reset_code',
+            'password_reset_email',
+            'password_reset_expires',
+            'security_code_verified',
+            'security_questions_verified',
         ]);
 
         Notification::make()

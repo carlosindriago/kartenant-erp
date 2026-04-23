@@ -2,17 +2,16 @@
 
 namespace App\Services;
 
+use App\Models\Invoice;
+use App\Models\PaymentProof;
+use App\Models\PaymentTransaction;
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
-use App\Models\PaymentTransaction;
-use App\Models\PaymentProof;
-use App\Models\Invoice;
 use App\Models\User;
-use App\Models\SubscriptionPlan;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 
 class PaymentTransactionService
 {
@@ -22,9 +21,9 @@ class PaymentTransactionService
     public function createManualTransaction(
         TenantSubscription $subscription,
         PaymentProof $paymentProof,
-        string $transactionId = null
+        ?string $transactionId = null
     ): PaymentTransaction {
-        $transactionId = $transactionId ?? 'MANUAL-' . uniqid() . '-' . time();
+        $transactionId = $transactionId ?? 'MANUAL-'.uniqid().'-'.time();
 
         return PaymentTransaction::create([
             'tenant_id' => $subscription->tenant_id,
@@ -238,11 +237,12 @@ class PaymentTransactionService
     ): ?PaymentTransaction {
         $transaction = PaymentTransaction::where('transaction_id', $gatewayTransactionId)->first();
 
-        if (!$transaction) {
+        if (! $transaction) {
             Log::warning('Transaction not found for webhook', [
                 'gateway_transaction_id' => $gatewayTransactionId,
                 'webhook_data' => $webhookData,
             ]);
+
             return null;
         }
 
@@ -426,41 +426,41 @@ class PaymentTransactionService
         $query = PaymentTransaction::with(['tenant', 'subscription.plan', 'approver']);
 
         // Filter by tenant
-        if (!empty($filters['tenant_id'])) {
+        if (! empty($filters['tenant_id'])) {
             $query->where('tenant_id', $filters['tenant_id']);
         }
 
         // Filter by status
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
         // Filter by gateway
-        if (!empty($filters['gateway'])) {
+        if (! empty($filters['gateway'])) {
             $query->where('gateway_driver', $filters['gateway']);
         }
 
         // Filter by amount range
-        if (!empty($filters['amount_min'])) {
+        if (! empty($filters['amount_min'])) {
             $query->where('amount', '>=', $filters['amount_min']);
         }
 
-        if (!empty($filters['amount_max'])) {
+        if (! empty($filters['amount_max'])) {
             $query->where('amount', '<=', $filters['amount_max']);
         }
 
         // Filter by date range
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->where('created_at', '>=', $filters['date_from']);
         }
 
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->where('created_at', '<=', $filters['date_to']);
         }
 
         // Search by transaction ID
-        if (!empty($filters['transaction_id'])) {
-            $query->where('transaction_id', 'like', '%' . $filters['transaction_id'] . '%');
+        if (! empty($filters['transaction_id'])) {
+            $query->where('transaction_id', 'like', '%'.$filters['transaction_id'].'%');
         }
 
         // Order and paginate
@@ -543,19 +543,19 @@ class PaymentTransactionService
         $query = PaymentTransaction::with(['tenant', 'subscription.plan', 'approver']);
 
         // Apply same filters as search method
-        if (!empty($filters['tenant_id'])) {
+        if (! empty($filters['tenant_id'])) {
             $query->where('tenant_id', $filters['tenant_id']);
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->where('created_at', '>=', $filters['date_from']);
         }
 
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->where('created_at', '<=', $filters['date_to']);
         }
 
@@ -574,13 +574,13 @@ class PaymentTransactionService
             'Created At',
             'Approved At',
             'Approved By',
-        ]) . "\n";
+        ])."\n";
 
         foreach ($transactions as $transaction) {
             $csv .= implode(',', [
                 $transaction->id,
-                '"' . ($transaction->tenant->name ?? '') . '"',
-                '"' . ($transaction->subscription->plan->name ?? '') . '"',
+                '"'.($transaction->tenant->name ?? '').'"',
+                '"'.($transaction->subscription->plan->name ?? '').'"',
                 $transaction->amount,
                 $transaction->currency,
                 $transaction->gateway_driver,
@@ -588,12 +588,12 @@ class PaymentTransactionService
                 $transaction->transaction_id,
                 $transaction->created_at->toIso8601String(),
                 $transaction->approved_at?->toIso8601String() ?? '',
-                '"' . ($transaction->approver->name ?? '') . '"',
-            ]) . "\n";
+                '"'.($transaction->approver->name ?? '').'"',
+            ])."\n";
         }
 
         // Generate filename
-        $filename = 'payment_transactions_' . now()->format('Y-m-d_H-i-s') . '.csv';
+        $filename = 'payment_transactions_'.now()->format('Y-m-d_H-i-s').'.csv';
         $path = "exports/{$filename}";
 
         // Store file

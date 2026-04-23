@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class RegistrationAttempt extends Model
 {
     protected $connection = 'landlord';
+
     protected $table = 'registration_attempts';
-    
+
     protected $fillable = [
         'ip_address',
         'email',
@@ -20,13 +21,13 @@ class RegistrationAttempt extends Model
         'captcha_score',
         'blocked_reason',
     ];
-    
+
     protected $casts = [
         'last_attempt_at' => 'datetime',
         'captcha_passed' => 'boolean',
         'captcha_score' => 'decimal:2',
     ];
-    
+
     public static function recordAttempt(
         string $ip,
         ?string $email = null,
@@ -43,16 +44,16 @@ class RegistrationAttempt extends Model
         $attempt->captcha_passed = $captchaPassed;
         $attempt->captcha_score = $captchaScore;
         $attempt->save();
-        
+
         return $attempt;
     }
-    
+
     public static function getRecentAttempts(string $ip, int $minutes = 60): int
     {
         $record = self::where('ip_address', $ip)
             ->where('last_attempt_at', '>=', now()->subMinutes($minutes))
             ->first();
-            
+
         return $record->attempt_count ?? 0;
     }
 }

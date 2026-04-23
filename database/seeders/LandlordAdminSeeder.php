@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Landlord\Permission;
 use App\Models\Landlord\Role;
+use Illuminate\Database\Seeder;
 
 class LandlordAdminSeeder extends Seeder
 {

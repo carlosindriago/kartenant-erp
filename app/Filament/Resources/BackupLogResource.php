@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -16,10 +16,10 @@ use App\Models\BackupLog;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
 class BackupLogResource extends Resource
@@ -84,13 +84,11 @@ class BackupLogResource extends Resource
                     }),
                 TextColumn::make('formatted_file_size')
                     ->label('Tamaño')
-                    ->sortable(query: fn (Builder $query, string $direction): Builder =>
-                        $query->orderBy('file_size', $direction)
+                    ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderBy('file_size', $direction)
                     ),
                 TextColumn::make('duration')
                     ->label('Duración')
-                    ->formatStateUsing(fn (?int $state): string =>
-                        $state ? "{$state}s" : '-'
+                    ->formatStateUsing(fn (?int $state): string => $state ? "{$state}s" : '-'
                     )
                     ->toggleable(),
                 TextColumn::make('started_at')
@@ -107,8 +105,7 @@ class BackupLogResource extends Resource
                     ->label('Fecha')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
-                    ->description(fn (BackupLog $record): string =>
-                        $record->created_at->diffForHumans()
+                    ->description(fn (BackupLog $record): string => $record->created_at->diffForHumans()
                     ),
             ])
             ->filters([
@@ -153,6 +150,7 @@ class BackupLogResource extends Resource
     public static function shouldRegisterNavigation(): bool
     {
         $user = auth('superadmin')->user();
+
         return $user?->is_super_admin || ($user?->hasPermissionTo('admin.system.view', 'superadmin') ?? false);
     }
 

@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -17,13 +17,11 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
 
 class StockMovementResource extends Resource
 {
@@ -32,15 +30,20 @@ class StockMovementResource extends Resource
     protected static ?string $model = StockMovement::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
+
     protected static ?string $navigationLabel = 'Movimientos';
+
     protected static ?string $modelLabel = 'Movimiento';
+
     protected static ?string $pluralModelLabel = 'Movimientos';
+
     protected static ?string $navigationGroup = 'Inventario';
+
     protected static ?int $navigationSort = 2;
-    
+
     // Disable Filament's tenant scoping to avoid ownership relationship checks
     protected static bool $isScopedToTenant = false;
-    
+
     public static function getEloquentQuery(): Builder
     {
         // En database-per-tenant, no necesitamos filtrar por tenant_id
@@ -67,7 +70,7 @@ class StockMovementResource extends Resource
                     ->badge()
                     ->color('info')
                     ->icon('heroicon-o-document-text'),
-                    
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Fecha')
                     ->dateTime('d/m/Y H:i')
@@ -103,8 +106,7 @@ class StockMovementResource extends Resource
                     ->numeric()
                     ->badge()
                     ->color(fn ($record): string => $record->type === 'entrada' ? 'success' : 'danger')
-                    ->formatStateUsing(fn ($record): string => 
-                        $record->type === 'entrada' ? "+{$record->quantity}" : "-{$record->quantity}"
+                    ->formatStateUsing(fn ($record): string => $record->type === 'entrada' ? "+{$record->quantity}" : "-{$record->quantity}"
                     ),
 
                 Tables\Columns\TextColumn::make('previous_stock')
@@ -124,6 +126,7 @@ class StockMovementResource extends Resource
                     ->searchable()
                     ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
                         $state = $column->getState();
+
                         return strlen($state) > 30 ? $state : null;
                     }),
 
@@ -191,7 +194,7 @@ class StockMovementResource extends Resource
                     ->tooltip('Descargar ticket 80mm')
                     ->url(fn (StockMovement $record): string => route('tenant.stock-movements.download', [
                         'record' => $record->id,
-                        'format' => 'thermal'
+                        'format' => 'thermal',
                     ]))
                     ->openUrlInNewTab(),
 
@@ -202,7 +205,7 @@ class StockMovementResource extends Resource
                     ->tooltip('Descargar documento A4')
                     ->url(fn (StockMovement $record): string => route('tenant.stock-movements.download', [
                         'record' => $record->id,
-                        'format' => 'a4'
+                        'format' => 'a4',
                     ]))
                     ->openUrlInNewTab(),
 
@@ -213,7 +216,7 @@ class StockMovementResource extends Resource
                     ->tooltip('Ver todos los movimientos de este producto')
                     ->visible(fn ($record) => $record && $record->product)
                     ->url(fn (StockMovement $record): string => route('tenant.stock-movements.index', [
-                        'product' => $record->product_id
+                        'product' => $record->product_id,
                     ]))
                     ->openUrlInNewTab(),
 
@@ -222,8 +225,7 @@ class StockMovementResource extends Resource
                     ->icon('heroicon-o-pencil-square')
                     ->color('warning')
                     ->tooltip('Crear movimiento de corrección')
-                    ->visible(fn (StockMovement $record) =>
-                        auth()->user()->can('create_stock_correction') &&
+                    ->visible(fn (StockMovement $record) => auth()->user()->can('create_stock_correction') &&
                         $record && $record->product
                     )
                     ->form([
@@ -331,7 +333,9 @@ class StockMovementResource extends Resource
     public static function calculateStockMovementHealthScore($record): int
     {
         try {
-            if (!$record) return 0;
+            if (! $record) {
+                return 0;
+            }
 
             $cacheKey = "stock_movement_health_{$record->id}";
 
@@ -341,7 +345,7 @@ class StockMovementResource extends Resource
                 // Movement type validation
                 if (empty($record->type)) {
                     $score -= 50; // Sin tipo de movimiento
-                } elseif (!in_array($record->type, ['entrada', 'salida'])) {
+                } elseif (! in_array($record->type, ['entrada', 'salida'])) {
                     $score -= 30; // Tipo inválido
                 }
 
@@ -370,9 +374,9 @@ class StockMovementResource extends Resource
                 }
 
                 // Product relationship health
-                if (!$record->product_id) {
+                if (! $record->product_id) {
                     $score -= 45; // Sin producto (crítico)
-                } elseif (!$record->product) {
+                } elseif (! $record->product) {
                     $score -= 30; // Producto no existe (datos corruptos)
                 }
 
@@ -402,15 +406,15 @@ class StockMovementResource extends Resource
 
                 // Supplier validation (for entries)
                 if ($record->type === 'entrada') {
-                    if (!$record->supplier_id) {
+                    if (! $record->supplier_id) {
                         $score -= 15; // Entrada sin proveedor
-                    } elseif (!$record->supplier) {
+                    } elseif (! $record->supplier) {
                         $score -= 10; // Proveedor no existe
                     }
                 }
 
                 // User assignment
-                if (!$record->user_id) {
+                if (! $record->user_id) {
                     $score -= 10; // Sin usuario asignado
                 }
 
@@ -427,7 +431,7 @@ class StockMovementResource extends Resource
                         ->where('type', $record->type)
                         ->whereBetween('created_at', [
                             $record->created_at->copy()->subMinutes(5),
-                            $record->created_at->copy()->addMinutes(5)
+                            $record->created_at->copy()->addMinutes(5),
                         ])
                         ->where('id', '!=', $record->id)
                         ->count();
@@ -458,7 +462,7 @@ class StockMovementResource extends Resource
                         ->where('type', $record->type === 'entrada' ? 'salida' : 'entrada')
                         ->whereBetween('created_at', [
                             $record->created_at->copy()->subHours(24),
-                            $record->created_at->copy()->addHours(24)
+                            $record->created_at->copy()->addHours(24),
                         ])
                         ->count();
 
@@ -482,7 +486,9 @@ class StockMovementResource extends Resource
     public static function getStockMovementHealthTooltip($record): string
     {
         try {
-            if (!$record) return 'Error al calcular salud';
+            if (! $record) {
+                return 'Error al calcular salud';
+            }
 
             $cacheKey = "stock_movement_health_tooltip_{$record->id}";
 
@@ -492,7 +498,7 @@ class StockMovementResource extends Resource
                 // Type analysis
                 if (empty($record->type)) {
                     $factors[] = '🔴 Sin tipo (-50)';
-                } elseif (!in_array($record->type, ['entrada', 'salida'])) {
+                } elseif (! in_array($record->type, ['entrada', 'salida'])) {
                     $factors[] = '🔴 Tipo inválido (-30)';
                 } else {
                     $typeText = $record->type === 'entrada' ? '🟢 Entrada' : '🟢 Salida';
@@ -532,9 +538,9 @@ class StockMovementResource extends Resource
                 }
 
                 // Product analysis
-                if (!$record->product_id) {
+                if (! $record->product_id) {
                     $factors[] = '🔴 Sin producto (-45)';
-                } elseif (!$record->product) {
+                } elseif (! $record->product) {
                     $factors[] = '🔴 Producto no existe (-30)';
                 } else {
                     $factors[] = "🟢 {$record->product->name}";
@@ -542,9 +548,9 @@ class StockMovementResource extends Resource
 
                 // Supplier analysis (for entries)
                 if ($record->type === 'entrada') {
-                    if (!$record->supplier_id) {
+                    if (! $record->supplier_id) {
                         $factors[] = '🔴 Sin proveedor (-15)';
-                    } elseif (!$record->supplier) {
+                    } elseif (! $record->supplier) {
                         $factors[] = '🟡 Proveedor no existe (-10)';
                     } elseif ($record->supplier) {
                         $factors[] = "🟢 Proveedor: {$record->supplier->name}";
@@ -552,7 +558,7 @@ class StockMovementResource extends Resource
                 }
 
                 // User analysis
-                if (!$record->user_id) {
+                if (! $record->user_id) {
                     $factors[] = '🟡 Sin usuario (-10)';
                 } else {
                     $factors[] = "🟢 Usuario: {$record->user_name}";
@@ -614,7 +620,7 @@ class StockMovementResource extends Resource
                         ->where('type', $record->type === 'entrada' ? 'salida' : 'entrada')
                         ->whereBetween('created_at', [
                             $record->created_at->copy()->subHours(24),
-                            $record->created_at->copy()->addHours(24)
+                            $record->created_at->copy()->addHours(24),
                         ])
                         ->count();
 
@@ -630,7 +636,7 @@ class StockMovementResource extends Resource
                 $score = self::calculateStockMovementHealthScore($record);
                 $color = $score >= 80 ? '🟢' : ($score >= 60 ? '🟡' : '🔴');
 
-                return $color . " Salud: {$score}/100\n\n" . implode("\n", $factors);
+                return $color." Salud: {$score}/100\n\n".implode("\n", $factors);
             });
         } catch (\Exception $e) {
             return 'Error al calcular detalles de salud';

@@ -2,39 +2,38 @@
 
 namespace App\Services;
 
-use App\Models\Tenant;
-use App\Models\User;
-use App\Models\TrialIpTracking;
-use App\Models\RegistrationAttempt;
 use App\Models\SubscriptionPlan;
+use App\Models\Tenant;
 use App\Models\TenantSubscription;
+use App\Models\TrialIpTracking;
+use App\Models\User;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class TenantRegistrationService
 {
     private const DEFAULT_TRIAL_DAYS = 7;
-    
+
     /**
      * Register a new tenant with all setup
      */
     public function registerTenant(array $data): array
     {
-        $databaseName = 'tenant_' . Str::slug($data['domain'], '_');
+        $databaseName = 'tenant_'.Str::slug($data['domain'], '_');
 
         // 1. Create Database (Must be outside transaction for Postgres)
         try {
             // Check if database exists to avoid errors
-            $exists = DB::connection('landlord')->select("SELECT 1 FROM pg_database WHERE datname = ?", [$databaseName]);
+            $exists = DB::connection('landlord')->select('SELECT 1 FROM pg_database WHERE datname = ?', [$databaseName]);
             if (empty($exists)) {
                 DB::connection('landlord')->statement("CREATE DATABASE \"{$databaseName}\"");
             }
         } catch (\Exception $e) {
-            Log::error('Failed to create tenant database: ' . $e->getMessage());
+            Log::error('Failed to create tenant database: '.$e->getMessage());
+
             return [
                 'success' => false,
                 'message' => 'Error al inicializar la base de datos. Por favor contacte soporte.',
@@ -42,19 +41,19 @@ class TenantRegistrationService
         }
 
         DB::connection('landlord')->beginTransaction();
-        
+
         try {
             // 2. Create Tenant Record
             $tenant = $this->createTenant($data, $databaseName);
-            
+
             // 3. Create Admin User
             $admin = $this->createAdminUser($tenant, $data);
-            
+
             // 4. Create Subscription
             $subscription = $this->createSubscription($tenant, $data);
-            
+
             DB::connection('landlord')->commit();
-            
+
             // 5. Run Migrations (Tenant Context)
             try {
                 $tenant->makeCurrent();
@@ -62,7 +61,7 @@ class TenantRegistrationService
                     'artisanCommand' => 'migrate --database=tenant --path=database/migrations/tenant --force',
                     '--tenant' => $tenant->id,
                 ]);
-                
+
                 // Seed basic data
                 Artisan::call('tenants:artisan', [
                     'artisanCommand' => 'db:seed --class=MovementReasonsSeeder --database=tenant --force',
@@ -79,7 +78,7 @@ class TenantRegistrationService
                         'cashier_void_requires_own_sale' => true,
                     ]);
                 });
-                
+
             } catch (\Exception $e) {
                 Log::error('Tenant migration failed', ['error' => $e->getMessage()]);
                 // We don't rollback the tenant creation here, but we log it.
@@ -88,7 +87,7 @@ class TenantRegistrationService
 
             // 6. Send Welcome Email (Queue)
             // Mail::to($admin->email)->queue(new WelcomeTenantMail($tenant, $admin));
-            
+
             return [
                 'success' => true,
                 'tenant_id' => $tenant->id,
@@ -97,25 +96,25 @@ class TenantRegistrationService
                 'subscription_id' => $subscription->id,
                 'message' => 'Cuenta creada exitosamente.',
             ];
-            
+
         } catch (\Exception $e) {
             DB::connection('landlord')->rollBack();
             Log::error('Tenant registration failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            
-            // Optional: Drop database if it was just created? 
+
+            // Optional: Drop database if it was just created?
             // For safety, we might leave it or try to drop it.
-            
+
             return [
                 'success' => false,
                 'message' => 'Error al crear la cuenta. Por favor intenta nuevamente.',
             ];
         }
     }
-    
+
     private function createTenant(array $data, string $databaseName): Tenant
     {
         // $databaseName is passed as argument
-        
+
         // Use withoutEvents to avoid TenantObserver conflicts (DB creation, migrations inside transaction)
         return Tenant::withoutEvents(function () use ($data, $databaseName) {
             return Tenant::create([
@@ -136,7 +135,7 @@ class TenantRegistrationService
             ]);
         });
     }
-    
+
     private function createAdminUser(Tenant $tenant, array $data): User
     {
         \Log::info('Creating admin user', ['email' => $data['email'], 'password_length' => strlen($data['password'])]);
@@ -148,7 +147,7 @@ class TenantRegistrationService
             'must_change_password' => false,
             'is_active' => true,
         ]);
-        
+
         // Associate user with tenant
         DB::connection('landlord')->table('tenant_user')->insert([
             'tenant_id' => $tenant->id,
@@ -156,20 +155,20 @@ class TenantRegistrationService
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        
+
         return $user;
     }
-    
+
     private function createSubscription(Tenant $tenant, array $data): TenantSubscription
     {
         $planType = $data['plan_type'] ?? 'trial';
         $trialAutoEnabled = \App\Models\SystemSetting::get('trial.auto_enable', true);
-        
+
         if ($planType === 'trial' && $trialAutoEnabled) {
             // Get free plan
             $plan = SubscriptionPlan::where('slug', 'gratuito')->first();
             $trialDays = (int) \App\Models\SystemSetting::get('trial.duration_days', 7);
-            
+
             return TenantSubscription::create([
                 'tenant_id' => $tenant->id,
                 'subscription_plan_id' => $plan->id,
@@ -186,7 +185,7 @@ class TenantRegistrationService
             // Paid plan - pending payment
             $plan = SubscriptionPlan::findOrFail($data['plan_id']);
             $cycle = $data['billing_cycle'] ?? 'monthly';
-            
+
             return TenantSubscription::create([
                 'tenant_id' => $tenant->id,
                 'subscription_plan_id' => $plan->id,
@@ -198,7 +197,7 @@ class TenantRegistrationService
             ]);
         }
     }
-    
+
     private function trackTrialUsage(Tenant $tenant): void
     {
         TrialIpTracking::create([
@@ -209,7 +208,7 @@ class TenantRegistrationService
             'status' => 'active',
         ]);
     }
-    
+
     private function sendVerificationEmail(Tenant $tenant, User $admin): void
     {
         // TODO: Implement email sending with verification token

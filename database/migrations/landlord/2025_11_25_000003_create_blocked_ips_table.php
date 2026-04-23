@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamp('blocked_until')->nullable()->comment('null = bloqueo permanente');
             $table->enum('block_type', ['temporary', 'permanent'])->default('temporary');
             $table->timestamps();
-            
+
             $table->index(['ip_address', 'blocked_until']);
         });
     }

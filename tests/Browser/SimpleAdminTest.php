@@ -4,7 +4,6 @@ namespace Tests\Browser;
 
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
-use App\Models\User;
 
 class SimpleAdminTest extends DuskTestCase
 {
@@ -16,13 +15,13 @@ class SimpleAdminTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             // Direct login approach
             $browser->visit('https://emporiodigital.test/admin/login')
-                    ->waitFor('#data\\.email', 5)
-                    ->type('#data\\.email', 'admin@emporiodigital.test')
-                    ->type('#data\\.password', 'emporiomental123')
-                    ->pause(1000)
-                    ->click('button[type="submit"]')
-                    ->waitForLocation('https://emporiodigital.test/admin', 15)
-                    ->pause(5000); // Wait for full load
+                ->waitFor('#data\\.email', 5)
+                ->type('#data\\.email', 'admin@emporiodigital.test')
+                ->type('#data\\.password', 'emporiomental123')
+                ->pause(1000)
+                ->click('button[type="submit"]')
+                ->waitForLocation('https://emporiodigital.test/admin', 15)
+                ->pause(5000); // Wait for full load
 
             // Analyze page structure for the report
             $pageAnalysis = $browser->script("
@@ -52,31 +51,31 @@ class SimpleAdminTest extends DuskTestCase
 
             // Test responsive design
             $browser->resize(768, 1024)
-                    ->pause(2000)
-                    ->screenshot('dashboard-tablet-view');
+                ->pause(2000)
+                ->screenshot('dashboard-tablet-view');
 
             $browser->resize(375, 667)
-                    ->pause(2000)
-                    ->screenshot('dashboard-mobile-view');
+                ->pause(2000)
+                ->screenshot('dashboard-mobile-view');
 
             // Reset to desktop
             $browser->resize(1920, 1080)
-                    ->pause(1000);
+                ->pause(1000);
 
             // Save analysis data
-            error_log('Dashboard Analysis: ' . json_encode($pageAnalysis, JSON_PRETTY_PRINT));
+            error_log('Dashboard Analysis: '.json_encode($pageAnalysis, JSON_PRETTY_PRINT));
 
             // Basic functionality tests
             $browser->assertPresent('body')
-                    ->pause(1000);
+                ->pause(1000);
 
             // Check specific issues
             if ($pageAnalysis['hasEscritorioH1']) {
                 error_log('ISSUE FOUND: H1 "Escritorio" is visible (should be hidden)');
             }
 
-            if (!empty($pageAnalysis['decimalDaysPatterns'])) {
-                error_log('ISSUE FOUND: Decimal days patterns detected: ' . json_encode($pageAnalysis['decimalDaysPatterns']));
+            if (! empty($pageAnalysis['decimalDaysPatterns'])) {
+                error_log('ISSUE FOUND: Decimal days patterns detected: '.json_encode($pageAnalysis['decimalDaysPatterns']));
             }
         });
     }

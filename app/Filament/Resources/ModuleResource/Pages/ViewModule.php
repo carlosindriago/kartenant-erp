@@ -4,9 +4,9 @@ namespace App\Filament\Resources\ModuleResource\Pages;
 
 use App\Filament\Resources\ModuleResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Support\HtmlString;
 
 class ViewModule extends ViewRecord
@@ -118,7 +118,7 @@ class ViewModule extends ViewRecord
 
                                 Infolists\Components\TextEntry::make('average_rating')
                                     ->label('Rating Promedio')
-                                    ->formatStateUsing(fn ($state) => $state ? new HtmlString($state . ' ⭐') : 'N/A')
+                                    ->formatStateUsing(fn ($state) => $state ? new HtmlString($state.' ⭐') : 'N/A')
                                     ->alignCenter(),
 
                                 Infolists\Components\TextEntry::make('rating_count')
@@ -176,7 +176,7 @@ class ViewModule extends ViewRecord
 
                                 $featureNames = [];
                                 foreach ($state as $flag) {
-                                    $featureNames[] = "<span class='inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-1 mb-1'>" . Str::title(str_replace('_', ' ', $flag)) . "</span>";
+                                    $featureNames[] = "<span class='inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-1 mb-1'>".Str::title(str_replace('_', ' ', $flag)).'</span>';
                                 }
 
                                 return new HtmlString(implode(' ', $featureNames));
@@ -195,6 +195,7 @@ class ViewModule extends ViewRecord
                                         if (empty($state)) {
                                             return 'Sin dependencias';
                                         }
+
                                         return implode(', ', array_keys($state));
                                     }),
 
@@ -204,6 +205,7 @@ class ViewModule extends ViewRecord
                                         if (empty($state)) {
                                             return 'Sin conflictos';
                                         }
+
                                         return implode(', ', $state);
                                     }),
                             ]),
@@ -240,7 +242,7 @@ class ViewModule extends ViewRecord
                                         Infolists\Components\TextEntry::make('pivot.status')
                                             ->label('Estado')
                                             ->badge()
-                                            ->color(fn ($state) => match($state) {
+                                            ->color(fn ($state) => match ($state) {
                                                 'active' => 'success',
                                                 'suspended' => 'warning',
                                                 'cancelled' => 'danger',

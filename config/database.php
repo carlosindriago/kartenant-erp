@@ -124,16 +124,16 @@ return [
             'port' => env('DB_PORT', '5432'),
             'database' => env('DB_DATABASE', 'laravel'), // Usará 'laravel'
             'username' => env('DB_USERNAME', 'sail'),    // Usará 'sail'
-            'password' => env('DB_PASSWORD', 'password'),// Usará 'password'
+            'password' => env('DB_PASSWORD', 'password'), // Usará 'password'
             'charset' => 'utf8',
             'prefix' => '',
             'schema' => 'public',
             'sslmode' => 'prefer',
         ],
 
-        'tenant' => config('app.mode') === 'standalone' 
+        'tenant' => config('app.mode') === 'standalone'
             ? [
-                /* * MODO OPEN-CORE: 
+                /* * MODO OPEN-CORE:
                  * El Tenant usa exactamente la misma base de datos física que el Landlord/Principal.
                  */
                 'driver' => env('DB_CONNECTION', 'pgsql'),
@@ -148,14 +148,14 @@ return [
                 'prefix_indexes' => true,
                 'search_path' => 'public',
                 'sslmode' => 'prefer',
-            ] 
+            ]
             : (env('APP_ENV') === 'testing' ? [
                 'driver' => 'sqlite',
                 'database' => ':memory:',
                 'prefix' => '',
                 'foreign_key_constraints' => true,
             ] : [
-                /* * MODO SAAS (Premium): 
+                /* * MODO SAAS (Premium):
                  * La configuración dinámica que ya tenías para crear múltiples bases de datos.
                  */
                 'driver' => 'pgsql',
@@ -170,7 +170,6 @@ return [
                 'sslmode' => 'prefer',
             ]),
     ],
-
 
     /*
     |--------------------------------------------------------------------------

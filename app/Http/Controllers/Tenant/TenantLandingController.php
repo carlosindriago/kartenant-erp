@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Tenant;
 use App\Models\StoreSetting;
+use App\Models\Tenant;
+use Illuminate\Http\Request;
 
 class TenantLandingController extends Controller
 {
@@ -61,7 +61,7 @@ class TenantLandingController extends Controller
             ]);
 
             // Create fallback settings object
-            $fallbackSettings = new \stdClass();
+            $fallbackSettings = new \stdClass;
             $fallbackSettings->effective_store_name = config('app.name', 'Mi Tienda');
             $fallbackSettings->effective_welcome_message = '¡Bienvenido a tu tienda! Gestiona tu inventario de forma sencilla y eficiente.';
             $fallbackSettings->effective_store_slogan = 'Tu sistema de gestión comercial';
@@ -79,7 +79,7 @@ class TenantLandingController extends Controller
 
             return view('tenant.welcome', [
                 'settings' => $fallbackSettings,
-                'tenant' => null
+                'tenant' => null,
             ]);
         }
     }

@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -55,10 +55,11 @@ class UseLandlordPermissionRegistrar
                 // The admin user will still have access via is_super_admin check
                 \Log::warning('Failed to register landlord permissions in UseLandlordPermissionRegistrar', [
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ]);
             }
         }
+
         return $next($request);
     }
 }

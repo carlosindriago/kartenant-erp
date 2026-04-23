@@ -2,20 +2,20 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Http\Middleware;
 
+use App\Models\Tenant;
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use App\Models\Tenant;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Tenant API Middleware
@@ -40,7 +40,7 @@ class TenantApiMiddleware
         $tenantId = $request->header('X-Tenant-ID');
 
         // Check if tenant ID is provided
-        if (!$tenantId) {
+        if (! $tenantId) {
             return response()->json([
                 'success' => false,
                 'error' => [
@@ -57,7 +57,7 @@ class TenantApiMiddleware
         $tenant = Tenant::find($tenantId);
 
         // Check if tenant exists
-        if (!$tenant) {
+        if (! $tenant) {
             Log::warning('[TenantApiMiddleware] Tenant not found', [
                 'tenant_id' => $tenantId,
                 'user_id' => auth()->id(),
@@ -104,7 +104,7 @@ class TenantApiMiddleware
         if ($user) {
             $belongsToTenant = $user->tenants()->where('tenants.id', $tenant->id)->exists();
 
-            if (!$belongsToTenant) {
+            if (! $belongsToTenant) {
                 Log::warning('[TenantApiMiddleware] User does not belong to tenant', [
                     'tenant_id' => $tenantId,
                     'tenant_name' => $tenant->name,

@@ -35,7 +35,7 @@ class TenantActivityService
                 userAgent: $userAgent
             );
         } catch (\Exception $e) {
-            Log::error("Failed to log tenant activity: " . $e->getMessage(), [
+            Log::error('Failed to log tenant activity: '.$e->getMessage(), [
                 'tenant_id' => $tenant->id,
                 'action' => $action,
                 'description' => $description,
@@ -74,7 +74,7 @@ class TenantActivityService
         string $newStatus,
         ?User $changedBy = null
     ): TenantActivity {
-        $action = match($newStatus) {
+        $action = match ($newStatus) {
             Tenant::STATUS_ACTIVE => TenantActivity::ACTION_ACTIVATED,
             Tenant::STATUS_SUSPENDED => TenantActivity::ACTION_SUSPENDED,
             Tenant::STATUS_TRIAL => TenantActivity::ACTION_TRIAL_STARTED,
@@ -209,7 +209,7 @@ class TenantActivityService
         return self::log(
             tenant: $tenant,
             action: TenantActivity::ACTION_BACKUP_CREATED,
-            description: "Backup was created for tenant",
+            description: 'Backup was created for tenant',
             user: $createdBy,
             metadata: [
                 'backup_path' => $backupPath,
@@ -226,7 +226,7 @@ class TenantActivityService
         return self::log(
             tenant: $tenant,
             action: TenantActivity::ACTION_BACKUP_RESTORED,
-            description: "Backup was restored for tenant",
+            description: 'Backup was restored for tenant',
             user: $restoredBy,
             metadata: [
                 'backup_path' => $backupPath,
@@ -246,7 +246,7 @@ class TenantActivityService
         return self::log(
             tenant: $tenant,
             action: TenantActivity::ACTION_SETTINGS_UPDATED,
-            description: "Tenant settings were updated",
+            description: 'Tenant settings were updated',
             user: $updatedBy,
             metadata: [
                 'changed_fields' => array_keys($changedFields),
@@ -263,7 +263,7 @@ class TenantActivityService
         return self::log(
             tenant: $tenant,
             action: TenantActivity::ACTION_TRIAL_STARTED,
-            description: "Trial period started for tenant",
+            description: 'Trial period started for tenant',
             user: $startedBy,
             metadata: [
                 'trial_ends_at' => $tenant->trial_ends_at?->toISOString(),
@@ -281,7 +281,7 @@ class TenantActivityService
         return self::log(
             tenant: $tenant,
             action: TenantActivity::ACTION_TRIAL_EXPIRED,
-            description: "Trial period expired for tenant",
+            description: 'Trial period expired for tenant',
             user: null,
             metadata: [
                 'trial_ended_at' => now()->toISOString(),

@@ -16,11 +16,11 @@ class UserDestroyRequest extends FormRequest
         $targetUser = $this->route('user');
 
         // User must be authenticated and have admin users delete permission
-        if (!$user || !$targetUser) {
+        if (! $user || ! $targetUser) {
             return false;
         }
 
-        if (!$user->is_super_admin && !$user->hasPermissionTo('admin.users.delete', 'superadmin')) {
+        if (! $user->is_super_admin && ! $user->hasPermissionTo('admin.users.delete', 'superadmin')) {
             return false;
         }
 
@@ -30,7 +30,7 @@ class UserDestroyRequest extends FormRequest
         }
 
         // Only superadmins can delete other superadmins
-        if ($targetUser->is_super_admin && !$user->is_super_admin) {
+        if ($targetUser->is_super_admin && ! $user->is_super_admin) {
             return false;
         }
 

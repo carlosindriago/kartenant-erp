@@ -25,12 +25,12 @@ class TenantFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->company();
-        $domain = $this->faker->unique()->slug(2) . '.test.com';
+        $domain = $this->faker->unique()->slug(2).'.test.com';
 
         return [
             'name' => $name,
             'domain' => $domain,
-            'database' => 'tenant_' . str_replace('.', '_', str_replace('-', '_', $domain)),
+            'database' => 'tenant_'.str_replace('.', '_', str_replace('-', '_', $domain)),
             'address' => $this->faker->address(),
             'phone' => $this->faker->phoneNumber(),
             'cuit' => $this->faker->numerify('#############'),

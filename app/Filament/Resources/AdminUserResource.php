@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,9 +12,9 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AdminUserResource\Pages;
+use App\Http\Requests\Admin\UserDestroyRequest;
 use App\Http\Requests\Admin\UserStoreRequest;
 use App\Http\Requests\Admin\UserUpdateRequest;
-use App\Http\Requests\Admin\UserDestroyRequest;
 use App\Models\User;
 use App\Models\UserAuditLog;
 use Filament\Forms;
@@ -23,18 +23,21 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AdminUserResource extends Resource
 {
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
+
     protected static ?string $navigationLabel = 'Administradores';
+
     protected static ?string $navigationGroup = 'Seguridad';
 
     protected static ?string $modelLabel = 'Administrador';
+
     protected static ?string $pluralModelLabel = 'Administradores';
 
     public static function form(Form $form): Form
@@ -84,8 +87,7 @@ class AdminUserResource extends Resource
                             ->dehydrated(fn ($state) => filled($state))
                             ->required(fn (string $operation) => $operation === 'create')
                             ->label('Contraseña')
-                            ->helperText(fn (string $operation) =>
-                                $operation === 'create'
+                            ->helperText(fn (string $operation) => $operation === 'create'
                                     ? 'Mínimo 8 caracteres, debe incluir mayúsculas, minúsculas y números'
                                     : 'Dejar en blanco para mantener la contraseña actual'
                             ),
@@ -118,7 +120,7 @@ class AdminUserResource extends Resource
                         Forms\Components\Textarea::make('deactivation_reason')
                             ->label('Motivo de desactivación')
                             ->rows(3)
-                            ->visible(fn (callable $get) => !$get('is_active'))
+                            ->visible(fn (callable $get) => ! $get('is_active'))
                             ->helperText('Explica por qué este usuario está siendo desactivado'),
                     ]),
             ]);
@@ -153,6 +155,7 @@ class AdminUserResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
+
         return $query->where(function ($q) {
             $q->where('is_super_admin', true)
                 ->orWhereHas('roles')
@@ -172,24 +175,28 @@ class AdminUserResource extends Resource
     public static function canViewAny(): bool
     {
         $user = auth('superadmin')->user();
+
         return $user?->is_super_admin || ($user?->hasPermissionTo('admin.users.view', 'superadmin') ?? false);
     }
 
     public static function canCreate(): bool
     {
         $user = auth('superadmin')->user();
+
         return $user?->is_super_admin || ($user?->hasPermissionTo('admin.users.create', 'superadmin') ?? false);
     }
 
     public static function canEdit($record): bool
     {
         $user = auth('superadmin')->user();
+
         return $user?->is_super_admin || ($user?->hasPermissionTo('admin.users.update', 'superadmin') ?? false);
     }
 
     public static function canDelete($record): bool
     {
         $user = auth('superadmin')->user();
+
         return $user?->is_super_admin || ($user?->hasPermissionTo('admin.users.delete', 'superadmin') ?? false);
     }
 
@@ -203,7 +210,7 @@ class AdminUserResource extends Resource
      */
     public static function create(array $data): User
     {
-        $request = new UserStoreRequest();
+        $request = new UserStoreRequest;
         $request->merge($data);
 
         // Validate and authorize
@@ -250,11 +257,12 @@ class AdminUserResource extends Resource
      */
     public static function update(User $record, array $data): User
     {
-        $request = new UserUpdateRequest();
+        $request = new UserUpdateRequest;
         $request->merge($data);
         $request->setRouteResolver(function () use ($record) {
             $route = new \Illuminate\Routing\Route('PUT', 'users/{user}', []);
             $route->bind('user', $record);
+
             return $route;
         });
 
@@ -327,7 +335,7 @@ class AdminUserResource extends Resource
      */
     public static function delete(User $record): bool
     {
-        $request = new UserDestroyRequest();
+        $request = new UserDestroyRequest;
         $request->merge([
             'confirm_delete' => 'DELETE',
             'delete_reason' => 'Usuario eliminado desde panel de administración',

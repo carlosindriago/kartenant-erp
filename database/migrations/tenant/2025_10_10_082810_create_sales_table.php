@@ -29,7 +29,7 @@ return new class extends Migration
             $table->unsignedBigInteger('cancelled_by')->nullable(); // No foreign key - users table is in landlord DB
             $table->text('cancellation_reason')->nullable();
             $table->timestamps();
-            
+
             // Indexes
             $table->index('invoice_number');
             $table->index('customer_id');

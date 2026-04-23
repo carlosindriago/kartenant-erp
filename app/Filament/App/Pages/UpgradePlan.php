@@ -2,20 +2,20 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Filament\App\Pages;
 
-use App\Models\Tenant;
 use App\Models\SubscriptionPlan;
+use App\Models\Tenant;
 use App\Services\SubscriptionLimitService;
-use Filament\Pages\Page;
 use Filament\Notifications\Notification;
+use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
 
 class UpgradePlan extends Page
@@ -63,6 +63,7 @@ class UpgradePlan extends Page
                 // Decode JSON fields
                 $plan->enabled_modules = json_decode($plan->enabled_modules, true) ?? [];
                 $plan->features = json_decode($plan->features, true) ?? [];
+
                 return $plan;
             })
             ->toArray();
@@ -72,11 +73,12 @@ class UpgradePlan extends Page
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return null;
         }
 
         $limitService = new SubscriptionLimitService($tenant);
+
         return $limitService->getPlan();
     }
 
@@ -84,11 +86,12 @@ class UpgradePlan extends Page
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return [];
         }
 
         $limitService = new SubscriptionLimitService($tenant);
+
         return $limitService->getAllLimitsStatus();
     }
 
@@ -96,21 +99,23 @@ class UpgradePlan extends Page
     {
         $plan = SubscriptionPlan::find($planId);
 
-        if (!$plan) {
+        if (! $plan) {
             Notification::make()
                 ->title('Error')
                 ->body('Plan no encontrado')
                 ->danger()
                 ->send();
+
             return;
         }
 
-        if (!$plan->is_active) {
+        if (! $plan->is_active) {
             Notification::make()
                 ->title('Error')
                 ->body('Este plan no está disponible actualmente')
                 ->danger()
                 ->send();
+
             return;
         }
 

@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -17,7 +17,9 @@ use Filament\Widgets\ChartWidget;
 class MostUsedFeaturesWidget extends ChartWidget
 {
     protected static ?string $heading = 'Features Más Usados';
+
     protected static ?int $sort = 2;
+
     protected static ?string $pollingInterval = '60s';
 
     /**
@@ -27,6 +29,7 @@ class MostUsedFeaturesWidget extends ChartWidget
     {
         // Use filament() helper for proper panel context with null checks
         $panel = filament()->getCurrentPanel();
+
         return $panel && $panel->getId() === 'admin' && filament()->auth()->check();
     }
 

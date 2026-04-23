@@ -25,7 +25,7 @@ class ModuleCacheMiddleware
 
         // Get current tenant
         $tenant = tenant();
-        if (!$tenant) {
+        if (! $tenant) {
             return $next($request);
         }
 
@@ -57,6 +57,7 @@ class ModuleCacheMiddleware
             foreach ($tenant->activeTenantModules as $tenantModule) {
                 $limits[$tenantModule->module->slug] = $tenantModule->getEffectiveLimits();
             }
+
             return $limits;
         });
 

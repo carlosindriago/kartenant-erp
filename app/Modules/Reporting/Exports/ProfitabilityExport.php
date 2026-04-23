@@ -3,24 +3,19 @@
 namespace App\Modules\Reporting\Exports;
 
 use App\Modules\Reporting\Services\ProfitabilityService;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Carbon;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ProfitabilityExport implements
-    FromCollection,
-    WithHeadings,
-    WithStyles,
-    WithTitle,
-    ShouldAutoSize
+class ProfitabilityExport implements FromCollection, ShouldAutoSize, WithHeadings, WithStyles, WithTitle
 {
     protected ProfitabilityService $service;
+
     protected ?array $dateRange;
 
     public function __construct(?array $dateRange = null)
@@ -56,20 +51,20 @@ class ProfitabilityExport implements
 
         $rows->push([
             'Período',
-            $this->dateRange['start']->format('d/m/Y') . ' - ' . $this->dateRange['end']->format('d/m/Y'),
+            $this->dateRange['start']->format('d/m/Y').' - '.$this->dateRange['end']->format('d/m/Y'),
             '',
             'Ingresos Totales',
-            '$' . number_format($summary['total_revenue'], 2),
+            '$'.number_format($summary['total_revenue'], 2),
             '',
             '',
         ]);
 
         $rows->push([
             'Ganancia Total',
-            '$' . number_format($summary['total_profit'], 2),
+            '$'.number_format($summary['total_profit'], 2),
             '',
             'Margen General',
-            number_format($summary['overall_margin'], 2) . '%',
+            number_format($summary['overall_margin'], 2).'%',
             '',
             '',
         ]);
@@ -108,9 +103,9 @@ class ProfitabilityExport implements
                 $product->sku,
                 $product->category_name ?? 'Sin categoría',
                 number_format($product->total_sold),
-                '$' . number_format($product->total_revenue, 2),
-                '$' . number_format($product->profit, 2),
-                number_format($product->profit_margin, 2) . '%',
+                '$'.number_format($product->total_revenue, 2),
+                '$'.number_format($product->profit, 2),
+                number_format($product->profit_margin, 2).'%',
             ]);
         }
 
@@ -138,16 +133,16 @@ class ProfitabilityExport implements
                 $product->sku,
                 $product->category_name ?? 'Sin categoría',
                 number_format($product->total_sold),
-                '$' . number_format($product->total_revenue, 2),
-                '$' . number_format($product->profit, 2),
-                number_format($product->profit_margin, 2) . '%',
+                '$'.number_format($product->total_revenue, 2),
+                '$'.number_format($product->profit, 2),
+                number_format($product->profit_margin, 2).'%',
             ]);
         }
 
         // Footer
         $rows->push(['', '', '', '', '', '', '']);
         $rows->push([
-            'Reporte generado el: ' . now()->format('d/m/Y H:i'),
+            'Reporte generado el: '.now()->format('d/m/Y H:i'),
             '',
             '',
             '',

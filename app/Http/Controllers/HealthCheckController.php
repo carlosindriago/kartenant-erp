@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,8 +13,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Tenant;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
@@ -36,7 +36,7 @@ class HealthCheckController extends Controller
             'tenants' => $this->checkTenants(),
         ];
 
-        $allHealthy = collect($checks)->every(fn($check) => $check['status'] === 'ok');
+        $allHealthy = collect($checks)->every(fn ($check) => $check['status'] === 'ok');
 
         return response()->json([
             'status' => $allHealthy ? 'healthy' : 'degraded',
@@ -53,6 +53,7 @@ class HealthCheckController extends Controller
     {
         try {
             DB::connection()->getPdo();
+
             return [
                 'status' => 'ok',
                 'message' => 'Database connection successful',
@@ -95,7 +96,7 @@ class HealthCheckController extends Controller
     protected function checkCache(): array
     {
         try {
-            $testKey = 'health_check_' . time();
+            $testKey = 'health_check_'.time();
             $testValue = 'test';
 
             Cache::put($testKey, $testValue, 60);
@@ -129,7 +130,7 @@ class HealthCheckController extends Controller
     protected function checkStorage(): array
     {
         try {
-            $testFile = 'health_check_' . time() . '.txt';
+            $testFile = 'health_check_'.time().'.txt';
             $testContent = 'health check';
 
             Storage::put($testFile, $testContent);

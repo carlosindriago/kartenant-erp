@@ -8,8 +8,11 @@ use Tests\DuskTestCase;
 class AdminFullRegressionTest extends DuskTestCase
 {
     private string $adminEmail = 'admin@emporiodigital.test';
+
     private string $testTenantName = 'Regression Test LLC';
+
     private string $testTenantDomain = 'regression-test';
+
     private ?string $testTenantId = null;
 
     /**
@@ -50,9 +53,9 @@ class AdminFullRegressionTest extends DuskTestCase
                 echo "\n🟢 FULL REGRESSION TEST PASSED: All systems nominal\n";
 
             } catch (\Exception $e) {
-                echo "\n🔴 REGRESSION TEST FAILED: " . $e->getMessage() . "\n";
-                echo "Error location: " . $e->getFile() . ":" . $e->getLine() . "\n";
-                echo "Stack trace: " . $e->getTraceAsString() . "\n";
+                echo "\n🔴 REGRESSION TEST FAILED: ".$e->getMessage()."\n";
+                echo 'Error location: '.$e->getFile().':'.$e->getLine()."\n";
+                echo 'Stack trace: '.$e->getTraceAsString()."\n";
                 throw $e;
             }
         });
@@ -101,7 +104,7 @@ class AdminFullRegressionTest extends DuskTestCase
             } catch (\Exception $e) {
                 echo "❌ {$name}: Failed - {$e->getMessage()}\n";
                 $browser->screenshot("dashboard_{$name}_failed");
-                throw new \Exception("Dashboard element '{$name}' failed to load: " . $e->getMessage());
+                throw new \Exception("Dashboard element '{$name}' failed to load: ".$e->getMessage());
             }
         }
 
@@ -155,7 +158,7 @@ class AdminFullRegressionTest extends DuskTestCase
         $browser->click('.fi-action-button[title="Editar"]') // Edit button
             ->waitFor('.filament-modal', 5)
             ->assertSee('Editar Tenant')
-            ->type('name', $this->testTenantName . ' (Edited)')
+            ->type('name', $this->testTenantName.' (Edited)')
             ->click('.fi-btn-primary')
             ->waitFor('.filament-notifications', 10)
             ->pause(1000)
@@ -171,13 +174,13 @@ class AdminFullRegressionTest extends DuskTestCase
     {
         echo "\n🗂️ Testing Archived Tenants Access (CRITICAL 404 FIX)...\n";
 
-        if (!$this->testTenantId) {
-            throw new \Exception("Test tenant ID not available for archival test");
+        if (! $this->testTenantId) {
+            throw new \Exception('Test tenant ID not available for archival test');
         }
 
         // Archive the test tenant
         echo "Archiving test tenant...\n";
-        $browser->visit('/admin/tenants/' . $this->testTenantId)
+        $browser->visit('/admin/tenants/'.$this->testTenantId)
             ->waitFor('.filament-page', 10)
             ->screenshot('step_4a_tenant_view_before_archive');
 
@@ -218,8 +221,8 @@ class AdminFullRegressionTest extends DuskTestCase
         $browser->with('.filament-table', function ($table) {
             $table->assertSee($this->testTenantName)
                 ->clickLink('Ver') // View button for archived tenant
-                ->waitForLocation('*/archived-tenants/' . $this->testTenantId, 15)
-                ->assertPathBeginsWith('/admin/archived-tenants/' . $this->testTenantId)
+                ->waitForLocation('*/archived-tenants/'.$this->testTenantId, 15)
+                ->assertPathBeginsWith('/admin/archived-tenants/'.$this->testTenantId)
                 ->assertSee($this->testTenantName)
                 ->screenshot('step_4d_archived_tenant_detail_success');
         });
@@ -277,9 +280,9 @@ class AdminFullRegressionTest extends DuskTestCase
             }
 
         } catch (\Exception $e) {
-            echo "❌ Billing Module Error: " . $e->getMessage() . "\n";
+            echo '❌ Billing Module Error: '.$e->getMessage()."\n";
             $browser->screenshot('billing_module_crash');
-            throw new \Exception("Billing module operations failed: " . $e->getMessage());
+            throw new \Exception('Billing module operations failed: '.$e->getMessage());
         }
 
         echo "✅ Billing module operations completed\n";
@@ -305,7 +308,7 @@ class AdminFullRegressionTest extends DuskTestCase
                 $browser->visit($path)
                     ->waitFor('.filament-page', 10)
                     ->pause(1000) // Allow data to load
-                    ->screenshot("step_6_" . str_replace(' ', '_', strtolower($name)) . "_success");
+                    ->screenshot('step_6_'.str_replace(' ', '_', strtolower($name)).'_success');
 
                 // Check for error indicators
                 if ($browser->assertSeeIn('.filament-content', '500')) {
@@ -320,9 +323,9 @@ class AdminFullRegressionTest extends DuskTestCase
                     ->pause(500);
 
             } catch (\Exception $e) {
-                echo "❌ {$name}: Failed - " . $e->getMessage() . "\n";
+                echo "❌ {$name}: Failed - ".$e->getMessage()."\n";
                 $browser->screenshot("system_page_{$name}_failed");
-                throw new \Exception("System health page '{$name}' failed: " . $e->getMessage());
+                throw new \Exception("System health page '{$name}' failed: ".$e->getMessage());
             }
         }
 
@@ -340,7 +343,7 @@ class AdminFullRegressionTest extends DuskTestCase
                 \App\Models\Tenant::withTrashed()->find($this->testTenantId)?->forceDelete();
             } catch (\Exception $e) {
                 // Log cleanup error but don't fail the test
-                echo "⚠️ Cleanup warning: " . $e->getMessage() . "\n";
+                echo '⚠️ Cleanup warning: '.$e->getMessage()."\n";
             }
         }
 

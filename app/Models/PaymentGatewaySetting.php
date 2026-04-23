@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class PaymentGatewaySetting extends Model
 {
     protected $connection = 'landlord';
+
     protected $table = 'payment_gateway_settings';
 
     protected $fillable = [
@@ -60,7 +61,7 @@ class PaymentGatewaySetting extends Model
      */
     public function isConfigured(): bool
     {
-        return !empty($this->config);
+        return ! empty($this->config);
     }
 
     /**

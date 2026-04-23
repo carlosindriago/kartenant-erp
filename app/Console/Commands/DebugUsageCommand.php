@@ -3,13 +3,12 @@
 namespace App\Console\Commands;
 
 use App\Services\TenantUsageService;
-use App\Models\Tenant;
-use App\Models\TenantUsage;
 use Illuminate\Console\Command;
 
 class DebugUsageCommand extends Command
 {
     protected $signature = 'debug:usage {tenantId}';
+
     protected $description = 'Debug usage calculations for a specific tenant';
 
     public function handle(TenantUsageService $usageService): int
@@ -17,12 +16,12 @@ class DebugUsageCommand extends Command
         $tenantId = $this->argument('tenantId');
 
         $this->info("🔍 Debugging usage for tenant {$tenantId}");
-        $this->info("=================================");
+        $this->info('=================================');
 
         try {
             // Get usage record
             $usage = $usageService->getCurrentUsage($tenantId, true);
-            $this->info("📊 Current Usage Record:");
+            $this->info('📊 Current Usage Record:');
             $this->info("  Sales: {$usage->sales_count} / {$usage->max_sales_per_month} ({$usage->sales_percentage}%)");
             $this->info("  Products: {$usage->products_count} / {$usage->max_products} ({$usage->products_percentage}%)");
             $this->info("  Users: {$usage->users_count} / {$usage->max_users} ({$usage->users_percentage}%)");
@@ -53,16 +52,17 @@ class DebugUsageCommand extends Command
             $usageService->incrementUsage($tenantId, 'users', 8); // Should be 9 total (80% of 10 = 8 + 1 initial = 9)
 
             $usageAfter = $usageService->getCurrentUsage($tenantId, true);
-            $this->info("  After adding 8 users:");
+            $this->info('  After adding 8 users:');
             $this->info("    Users count: {$usageAfter->users_count}");
             $this->info("    Users percentage: {$usageAfter->users_percentage}%");
-            $this->info("    Users zone: " . $usageAfter->getZoneForMetric('users'));
-            $this->info("    Expected zone: warning (80%)");
+            $this->info('    Users zone: '.$usageAfter->getZoneForMetric('users'));
+            $this->info('    Expected zone: warning (80%)');
 
             return Command::SUCCESS;
 
         } catch (\Exception $e) {
-            $this->error("❌ Debug failed: " . $e->getMessage());
+            $this->error('❌ Debug failed: '.$e->getMessage());
+
             return Command::FAILURE;
         }
     }

@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -16,9 +16,9 @@ use Illuminate\Database\Eloquent\Model;
 class VerificationSecurityLog extends Model
 {
     protected $connection = 'landlord';
-    
+
     public $timestamps = false;
-    
+
     protected $fillable = [
         'ip_address',
         'tenant_id',
@@ -29,27 +29,36 @@ class VerificationSecurityLog extends Model
         'severity',
         'created_at',
     ];
-    
+
     protected $casts = [
         'created_at' => 'datetime',
         'severity' => 'integer',
     ];
-    
+
     // Event types
     const EVENT_RATE_LIMIT = 'rate_limit';
+
     const EVENT_INVALID_HASH = 'invalid_hash';
+
     const EVENT_BRUTE_FORCE = 'brute_force';
+
     const EVENT_BOT_DETECTED = 'bot_detected';
+
     const EVENT_BLACKLIST_HIT = 'blacklist_hit';
+
     const EVENT_SUSPICIOUS_PATTERN = 'suspicious_pattern';
-    
+
     // Severity levels
     const SEVERITY_INFO = 1;
+
     const SEVERITY_WARNING = 2;
+
     const SEVERITY_ALERT = 3;
+
     const SEVERITY_CRITICAL = 4;
+
     const SEVERITY_EMERGENCY = 5;
-    
+
     /**
      * Log a security event
      */

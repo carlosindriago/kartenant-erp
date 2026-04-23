@@ -2,15 +2,15 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Models\Tenant;
 use App\Mail\ArchiveOTPNotification;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Hash;
+use App\Models\Tenant;
+use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 /**
  * Multi-Factor Authentication and Security Service
@@ -47,7 +47,7 @@ class TenantSecurityService
                 'operation' => $operation,
                 'otp_length' => strlen($otp),
                 'expires_at' => Carbon::now()->addMinutes(10)->toISOString(),
-                'ip' => request()->ip()
+                'ip' => request()->ip(),
             ])
             ->log('OTP generated for tenant operation');
 
@@ -61,19 +61,19 @@ class TenantSecurityService
     {
         switch ($operation) {
             case 'tenant_deactivate':
-                return 'DEACTIVATE' . strtoupper(substr($tenant->name, 0, 4));
+                return 'DEACTIVATE'.strtoupper(substr($tenant->name, 0, 4));
 
             case 'tenant_archive':
-                return 'ARCHIVE' . strtoupper(substr($tenant->name, 0, 4));
+                return 'ARCHIVE'.strtoupper(substr($tenant->name, 0, 4));
 
             case 'force_delete':
-                return 'DELETE' . strtoupper(substr($tenant->name, 0, 4)) . now()->format('Hi');
+                return 'DELETE'.strtoupper(substr($tenant->name, 0, 4)).now()->format('Hi');
 
             case 'emergency_access':
-                return 'EMERGENCY' . strtoupper(substr($tenant->name, 0, 3));
+                return 'EMERGENCY'.strtoupper(substr($tenant->name, 0, 3));
 
             case 'data_export':
-                return 'EXPORT' . strtoupper(substr($tenant->name, 0, 3));
+                return 'EXPORT'.strtoupper(substr($tenant->name, 0, 3));
 
             default:
                 // Generate random 6-digit code for other operations
@@ -89,7 +89,7 @@ class TenantSecurityService
         $otpKey = "tenant_otp_{$admin->id}";
         $expectedOTP = Cache::get($otpKey);
 
-        if (!$expectedOTP) {
+        if (! $expectedOTP) {
             return false;
         }
 
@@ -104,7 +104,7 @@ class TenantSecurityService
                 ->causedBy($admin)
                 ->withProperties([
                     'otp_validated' => true,
-                    'ip' => request()->ip()
+                    'ip' => request()->ip(),
                 ])
                 ->log('OTP successfully validated');
         } else {
@@ -112,8 +112,8 @@ class TenantSecurityService
                 ->causedBy($admin)
                 ->withProperties([
                     'otp_invalid' => true,
-                    'provided' => substr($providedOTP, 0, 3) . '***',
-                    'ip' => request()->ip()
+                    'provided' => substr($providedOTP, 0, 3).'***',
+                    'ip' => request()->ip(),
                 ])
                 ->log('OTP validation failed');
         }
@@ -127,12 +127,12 @@ class TenantSecurityService
     public function activateSudoMode(User $admin, string $password): bool
     {
         // Validate admin password
-        if (!Hash::check($password, $admin->password)) {
+        if (! Hash::check($password, $admin->password)) {
             activity()
                 ->causedBy($admin)
                 ->withProperties([
                     'sudo_attempt' => false,
-                    'ip' => request()->ip()
+                    'ip' => request()->ip(),
                 ])
                 ->log('Sudo mode activation failed - invalid password');
 
@@ -153,7 +153,7 @@ class TenantSecurityService
             ->withProperties([
                 'sudo_activated' => true,
                 'expires_at' => Carbon::now()->addMinutes(15)->toISOString(),
-                'ip' => request()->ip()
+                'ip' => request()->ip(),
             ])
             ->log('Sudo mode activated');
 
@@ -166,6 +166,7 @@ class TenantSecurityService
     public function isSudoModeActive(User $admin): bool
     {
         $sudoKey = "sudo_mode_{$admin->id}";
+
         return Cache::has($sudoKey);
     }
 
@@ -177,7 +178,7 @@ class TenantSecurityService
         $sudoKey = "sudo_mode_{$admin->id}";
         $sudoData = Cache::get($sudoKey);
 
-        if (!$sudoData) {
+        if (! $sudoData) {
             return null;
         }
 
@@ -202,7 +203,7 @@ class TenantSecurityService
             ->causedBy($admin)
             ->withProperties([
                 'sudo_cleared' => true,
-                'ip' => request()->ip()
+                'ip' => request()->ip(),
             ])
             ->log('Sudo mode cleared');
     }
@@ -233,7 +234,7 @@ class TenantSecurityService
                 'operation' => $operation,
                 'verification_sent' => true,
                 'token_hash' => hash('sha256', $token),
-                'ip' => request()->ip()
+                'ip' => request()->ip(),
             ])
             ->log('Email verification sent for tenant operation');
 
@@ -248,7 +249,7 @@ class TenantSecurityService
         $verificationKey = "email_verify_{$admin->id}_{$operation}";
         $verificationData = Cache::get($verificationKey);
 
-        if (!$verificationData || !hash_equals($verificationData['token'], $token)) {
+        if (! $verificationData || ! hash_equals($verificationData['token'], $token)) {
             return false;
         }
 
@@ -260,7 +261,7 @@ class TenantSecurityService
             ->withProperties([
                 'operation' => $operation,
                 'email_verified' => true,
-                'ip' => request()->ip()
+                'ip' => request()->ip(),
             ])
             ->log('Email verification successful');
 
@@ -302,12 +303,12 @@ class TenantSecurityService
         $knownDevices = $this->getKnownDevices($admin);
         $deviceFingerprint = $this->generateDeviceFingerprint();
 
-        if (!in_array($deviceFingerprint, $knownDevices)) {
+        if (! in_array($deviceFingerprint, $knownDevices)) {
             $suspicious[] = [
                 'type' => 'new_device',
                 'severity' => 'medium',
                 'description' => 'Acceso desde dispositivo no reconocido',
-                'fingerprint' => substr($deviceFingerprint, 0, 8) . '...',
+                'fingerprint' => substr($deviceFingerprint, 0, 8).'...',
             ];
         }
 
@@ -320,6 +321,7 @@ class TenantSecurityService
     private function getRecentIPs(User $admin, int $hours): array
     {
         $events = $this->getRecentSecurityEvents($admin, $hours);
+
         return collect($events)
             ->pluck('ip_address')
             ->unique()
@@ -368,12 +370,12 @@ class TenantSecurityService
     {
         $key = "otp_generate_{$admin->id}";
 
-        if (!RateLimiter::attempt($key, 5, fn() => true, 3600)) {
+        if (! RateLimiter::attempt($key, 5, fn () => true, 3600)) {
             activity()
                 ->causedBy($admin)
                 ->withProperties([
                     'otp_rate_limited' => true,
-                    'ip' => request()->ip()
+                    'ip' => request()->ip(),
                 ])
                 ->log('OTP generation rate limited');
 
@@ -435,7 +437,7 @@ class TenantSecurityService
         $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
         // Generate context verification code (fallback)
-        $contextCode = 'ARCHIVE' . strtoupper(substr($tenant->name, 0, 4));
+        $contextCode = 'ARCHIVE'.strtoupper(substr($tenant->name, 0, 4));
 
         // Store OTP with metadata for 10 minutes
         $otpKey = "archive_otp_{$admin->id}";
@@ -467,7 +469,7 @@ class TenantSecurityService
                 'email_token_generated' => true,
                 'tenant_id' => $tenant->id,
                 'expires_at' => $otpData['expires_at'],
-                'ip' => request()->ip()
+                'ip' => request()->ip(),
             ])
             ->log('Archive OTP and email verification generated');
 
@@ -488,13 +490,13 @@ class TenantSecurityService
         $otpKey = "archive_otp_{$admin->id}";
         $otpData = Cache::get($otpKey);
 
-        if (!$otpData) {
+        if (! $otpData) {
             activity()
                 ->causedBy($admin)
                 ->performedOn($tenant)
                 ->withProperties([
                     'otp_validation' => 'failed_no_data',
-                    'ip' => request()->ip()
+                    'ip' => request()->ip(),
                 ])
                 ->log('Archive OTP validation failed - no data found');
 
@@ -514,7 +516,7 @@ class TenantSecurityService
                     'otp_validation' => 'failed_tenant_mismatch',
                     'expected_tenant_id' => $otpData['tenant_id'],
                     'provided_tenant_id' => $tenant->id,
-                    'ip' => request()->ip()
+                    'ip' => request()->ip(),
                 ])
                 ->log('Archive OTP validation failed - tenant mismatch');
 
@@ -536,7 +538,7 @@ class TenantSecurityService
                 ->withProperties([
                     'otp_validation' => 'failed_max_attempts',
                     'total_attempts' => $otpData['attempts'],
-                    'ip' => request()->ip()
+                    'ip' => request()->ip(),
                 ])
                 ->log('Archive OTP validation failed - max attempts exceeded');
 
@@ -562,7 +564,7 @@ class TenantSecurityService
                     'otp_validation' => 'success',
                     'validation_type' => $isValidOTP ? 'otp_code' : 'context_code',
                     'attempts_used' => $otpData['attempts'],
-                    'ip' => request()->ip()
+                    'ip' => request()->ip(),
                 ])
                 ->log('Archive OTP successfully validated');
 
@@ -582,7 +584,7 @@ class TenantSecurityService
                 'otp_validation' => 'failed_invalid_code',
                 'attempts' => $otpData['attempts'],
                 'max_attempts' => $otpData['max_attempts'],
-                'ip' => request()->ip()
+                'ip' => request()->ip(),
             ])
             ->log('Archive OTP validation failed - invalid code');
 
@@ -621,7 +623,7 @@ class TenantSecurityService
                 'email_token_generated' => true,
                 'token_hash' => hash('sha256', $token),
                 'expires_at' => $tokenData['expires_at'],
-                'ip' => request()->ip()
+                'ip' => request()->ip(),
             ])
             ->log('Archive email verification token generated');
 
@@ -636,13 +638,13 @@ class TenantSecurityService
         $tokenKey = "archive_email_token_{$admin->id}";
         $tokenData = Cache::get($tokenKey);
 
-        if (!$tokenData) {
+        if (! $tokenData) {
             activity()
                 ->causedBy($admin)
                 ->performedOn($tenant)
                 ->withProperties([
                     'email_validation' => 'failed_no_data',
-                    'ip' => request()->ip()
+                    'ip' => request()->ip(),
                 ])
                 ->log('Archive email validation failed - no data found');
 
@@ -656,7 +658,7 @@ class TenantSecurityService
                 ->performedOn($tenant)
                 ->withProperties([
                     'email_validation' => 'failed_tenant_mismatch',
-                    'ip' => request()->ip()
+                    'ip' => request()->ip(),
                 ])
                 ->log('Archive email validation failed - tenant mismatch');
 
@@ -675,7 +677,7 @@ class TenantSecurityService
                 ->performedOn($tenant)
                 ->withProperties([
                     'email_validation' => 'success',
-                    'ip' => request()->ip()
+                    'ip' => request()->ip(),
                 ])
                 ->log('Archive email verification successful');
         } else {
@@ -684,7 +686,7 @@ class TenantSecurityService
                 ->performedOn($tenant)
                 ->withProperties([
                     'email_validation' => 'failed_invalid_token',
-                    'ip' => request()->ip()
+                    'ip' => request()->ip(),
                 ])
                 ->log('Archive email validation failed - invalid token');
         }
@@ -723,7 +725,7 @@ class TenantSecurityService
                     'email' => $admin->email,
                     'otp_hash' => hash('sha256', $otpData['otp_code']),
                     'expires_at' => $otpData['expires_at'],
-                    'ip' => request()->ip()
+                    'ip' => request()->ip(),
                 ])
                 ->log('Archive OTP email sent successfully');
 
@@ -737,13 +739,13 @@ class TenantSecurityService
                 ->withProperties([
                     'otp_email_failed' => true,
                     'error' => $e->getMessage(),
-                    'ip' => request()->ip()
+                    'ip' => request()->ip(),
                 ])
                 ->log('Archive OTP email delivery failed');
 
             // For development, show the error details
             if (config('app.env') !== 'production') {
-                throw new \Exception('Error al enviar email: ' . $e->getMessage());
+                throw new \Exception('Error al enviar email: '.$e->getMessage());
             }
 
             return false;
@@ -757,12 +759,12 @@ class TenantSecurityService
     {
         // OTP generation rate limit: 3 per hour for archive operations
         $otpKey = "archive_otp_generate_{$admin->id}";
-        if (!RateLimiter::attempt($otpKey, 3, fn() => true, 3600)) {
+        if (! RateLimiter::attempt($otpKey, 3, fn () => true, 3600)) {
             activity()
                 ->causedBy($admin)
                 ->withProperties([
                     'archive_otp_rate_limited' => true,
-                    'ip' => request()->ip()
+                    'ip' => request()->ip(),
                 ])
                 ->log('Archive OTP generation rate limited');
 
@@ -784,7 +786,7 @@ class TenantSecurityService
         $otpKey = "archive_otp_{$admin->id}";
         $otpData = Cache::get($otpKey);
 
-        if (!$otpData) {
+        if (! $otpData) {
             return null;
         }
 
@@ -821,7 +823,7 @@ class TenantSecurityService
             ->causedBy($admin)
             ->withProperties([
                 'security_reset' => true,
-                'ip' => request()->ip()
+                'ip' => request()->ip(),
             ])
             ->log('Security reset performed');
 

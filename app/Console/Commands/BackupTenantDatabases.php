@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -55,7 +55,7 @@ class BackupTenantDatabases extends Command
         foreach ($results as $database => $result) {
             if ($result['success']) {
                 $successCount++;
-                $this->line("  ✅ {$database}: " . ($result['file_size'] / 1024 / 1024) . ' MB');
+                $this->line("  ✅ {$database}: ".($result['file_size'] / 1024 / 1024).' MB');
             } else {
                 $failedCount++;
                 $this->error("  ❌ {$database}: {$result['error']}");

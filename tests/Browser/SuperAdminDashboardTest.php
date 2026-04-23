@@ -14,14 +14,14 @@ class SuperAdminDashboardTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit('https://emporiodigital.test/admin/login')
-                    ->assertSee('Administración')
-                    ->type('#data\\.email', 'admin@emporiodigital.test')
-                    ->type('#data\\.password', 'emporiomental123')
-                    ->press('button[type="submit"]')
-                    ->waitForLocation('https://emporiodigital.test/admin', 10)
-                    ->assertPathIs('/admin')
-                    ->screenshot('dashboard-full-view')
-                    ->pause(2000); // Allow all widgets to load
+                ->assertSee('Administración')
+                ->type('#data\\.email', 'admin@emporiodigital.test')
+                ->type('#data\\.password', 'emporiomental123')
+                ->press('button[type="submit"]')
+                ->waitForLocation('https://emporiodigital.test/admin', 10)
+                ->assertPathIs('/admin')
+                ->screenshot('dashboard-full-view')
+                ->pause(2000); // Allow all widgets to load
         });
     }
 
@@ -33,10 +33,10 @@ class SuperAdminDashboardTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             // Login first
             $browser->visit('https://emporiodigital.test/admin/login')
-                    ->type('#data\\.email', 'admin@emporiodigital.test')
-                    ->type('#data\\.password', 'emporiomental123')
-                    ->press('button[type="submit"]')
-                    ->waitForLocation('https://emporiodigital.test/admin', 10);
+                ->type('#data\\.email', 'admin@emporiodigital.test')
+                ->type('#data\\.password', 'emporiomental123')
+                ->press('button[type="submit"]')
+                ->waitForLocation('https://emporiodigital.test/admin', 10);
 
             // Check if H1 "Escritorio" exists
             $hasEscritorioH1 = $browser->script("
@@ -63,11 +63,11 @@ class SuperAdminDashboardTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             // Login first
             $browser->visit('https://emporiodigital.test/admin/login')
-                    ->type('#data\\.email', 'admin@emporiodigital.test')
-                    ->type('#data\\.password', 'emporiomental123')
-                    ->press('button[type="submit"]')
-                    ->waitForLocation('https://emporiodigital.test/admin', 10)
-                    ->pause(3000); // Wait for all content to load
+                ->type('#data\\.email', 'admin@emporiodigital.test')
+                ->type('#data\\.password', 'emporiomental123')
+                ->press('button[type="submit"]')
+                ->waitForLocation('https://emporiodigital.test/admin', 10)
+                ->pause(3000); // Wait for all content to load
 
             // Look for decimal patterns in dates/expirations
             $decimalPatterns = $browser->script("
@@ -80,8 +80,8 @@ class SuperAdminDashboardTest extends DuskTestCase
             $browser->screenshot('decimal-days-analysis');
 
             // Log findings
-            if (!empty($decimalPatterns)) {
-                $browser->script('console.warn("Decimal days patterns found: " + ' . json_encode($decimalPatterns) . ')');
+            if (! empty($decimalPatterns)) {
+                $browser->script('console.warn("Decimal days patterns found: " + '.json_encode($decimalPatterns).')');
             }
         });
     }
@@ -94,26 +94,26 @@ class SuperAdminDashboardTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             // Login first
             $browser->visit('https://emporiodigital.test/admin/login')
-                    ->type('#data\\.email', 'admin@emporiodigital.test')
-                    ->type('#data\\.password', 'emporiomental123')
-                    ->press('button[type="submit"]')
-                    ->waitForLocation('https://emporiodigital.test/admin', 10);
+                ->type('#data\\.email', 'admin@emporiodigital.test')
+                ->type('#data\\.password', 'emporiomental123')
+                ->press('button[type="submit"]')
+                ->waitForLocation('https://emporiodigital.test/admin', 10);
 
             // Test desktop view
             $browser->resize(1920, 1080)
-                    ->pause(1000)
-                    ->screenshot('dashboard-desktop')
-                    ->assertPresent('body');
+                ->pause(1000)
+                ->screenshot('dashboard-desktop')
+                ->assertPresent('body');
 
             // Test tablet view
             $browser->resize(768, 1024)
-                    ->pause(1000)
-                    ->screenshot('dashboard-tablet');
+                ->pause(1000)
+                ->screenshot('dashboard-tablet');
 
             // Test mobile view
             $browser->resize(375, 667)
-                    ->pause(1000)
-                    ->screenshot('dashboard-mobile');
+                ->pause(1000)
+                ->screenshot('dashboard-mobile');
 
             // Reset to desktop
             $browser->resize(1920, 1080);
@@ -128,11 +128,11 @@ class SuperAdminDashboardTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             // Login first
             $browser->visit('https://emporiodigital.test/admin/login')
-                    ->type('#data\\.email', 'admin@emporiodigital.test')
-                    ->type('#data\\.password', 'emporiomental123')
-                    ->press('button[type="submit"]')
-                    ->waitForLocation('https://emporiodigital.test/admin', 10)
-                    ->pause(3000); // Wait for all data to load
+                ->type('#data\\.email', 'admin@emporiodigital.test')
+                ->type('#data\\.password', 'emporiomental123')
+                ->press('button[type="submit"]')
+                ->waitForLocation('https://emporiodigital.test/admin', 10)
+                ->pause(3000); // Wait for all data to load
 
             // Take screenshot for visual analysis
             $browser->screenshot('dashboard-widgets-detailed');
@@ -152,7 +152,7 @@ class SuperAdminDashboardTest extends DuskTestCase
             ")[0];
 
             // Log structure analysis
-            $browser->script('console.log("Dashboard structure analysis: " + ' . json_encode($pageStructure) . ')');
+            $browser->script('console.log("Dashboard structure analysis: " + '.json_encode($pageStructure).')');
         });
     }
 
@@ -164,19 +164,19 @@ class SuperAdminDashboardTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             // Login first
             $browser->visit('https://emporiodigital.test/admin/login')
-                    ->type('#data\\.email', 'admin@emporiodigital.test')
-                    ->type('#data\\.password', 'emporiomental123')
-                    ->press('button[type="submit"]')
-                    ->waitForLocation('https://emporiodigital.test/admin', 10);
+                ->type('#data\\.email', 'admin@emporiodigital.test')
+                ->type('#data\\.password', 'emporiomental123')
+                ->press('button[type="submit"]')
+                ->waitForLocation('https://emporiodigital.test/admin', 10);
 
             // Check initial state
             $browser->screenshot('dashboard-initial-state');
 
             // Test page refresh
             $browser->refresh()
-                    ->waitFor('body', 10)
-                    ->pause(3000) // Wait for reload
-                    ->screenshot('dashboard-after-refresh');
+                ->waitFor('body', 10)
+                ->pause(3000) // Wait for reload
+                ->screenshot('dashboard-after-refresh');
 
             // Test for loading states
             $loadingElements = $browser->script("
@@ -188,7 +188,7 @@ class SuperAdminDashboardTest extends DuskTestCase
             ")[0];
 
             // Log loading analysis
-            $browser->script('console.log("Loading analysis: " + ' . json_encode($loadingElements) . ')');
+            $browser->script('console.log("Loading analysis: " + '.json_encode($loadingElements).')');
         });
     }
 
@@ -202,11 +202,11 @@ class SuperAdminDashboardTest extends DuskTestCase
 
             // Login first
             $browser->visit('https://emporiodigital.test/admin/login')
-                    ->type('#data\\.email', 'admin@emporiodigital.test')
-                    ->type('#data\\.password', 'emporiomental123')
-                    ->press('button[type="submit"]')
-                    ->waitForLocation('https://emporiodigital.test/admin', 10)
-                    ->pause(5000); // Allow full load
+                ->type('#data\\.email', 'admin@emporiodigital.test')
+                ->type('#data\\.password', 'emporiomental123')
+                ->press('button[type="submit"]')
+                ->waitForLocation('https://emporiodigital.test/admin', 10)
+                ->pause(5000); // Allow full load
 
             $loadTime = microtime(true) - $startTime;
 
@@ -226,10 +226,10 @@ class SuperAdminDashboardTest extends DuskTestCase
                 return null;
             ")[0];
 
-            $browser->script('console.log("Performance metrics: " + ' . json_encode([
+            $browser->script('console.log("Performance metrics: " + '.json_encode([
                 'totalLoadTime' => round($loadTime, 2),
-                'browserMetrics' => $performanceMetrics
-            ]) . ')');
+                'browserMetrics' => $performanceMetrics,
+            ]).')');
 
             $browser->screenshot('dashboard-performance-test');
         });

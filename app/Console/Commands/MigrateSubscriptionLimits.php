@@ -12,21 +12,21 @@ class MigrateSubscriptionLimits extends Command
      *
      * @var string
      */
-    protected $signature = "emporio:migrate-subscription-limits {--force : Force migration even if limits already exist}";
+    protected $signature = 'emporio:migrate-subscription-limits {--force : Force migration even if limits already exist}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = "Migrate legacy subscription limit columns to unified JSON structure";
+    protected $description = 'Migrate legacy subscription limit columns to unified JSON structure';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $this->info("🔧 Migrating Subscription Limits to Unified JSON Structure...");
+        $this->info('🔧 Migrating Subscription Limits to Unified JSON Structure...');
         $this->newLine();
 
         $plans = SubscriptionPlan::all();
@@ -34,13 +34,15 @@ class MigrateSubscriptionLimits extends Command
         $skippedCount = 0;
 
         if ($plans->isEmpty()) {
-            $this->warn("No subscription plans found in the database.");
+            $this->warn('No subscription plans found in the database.');
+
             return 0;
         }
 
         $this->withProgressBar($plans, function (SubscriptionPlan $plan) use (&$migratedCount, &$skippedCount) {
-            if (!$this->option("force") && $plan->hasConfigurableLimits()) {
+            if (! $this->option('force') && $plan->hasConfigurableLimits()) {
                 $skippedCount++;
+
                 return;
             }
 
@@ -51,14 +53,14 @@ class MigrateSubscriptionLimits extends Command
         });
 
         $this->newLine();
-        $this->info("✅ Migration Complete!");
+        $this->info('✅ Migration Complete!');
         $this->line("📊 Plans migrated: {$migratedCount}");
         $this->line("⏭️  Plans skipped: {$skippedCount}");
         $this->newLine();
 
         if ($migratedCount > 0) {
-            $this->info("🎯 All plans now use the unified limits configuration.");
-            $this->line("You can now use the new form fields to manage subscription plan limits.");
+            $this->info('🎯 All plans now use the unified limits configuration.');
+            $this->line('You can now use the new form fields to manage subscription plan limits.');
         }
 
         return 0;

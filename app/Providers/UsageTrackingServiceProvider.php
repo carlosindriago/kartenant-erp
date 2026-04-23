@@ -2,14 +2,14 @@
 
 namespace App\Providers;
 
-use App\Observers\UsageTrackingObserver;
 use App\Observers\StorageUsageObserver;
+use App\Observers\UsageTrackingObserver;
 use App\Services\TenantUsageService;
 use App\Services\UsageAlertService;
 use App\Services\UsageBillingIntegrationService;
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\ServiceProvider;
 
 class UsageTrackingServiceProvider extends ServiceProvider
 {
@@ -17,11 +17,11 @@ class UsageTrackingServiceProvider extends ServiceProvider
     {
         // Register services as singletons for performance
         $this->app->singleton(TenantUsageService::class, function ($app) {
-            return new TenantUsageService();
+            return new TenantUsageService;
         });
 
         $this->app->singleton(UsageAlertService::class, function ($app) {
-            return new UsageAlertService();
+            return new UsageAlertService;
         });
 
         $this->app->singleton(UsageBillingIntegrationService::class, function ($app) {

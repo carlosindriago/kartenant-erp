@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,9 +13,9 @@ namespace App\Modules\POS\Resources\SaleResource\Pages;
 
 use App\Modules\POS\Resources\SaleResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Filament\Resources\Pages\ViewRecord;
 
 class ViewSale extends ViewRecord
 {
@@ -30,12 +30,12 @@ class ViewSale extends ViewRecord
                 ->color('danger')
                 ->url(fn () => route('tenant.pos.receipt.pdf', [
                     'tenant' => \Spatie\Multitenancy\Models\Tenant::current()->domain,
-                    'sale' => $this->record->id
+                    'sale' => $this->record->id,
                 ]))
                 ->openUrlInNewTab(),
         ];
     }
-    
+
     public function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -50,12 +50,12 @@ class ViewSale extends ViewRecord
                                     ->icon('heroicon-m-document-text')
                                     ->weight('bold')
                                     ->size('lg'),
-                                
+
                                 Infolists\Components\TextEntry::make('created_at')
                                     ->label('Fecha y Hora')
                                     ->dateTime('d/m/Y H:i:s')
                                     ->icon('heroicon-m-clock'),
-                                
+
                                 Infolists\Components\TextEntry::make('status')
                                     ->label('Estado')
                                     ->badge()
@@ -73,7 +73,7 @@ class ViewSale extends ViewRecord
                                     }),
                             ]),
                     ]),
-                
+
                 Infolists\Components\Section::make('Información del Cliente')
                     ->schema([
                         Infolists\Components\Grid::make(2)
@@ -82,17 +82,17 @@ class ViewSale extends ViewRecord
                                     ->label('Nombre')
                                     ->default('Cliente General')
                                     ->icon('heroicon-m-user'),
-                                
+
                                 Infolists\Components\TextEntry::make('customer.email')
                                     ->label('Email')
                                     ->icon('heroicon-m-envelope')
                                     ->placeholder('No especificado'),
-                                
+
                                 Infolists\Components\TextEntry::make('customer.phone')
                                     ->label('Teléfono')
                                     ->icon('heroicon-m-phone')
                                     ->placeholder('No especificado'),
-                                
+
                                 Infolists\Components\TextEntry::make('customer.document_number')
                                     ->label('Documento')
                                     ->icon('heroicon-o-identification')
@@ -100,7 +100,7 @@ class ViewSale extends ViewRecord
                             ]),
                     ])
                     ->visible(fn ($record) => $record->customer_id !== null),
-                
+
                 Infolists\Components\Section::make('Productos Vendidos')
                     ->schema([
                         Infolists\Components\RepeatableEntry::make('items')
@@ -112,16 +112,16 @@ class ViewSale extends ViewRecord
                                             ->label('Producto')
                                             ->weight('bold')
                                             ->columnSpan(2),
-                                        
+
                                         Infolists\Components\TextEntry::make('quantity')
                                             ->label('Cantidad')
                                             ->alignCenter(),
-                                        
+
                                         Infolists\Components\TextEntry::make('unit_price')
                                             ->label('Precio Unit.')
                                             ->money('USD')
                                             ->alignEnd(),
-                                        
+
                                         Infolists\Components\TextEntry::make('line_total')
                                             ->label('Subtotal')
                                             ->money('USD')
@@ -131,7 +131,7 @@ class ViewSale extends ViewRecord
                                     ]),
                             ]),
                     ]),
-                
+
                 Infolists\Components\Section::make('Totales')
                     ->schema([
                         Infolists\Components\Grid::make(3)
@@ -140,12 +140,12 @@ class ViewSale extends ViewRecord
                                     ->label('Subtotal (Neto)')
                                     ->money('USD')
                                     ->size('lg'),
-                                
+
                                 Infolists\Components\TextEntry::make('tax_amount')
                                     ->label('IVA')
                                     ->money('USD')
                                     ->size('lg'),
-                                
+
                                 Infolists\Components\TextEntry::make('total')
                                     ->label('TOTAL')
                                     ->money('USD')
@@ -154,7 +154,7 @@ class ViewSale extends ViewRecord
                                     ->color('success'),
                             ]),
                     ]),
-                
+
                 Infolists\Components\Section::make('Información de Pago')
                     ->schema([
                         Infolists\Components\Grid::make(3)
@@ -169,24 +169,24 @@ class ViewSale extends ViewRecord
                                     })
                                     ->badge()
                                     ->color('info'),
-                                
+
                                 Infolists\Components\TextEntry::make('amount_paid')
                                     ->label('Monto Pagado')
                                     ->money('USD')
                                     ->visible(fn ($record) => $record->payment_method === 'cash'),
-                                
+
                                 Infolists\Components\TextEntry::make('change_amount')
                                     ->label('Cambio')
                                     ->money('USD')
                                     ->visible(fn ($record) => $record->payment_method === 'cash' && $record->change_amount > 0),
-                                
+
                                 Infolists\Components\TextEntry::make('transaction_reference')
                                     ->label('Referencia de Transacción')
                                     ->copyable()
                                     ->visible(fn ($record) => in_array($record->payment_method, ['card', 'transfer']) && $record->transaction_reference),
                             ]),
                     ]),
-                
+
                 Infolists\Components\Section::make('Devoluciones')
                     ->schema([
                         Infolists\Components\RepeatableEntry::make('returns')
@@ -198,16 +198,16 @@ class ViewSale extends ViewRecord
                                             ->label('Número de Devolución')
                                             ->weight('bold')
                                             ->icon('heroicon-m-arrow-uturn-left'),
-                                        
+
                                         Infolists\Components\TextEntry::make('created_at')
                                             ->label('Fecha')
                                             ->dateTime('d/m/Y H:i'),
-                                        
+
                                         Infolists\Components\TextEntry::make('total')
                                             ->label('Total Devuelto')
                                             ->money('USD')
                                             ->color('warning'),
-                                        
+
                                         Infolists\Components\TextEntry::make('status')
                                             ->label('Estado')
                                             ->badge()
@@ -227,7 +227,7 @@ class ViewSale extends ViewRecord
                             ]),
                     ])
                     ->visible(fn ($record) => $record->returns->count() > 0),
-                
+
                 Infolists\Components\Section::make('Información Adicional')
                     ->schema([
                         Infolists\Components\Grid::make(2)
@@ -236,12 +236,12 @@ class ViewSale extends ViewRecord
                                     ->label('Cajero')
                                     ->default('Sin asignar')
                                     ->icon('heroicon-m-user-circle'),
-                                
+
                                 Infolists\Components\TextEntry::make('cashRegister.register_number')
                                     ->label('Caja Registradora')
                                     ->default('No especificada')
                                     ->icon('heroicon-m-calculator'),
-                                
+
                                 Infolists\Components\TextEntry::make('notes')
                                     ->label('Notas')
                                     ->placeholder('Sin notas')
@@ -250,7 +250,7 @@ class ViewSale extends ViewRecord
                     ])
                     ->collapsible()
                     ->collapsed(),
-                
+
                 Infolists\Components\Section::make('Código de Seguridad')
                     ->description('Hash único e inmutable que verifica la autenticidad de este comprobante')
                     ->icon('heroicon-o-shield-check')
@@ -265,7 +265,7 @@ class ViewSale extends ViewRecord
                             ->color('warning')
                             ->placeholder('No generado')
                             ->helperText('Este código aparece en el PDF del comprobante y en el código QR para verificación'),
-                        
+
                         Infolists\Components\TextEntry::make('verification_generated_at')
                             ->label('Fecha de Generación')
                             ->dateTime('d/m/Y H:i:s')

@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -32,7 +32,7 @@ class ProductObserver
     private function generateUniqueSku(): string
     {
         do {
-            $sku = 'PRD-' . strtoupper(substr(uniqid(), -8));
+            $sku = 'PRD-'.strtoupper(substr(uniqid(), -8));
         } while (Product::where('sku', $sku)->exists());
 
         return $sku;

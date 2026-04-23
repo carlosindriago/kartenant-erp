@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -14,18 +14,16 @@ namespace App\Modules\Reporting\Services;
 use App\Modules\Inventory\Models\Product;
 use App\Modules\POS\Models\Sale;
 use App\Modules\POS\Models\SaleItem;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Carbon;
 
 class ProfitabilityService
 {
     /**
      * Get most profitable products
      *
-     * @param int $limit
-     * @param array|null $dateRange ['start' => Carbon, 'end' => Carbon]
-     * @return Collection
+     * @param  array|null  $dateRange  ['start' => Carbon, 'end' => Carbon]
      */
     public function getMostProfitableProducts(int $limit = 10, ?array $dateRange = null): Collection
     {
@@ -37,10 +35,6 @@ class ProfitabilityService
 
     /**
      * Get least profitable products (or those with losses)
-     *
-     * @param int $limit
-     * @param array|null $dateRange
-     * @return Collection
      */
     public function getLeastProfitableProducts(int $limit = 10, ?array $dateRange = null): Collection
     {
@@ -52,16 +46,12 @@ class ProfitabilityService
 
     /**
      * Calculate profitability for a specific product
-     *
-     * @param int $productId
-     * @param array|null $dateRange
-     * @return array
      */
     public function calculateProductProfitability(int $productId, ?array $dateRange = null): array
     {
         $product = Product::find($productId);
 
-        if (!$product) {
+        if (! $product) {
             return [
                 'error' => 'Product not found',
             ];
@@ -76,11 +66,11 @@ class ProfitabilityService
         }
 
         $sales = $query->select(
-                DB::raw('COUNT(DISTINCT sales.id) as transaction_count'),
-                DB::raw('SUM(sale_items.quantity) as total_sold'),
-                DB::raw('SUM(sale_items.total) as total_revenue'),
-                DB::raw('AVG(sale_items.unit_price) as average_selling_price')
-            )
+            DB::raw('COUNT(DISTINCT sales.id) as transaction_count'),
+            DB::raw('SUM(sale_items.quantity) as total_sold'),
+            DB::raw('SUM(sale_items.total) as total_revenue'),
+            DB::raw('AVG(sale_items.unit_price) as average_selling_price')
+        )
             ->first();
 
         $totalCost = ($sales->total_sold ?? 0) * $product->cost_price;
@@ -113,9 +103,6 @@ class ProfitabilityService
 
     /**
      * Get profitability by category
-     *
-     * @param array|null $dateRange
-     * @return Collection
      */
     public function getProfitabilityByCategory(?array $dateRange = null): Collection
     {
@@ -131,14 +118,14 @@ class ProfitabilityService
         }
 
         return $query->select(
-                'categories.id as category_id',
-                'categories.name as category_name',
-                DB::raw('COUNT(DISTINCT products.id) as product_count'),
-                DB::raw('COUNT(DISTINCT sales.id) as transaction_count'),
-                DB::raw('SUM(sale_items.quantity) as total_sold'),
-                DB::raw('SUM(sale_items.total) as total_revenue'),
-                DB::raw('SUM(sale_items.quantity * products.cost_price) as total_cost')
-            )
+            'categories.id as category_id',
+            'categories.name as category_name',
+            DB::raw('COUNT(DISTINCT products.id) as product_count'),
+            DB::raw('COUNT(DISTINCT sales.id) as transaction_count'),
+            DB::raw('SUM(sale_items.quantity) as total_sold'),
+            DB::raw('SUM(sale_items.total) as total_revenue'),
+            DB::raw('SUM(sale_items.quantity * products.cost_price) as total_cost')
+        )
             ->groupBy('categories.id', 'categories.name')
             ->get()
             ->map(function ($item) {
@@ -152,6 +139,7 @@ class ProfitabilityService
                 $item->roi = $item->total_cost > 0
                     ? ($item->profit / $item->total_cost) * 100
                     : 0;
+
                 return $item;
             })
             ->sortByDesc('profit')
@@ -160,9 +148,6 @@ class ProfitabilityService
 
     /**
      * Get profitability summary for all products
-     *
-     * @param array|null $dateRange
-     * @return array
      */
     public function getProfitabilitySummary(?array $dateRange = null): array
     {
@@ -195,9 +180,6 @@ class ProfitabilityService
 
     /**
      * Get profit trend over time
-     *
-     * @param int $days
-     * @return array
      */
     public function getProfitTrend(int $days = 30): array
     {
@@ -237,27 +219,24 @@ class ProfitabilityService
 
     /**
      * Get product profitability data
-     *
-     * @param array|null $dateRange
-     * @return Collection
      */
     protected function getProductProfitability(?array $dateRange = null): Collection
     {
         $query = Product::select(
-                'products.id',
-                'products.name',
-                'products.sku',
-                'products.stock',
-                'products.price',
-                'products.cost_price',
-                'categories.name as category_name',
-                DB::raw('COALESCE(COUNT(DISTINCT sales.id), 0) as transaction_count'),
-                DB::raw('COALESCE(SUM(sale_items.quantity), 0) as total_sold'),
-                DB::raw('COALESCE(SUM(sale_items.total), 0) as total_revenue'),
-                DB::raw('COALESCE(AVG(sale_items.unit_price), 0) as average_selling_price')
-            )
+            'products.id',
+            'products.name',
+            'products.sku',
+            'products.stock',
+            'products.price',
+            'products.cost_price',
+            'categories.name as category_name',
+            DB::raw('COALESCE(COUNT(DISTINCT sales.id), 0) as transaction_count'),
+            DB::raw('COALESCE(SUM(sale_items.quantity), 0) as total_sold'),
+            DB::raw('COALESCE(SUM(sale_items.total), 0) as total_revenue'),
+            DB::raw('COALESCE(AVG(sale_items.unit_price), 0) as average_selling_price')
+        )
             ->leftJoin('sale_items', 'products.id', '=', 'sale_items.product_id')
-            ->leftJoin('sales', function($join) use ($dateRange) {
+            ->leftJoin('sales', function ($join) use ($dateRange) {
                 $join->on('sale_items.sale_id', '=', 'sales.id')
                     ->where('sales.status', '=', 'completed');
 

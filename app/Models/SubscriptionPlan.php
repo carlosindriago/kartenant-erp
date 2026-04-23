@@ -2,24 +2,26 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SubscriptionPlan extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $connection = 'landlord';
+
     protected $table = 'subscription_plans';
 
     protected $fillable = [
@@ -114,13 +116,15 @@ class SubscriptionPlan extends Model
     public function getFormattedPrice(string $billingCycle = 'monthly'): string
     {
         $price = $this->getPrice($billingCycle);
-        return $this->currency . ' ' . number_format($price, 2);
+
+        return $this->currency.' '.number_format($price, 2);
     }
 
     public function getYearlySavings(): float
     {
         $monthlyTotal = (float) $this->price_monthly * 12;
         $yearlyTotal = (float) $this->price_yearly;
+
         return $monthlyTotal - $yearlyTotal;
     }
 
@@ -131,6 +135,7 @@ class SubscriptionPlan extends Model
             return 0;
         }
         $savings = $this->getYearlySavings();
+
         return (int) round(($savings / $monthlyTotal) * 100);
     }
 
@@ -144,7 +149,7 @@ class SubscriptionPlan extends Model
         $features = $this->features ?? [];
 
         // Handle boolean flag structure (new format): {"has_api_access": true}
-        if (is_array($features) && !empty($features) && !is_numeric(array_key_first($features))) {
+        if (is_array($features) && ! empty($features) && ! is_numeric(array_key_first($features))) {
             return isset($features[$feature]) && $features[$feature] === true;
         }
 
@@ -162,7 +167,7 @@ class SubscriptionPlan extends Model
         $availableFeatureFlags = self::getAvailableFeatureFlags();
 
         // Handle boolean flag structure (new format): {"has_api_access": true}
-        if (is_array($features) && !empty($features) && !is_numeric(array_key_first($features))) {
+        if (is_array($features) && ! empty($features) && ! is_numeric(array_key_first($features))) {
             $formattedFeatures = [];
 
             foreach ($features as $featureKey => $isEnabled) {
@@ -180,7 +185,7 @@ class SubscriptionPlan extends Model
 
     public function hasLimit(string $limitType): bool
     {
-        return !is_null($this->{$limitType});
+        return ! is_null($this->{$limitType});
     }
 
     public function isUnlimited(string $limitType): bool
@@ -211,12 +216,14 @@ class SubscriptionPlan extends Model
             if (isset($limits['storage'])) {
                 return is_numeric($limits['storage']) ? (int) $limits['storage'] : null;
             }
+
             return null;
         }
 
         // Handle standard metrics
         if (isset($limits[$metric])) {
             $value = $limits[$metric];
+
             // Convert string numbers to integers, return null for non-numeric
             return is_numeric($value) ? (int) $value : null;
         }
@@ -235,12 +242,13 @@ class SubscriptionPlan extends Model
             return null; // Unlimited
         }
 
-        if (!$this->allowsOverage()) {
+        if (! $this->allowsOverage()) {
             return $baseLimit; // Strict limit
         }
 
         // Calculate soft limit with buffer
         $buffer = (int) ($baseLimit * ($this->overage_percentage / 100));
+
         return $baseLimit + $buffer;
     }
 
@@ -343,7 +351,7 @@ class SubscriptionPlan extends Model
      */
     public function hasConfigurableLimits(): bool
     {
-        return !empty($this->limits) && is_array($this->limits);
+        return ! empty($this->limits) && is_array($this->limits);
     }
 
     /**
@@ -521,13 +529,14 @@ class SubscriptionPlan extends Model
         $availableMetrics = array_keys(self::getAvailableLimitMetrics());
 
         foreach ($limits as $metric => $value) {
-            if (!in_array($metric, $availableMetrics)) {
+            if (! in_array($metric, $availableMetrics)) {
                 $errors[$metric] = "Métrica de límite no válida: {$metric}";
+
                 continue;
             }
 
-            if ($value !== null && $value !== '' && !is_numeric($value)) {
-                $errors[$metric] = "El valor debe ser numérico o nulo para límites ilimitados";
+            if ($value !== null && $value !== '' && ! is_numeric($value)) {
+                $errors[$metric] = 'El valor debe ser numérico o nulo para límites ilimitados';
             }
         }
 
@@ -543,12 +552,12 @@ class SubscriptionPlan extends Model
         $availableFeatures = array_keys(self::getAvailableFeatureFlags());
 
         foreach ($features as $feature => $value) {
-            if (!in_array($feature, $availableFeatures)) {
+            if (! in_array($feature, $availableFeatures)) {
                 $errors[$feature] = "Característica no válida: {$feature}";
             }
 
-            if (!is_bool($value)) {
-                $errors[$feature] = "El valor debe ser booleano (true/false)";
+            if (! is_bool($value)) {
+                $errors[$feature] = 'El valor debe ser booleano (true/false)';
             }
         }
 
@@ -563,7 +572,7 @@ class SubscriptionPlan extends Model
      */
     public function migrateLegacyLimits(): bool
     {
-        if ($this->limits !== null && !empty($this->limits)) {
+        if ($this->limits !== null && ! empty($this->limits)) {
             return true; // Already has modern limits
         }
 
@@ -594,6 +603,7 @@ class SubscriptionPlan extends Model
         if ($hasLegacyData) {
             $this->limits = $legacyLimits;
             $this->saveQuietly();
+
             return true;
         }
 
@@ -611,19 +621,21 @@ class SubscriptionPlan extends Model
             return null; // Unlimited
         }
 
-        if (!$this->allowsOverage()) {
+        if (! $this->allowsOverage()) {
             return $baseLimit; // Strict limit
         }
 
         // Apply overage percentage if tolerance is not set
         if ($this->overage_tolerance > 0) {
             $buffer = (int) ($baseLimit * ($this->overage_tolerance / 100));
+
             return $baseLimit + $buffer;
         }
 
         // Fall back to overage_percentage for backward compatibility
         if ($this->overage_percentage > 0) {
             $buffer = (int) ($baseLimit * ($this->overage_percentage / 100));
+
             return $baseLimit + $buffer;
         }
 

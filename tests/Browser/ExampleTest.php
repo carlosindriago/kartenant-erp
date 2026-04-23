@@ -15,10 +15,10 @@ class ExampleTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $browser->visit('/')
          // 2. Esperar unos segundos (por si es lento)
-            ->pause(3000)
+                ->pause(3000)
             // 3. Buscar texto que SABEMOS que está ahí (por el diseño que hicimos)
             // Puede ser "Bienvenido" o el nombre de la tienda "Fruteria"
-            ->assertSee('Emporio Digital');
+                ->assertSee('Emporio Digital');
         });
     }
 }

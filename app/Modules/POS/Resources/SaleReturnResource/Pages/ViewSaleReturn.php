@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,9 +13,9 @@ namespace App\Modules\POS\Resources\SaleReturnResource\Pages;
 
 use App\Modules\POS\Resources\SaleReturnResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Filament\Resources\Pages\ViewRecord;
 
 class ViewSaleReturn extends ViewRecord
 {
@@ -30,10 +30,10 @@ class ViewSaleReturn extends ViewRecord
                 ->color('danger')
                 ->url(fn () => route('tenant.pos.credit-note.pdf', [
                     'tenant' => \Spatie\Multitenancy\Models\Tenant::current()->domain,
-                    'saleReturn' => $this->record->id
+                    'saleReturn' => $this->record->id,
                 ]))
                 ->openUrlInNewTab(),
-            
+
             Actions\Action::make('view_original_sale')
                 ->label('Ver Venta Original')
                 ->icon('heroicon-o-arrow-right')
@@ -44,7 +44,7 @@ class ViewSaleReturn extends ViewRecord
                 ])),
         ];
     }
-    
+
     public function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -60,12 +60,12 @@ class ViewSaleReturn extends ViewRecord
                                     ->weight('bold')
                                     ->size('lg')
                                     ->color('warning'),
-                                
+
                                 Infolists\Components\TextEntry::make('created_at')
                                     ->label('Fecha de Devolución')
                                     ->dateTime('d/m/Y H:i:s')
                                     ->icon('heroicon-m-clock'),
-                                
+
                                 Infolists\Components\TextEntry::make('status')
                                     ->label('Estado')
                                     ->badge()
@@ -83,7 +83,7 @@ class ViewSaleReturn extends ViewRecord
                                     }),
                             ]),
                     ]),
-                
+
                 Infolists\Components\Section::make('Referencia a Venta Original')
                     ->schema([
                         Infolists\Components\Grid::make(3)
@@ -92,15 +92,15 @@ class ViewSaleReturn extends ViewRecord
                                     ->label('Factura Original')
                                     ->icon('heroicon-m-document')
                                     ->weight('bold'),
-                                
+
                                 Infolists\Components\TextEntry::make('originalSale.created_at')
                                     ->label('Fecha de Venta')
                                     ->dateTime('d/m/Y H:i'),
-                                
+
                                 Infolists\Components\TextEntry::make('originalSale.total')
                                     ->label('Total de Venta')
                                     ->money('USD'),
-                                
+
                                 Infolists\Components\TextEntry::make('return_type')
                                     ->label('Tipo de Devolución')
                                     ->badge()
@@ -116,7 +116,7 @@ class ViewSaleReturn extends ViewRecord
                                     }),
                             ]),
                     ]),
-                
+
                 Infolists\Components\Section::make('Razón de la Devolución')
                     ->schema([
                         Infolists\Components\TextEntry::make('reason')
@@ -124,8 +124,8 @@ class ViewSaleReturn extends ViewRecord
                             ->placeholder('No se especificó una razón')
                             ->columnSpanFull(),
                     ])
-                    ->visible(fn ($record) => !empty($record->reason)),
-                
+                    ->visible(fn ($record) => ! empty($record->reason)),
+
                 Infolists\Components\Section::make('Productos Devueltos')
                     ->schema([
                         Infolists\Components\RepeatableEntry::make('items')
@@ -137,16 +137,16 @@ class ViewSaleReturn extends ViewRecord
                                             ->label('Producto')
                                             ->weight('bold')
                                             ->columnSpan(2),
-                                        
+
                                         Infolists\Components\TextEntry::make('quantity')
                                             ->label('Cantidad')
                                             ->alignCenter(),
-                                        
+
                                         Infolists\Components\TextEntry::make('unit_price')
                                             ->label('Precio Unit.')
                                             ->money('USD')
                                             ->alignEnd(),
-                                        
+
                                         Infolists\Components\TextEntry::make('line_total')
                                             ->label('Subtotal')
                                             ->money('USD')
@@ -161,7 +161,7 @@ class ViewSaleReturn extends ViewRecord
                                     ->icon('heroicon-m-exclamation-triangle'),
                             ]),
                     ]),
-                
+
                 Infolists\Components\Section::make('Totales')
                     ->schema([
                         Infolists\Components\Grid::make(3)
@@ -170,12 +170,12 @@ class ViewSaleReturn extends ViewRecord
                                     ->label('Subtotal (Neto)')
                                     ->money('USD')
                                     ->size('lg'),
-                                
+
                                 Infolists\Components\TextEntry::make('tax_amount')
                                     ->label('IVA')
                                     ->money('USD')
                                     ->size('lg'),
-                                
+
                                 Infolists\Components\TextEntry::make('total')
                                     ->label('TOTAL REEMBOLSADO')
                                     ->money('USD')
@@ -184,7 +184,7 @@ class ViewSaleReturn extends ViewRecord
                                     ->color('warning'),
                             ]),
                     ]),
-                
+
                 Infolists\Components\Section::make('Información del Reembolso')
                     ->schema([
                         Infolists\Components\Grid::make(3)
@@ -200,11 +200,11 @@ class ViewSaleReturn extends ViewRecord
                                     })
                                     ->badge()
                                     ->color('success'),
-                                
+
                                 Infolists\Components\TextEntry::make('processedBy.name')
                                     ->label('Procesado Por')
                                     ->icon('heroicon-m-user-circle'),
-                                
+
                                 Infolists\Components\TextEntry::make('processed_at')
                                     ->label('Fecha de Procesamiento')
                                     ->dateTime('d/m/Y H:i:s'),

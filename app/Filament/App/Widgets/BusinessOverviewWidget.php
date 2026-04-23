@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\DB;
 class BusinessOverviewWidget extends BaseWidget
 {
     protected static ?int $sort = 1;
-    protected int | string | array $columnSpan = 'full';
+
+    protected int|string|array $columnSpan = 'full';
 
     protected function getStats(): array
     {
@@ -34,7 +35,7 @@ class BusinessOverviewWidget extends BaseWidget
             ->count();
 
         return [
-            Stat::make('💰 Ventas Hoy', '$' . number_format($todaySales, 0, ',', '.'))
+            Stat::make('💰 Ventas Hoy', '$'.number_format($todaySales, 0, ',', '.'))
                 ->description('vs ayer')
                 ->descriptionIcon('heroicon-m-arrow-trending-up')
                 ->color('success')
@@ -44,7 +45,7 @@ class BusinessOverviewWidget extends BaseWidget
                     'style' => 'background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 1rem;',
                 ]),
 
-            Stat::make('🛒 Ticket Promedio', '$' . number_format($avgTicket, 0, ',', '.'))
+            Stat::make('🛒 Ticket Promedio', '$'.number_format($avgTicket, 0, ',', '.'))
                 ->description('promedio del día')
                 ->descriptionIcon('heroicon-m-calculator')
                 ->color('primary')

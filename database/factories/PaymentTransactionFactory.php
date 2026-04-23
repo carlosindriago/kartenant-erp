@@ -113,7 +113,7 @@ class PaymentTransactionFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'gateway_driver' => 'stripe',
-            'transaction_id' => 'ch_' . $this->faker->unique()->sha1(),
+            'transaction_id' => 'ch_'.$this->faker->unique()->sha1(),
         ]);
     }
 
@@ -124,7 +124,7 @@ class PaymentTransactionFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'gateway_driver' => 'paypal',
-            'transaction_id' => 'PAYID-' . $this->faker->unique()->sha1(),
+            'transaction_id' => 'PAYID-'.$this->faker->unique()->sha1(),
         ]);
     }
 
@@ -135,7 +135,7 @@ class PaymentTransactionFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'gateway_driver' => 'mercado_pago',
-            'transaction_id' => 'mp_' . $this->faker->unique()->numerify('##########'),
+            'transaction_id' => 'mp_'.$this->faker->unique()->numerify('##########'),
         ]);
     }
 
@@ -146,7 +146,7 @@ class PaymentTransactionFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'gateway_driver' => 'manual',
-            'transaction_id' => 'MANUAL-' . $this->faker->unique()->numerify('##########'),
+            'transaction_id' => 'MANUAL-'.$this->faker->unique()->numerify('##########'),
         ]);
     }
 

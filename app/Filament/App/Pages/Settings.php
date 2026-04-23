@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,8 +13,8 @@ namespace App\Filament\App\Pages;
 
 use App\Models\TenantSetting;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
@@ -26,9 +26,13 @@ class Settings extends Page implements HasForms
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+
     protected static ?string $navigationLabel = 'Configuración';
+
     protected static ?string $title = 'Configuración del Sistema';
+
     protected static ?string $navigationGroup = 'Sistema';
+
     protected static ?int $navigationSort = 99;
 
     protected static string $view = 'filament.app.pages.settings';
@@ -194,12 +198,12 @@ class Settings extends Page implements HasForms
                 ->action('save'),
         ];
     }
-    
+
     public function hasLogo(): bool
     {
         return false;
     }
-    
+
     protected function hasFullWidthFormActions(): bool
     {
         return false;

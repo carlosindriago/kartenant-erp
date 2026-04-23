@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Resources\InvoiceResource;
+use App\Models\Invoice;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
-use App\Models\Invoice;
 
 class EditInvoice extends EditRecord
 {
@@ -28,10 +28,10 @@ class EditInvoice extends EditRecord
         }
 
         // Update line items if plan price changed
-        if (isset($data['plan_price']) && !isset($data['line_items'])) {
+        if (isset($data['plan_price']) && ! isset($data['line_items'])) {
             $data['line_items'] = [
                 [
-                    'description' => ($data['plan_name'] ?? $this->record->plan_name) . ' - ' . ($data['billing_cycle'] ?? $this->record->billing_cycle),
+                    'description' => ($data['plan_name'] ?? $this->record->plan_name).' - '.($data['billing_cycle'] ?? $this->record->billing_cycle),
                     'quantity' => 1,
                     'unit_price' => $data['plan_price'] ?? $this->record->plan_price,
                     'total' => $data['subtotal'] ?? $this->record->subtotal,
@@ -115,13 +115,13 @@ class EditInvoice extends EditRecord
 
             // Download the PDF
             return response()->streamDownload(
-                fn () => print($pdf->output()),
+                fn () => print ($pdf->output()),
                 $filename,
                 ['Content-Type' => 'application/pdf']
             );
 
         } catch (\Exception $e) {
-            $this->notify('error', 'Error al generar PDF: ' . $e->getMessage());
+            $this->notify('error', 'Error al generar PDF: '.$e->getMessage());
         }
     }
 

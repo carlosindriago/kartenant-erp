@@ -39,7 +39,9 @@ return new class extends Migration
         });
 
         // Create index for date-based queries
-        DB::connection('landlord')->statement('CREATE INDEX analytics_events_created_at_date_idx ON analytics_events ((created_at::date))');
+        if (DB::connection('landlord')->getDriverName() === 'pgsql') {
+            DB::connection('landlord')->statement('CREATE INDEX analytics_events_created_at_date_idx ON analytics_events ((created_at::date))');
+        }
     }
 
     public function down(): void

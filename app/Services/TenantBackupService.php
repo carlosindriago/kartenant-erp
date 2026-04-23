@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -34,6 +34,7 @@ use Throwable;
 class TenantBackupService
 {
     private const RETENTION_DAYS = 7;
+
     private const BACKUP_PATH = 'backups';
 
     /**
@@ -78,7 +79,7 @@ class TenantBackupService
             $date = now()->format('Y-m-d');
             $time = now()->format('H-i-s');
             $filename = "{$type}/{$date}/{$time}-{$databaseName}.sql.gz";
-            $fullPath = storage_path('app/' . self::BACKUP_PATH . '/' . $filename);
+            $fullPath = storage_path('app/'.self::BACKUP_PATH.'/'.$filename);
 
             // Create directory if not exists
             File::ensureDirectoryExists(dirname($fullPath));
@@ -94,7 +95,7 @@ class TenantBackupService
                 ->setDbName($databaseName)
                 ->setUserName($dbConfig['username'])
                 ->setPassword($dbConfig['password'])
-                ->useCompressor(new \Spatie\DbDumper\Compressors\GzipCompressor())
+                ->useCompressor(new \Spatie\DbDumper\Compressors\GzipCompressor)
                 ->dumpToFile($fullPath);
 
             // Get file size
@@ -103,7 +104,7 @@ class TenantBackupService
             // Update log as successful
             $log->update([
                 'status' => 'success',
-                'file_path' => self::BACKUP_PATH . '/' . $filename,
+                'file_path' => self::BACKUP_PATH.'/'.$filename,
                 'file_size' => $fileSize,
                 'completed_at' => now(),
             ]);
@@ -172,7 +173,7 @@ class TenantBackupService
         // Clean empty directories
         $this->cleanEmptyDirectories();
 
-        Log::info("[Backup] Cleanup complete. Deleted " . count($deleted) . " backups");
+        Log::info('[Backup] Cleanup complete. Deleted '.count($deleted).' backups');
 
         return [
             'deleted_count' => count($deleted),
@@ -198,7 +199,7 @@ class TenantBackupService
                 ->first();
         }
 
-        if (!$latestBackup) {
+        if (! $latestBackup) {
             return [
                 'status' => 'never',
                 'message' => 'No se han realizado backups',
@@ -279,9 +280,9 @@ class TenantBackupService
      */
     private function cleanEmptyDirectories(): void
     {
-        $backupBasePath = storage_path('app/' . self::BACKUP_PATH);
+        $backupBasePath = storage_path('app/'.self::BACKUP_PATH);
 
-        if (!File::isDirectory($backupBasePath)) {
+        if (! File::isDirectory($backupBasePath)) {
             return;
         }
 
@@ -321,7 +322,7 @@ class TenantBackupService
     private function getStatusMessage(BackupLog $log, int $hoursAgo): string
     {
         if ($log->status === 'failed') {
-            return 'Backup fallido: ' . substr($log->error_message, 0, 100);
+            return 'Backup fallido: '.substr($log->error_message, 0, 100);
         }
 
         if ($log->status === 'running') {
@@ -337,6 +338,7 @@ class TenantBackupService
         }
 
         $daysAgo = floor($hoursAgo / 24);
+
         return "Hace {$daysAgo} días";
     }
 }

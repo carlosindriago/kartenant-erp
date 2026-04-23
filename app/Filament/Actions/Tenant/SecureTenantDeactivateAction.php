@@ -5,13 +5,12 @@ namespace App\Filament\Actions\Tenant;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantSecurityService;
-use Filament\Actions\Actions;
+use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * High-Friction Secure Tenant Deactivation Action
@@ -28,6 +27,7 @@ use Carbon\Carbon;
 class SecureTenantDeactivateAction extends Action
 {
     private TenantSecurityService $securityService;
+
     private Tenant $tenant;
 
     public static function make(string $name = 'deactivate_tenant'): static
@@ -72,8 +72,7 @@ class SecureTenantDeactivateAction extends Action
                                 'other' => 'Otro (Especificar)',
                             ])
                             ->reactive()
-                            ->afterStateUpdated(fn ($state, callable $set) =>
-                                $set('other_reason_visible', $state === 'other')
+                            ->afterStateUpdated(fn ($state, callable $set) => $set('other_reason_visible', $state === 'other')
                             ),
 
                         Forms\Components\TextInput::make('other_reason')
@@ -91,6 +90,7 @@ class SecureTenantDeactivateAction extends Action
                             ->label('Información del Administrador')
                             ->content(function () {
                                 $admin = auth('superadmin')->user();
+
                                 return "**Nombre:** {$admin->name}\n**Email:** {$admin->email}\n**ID:** {$admin->id}";
                             }),
 
@@ -102,9 +102,10 @@ class SecureTenantDeactivateAction extends Action
                             ->helperText('Ingresa tu contraseña para confirmar tu identidad.')
                             ->rule(function ($state) {
                                 $admin = auth('superadmin')->user();
-                                if (!Hash::check($state, $admin->password)) {
+                                if (! Hash::check($state, $admin->password)) {
                                     return 'La contraseña es incorrecta.';
                                 }
+
                                 return true;
                             }),
 
@@ -128,13 +129,14 @@ class SecureTenantDeactivateAction extends Action
                             ->label('Confirmar nombre del tenant')
                             ->required()
                             ->placeholder(function ($record) {
-                                return "Escribe exactamente: " . ($record->name ?? '');
+                                return 'Escribe exactamente: '.($record->name ?? '');
                             })
                             ->helperText('Escribe el nombre exacto del tenant para confirmar.')
                             ->rule(function ($state, $record) {
                                 if ($state !== $record->name) {
                                     return 'El nombre no coincide exactamente.';
                                 }
+
                                 return true;
                             }),
 
@@ -142,13 +144,14 @@ class SecureTenantDeactivateAction extends Action
                             ->label('Confirmar dominio del tenant')
                             ->required()
                             ->placeholder(function ($record) {
-                                return "Escribe exactamente: " . ($record->domain ?? '');
+                                return 'Escribe exactamente: '.($record->domain ?? '');
                             })
                             ->helperText('Escribe el dominio exacto del tenant para confirmar.')
                             ->rule(function ($state, $record) {
                                 if ($state !== $record->domain) {
                                     return 'El dominio no coincide exactamente.';
                                 }
+
                                 return true;
                             }),
                     ]),
@@ -160,10 +163,11 @@ class SecureTenantDeactivateAction extends Action
                         Forms\Components\Placeholder::make('otp_instructions')
                             ->label('Instrucciones OTP')
                             ->content(function ($record) {
-                                $code = 'DEACTIVATE' . strtoupper(substr($record->name, 0, 4));
-                                return "**Código esperado:** `{$code}`\n\n" .
-                                       "Este código fue generado específicamente para esta operación " .
-                                       "y solo es válido por 10 minutos.";
+                                $code = 'DEACTIVATE'.strtoupper(substr($record->name, 0, 4));
+
+                                return "**Código esperado:** `{$code}`\n\n".
+                                       'Este código fue generado específicamente para esta operación '.
+                                       'y solo es válido por 10 minutos.';
                             }),
 
                         Forms\Components\TextInput::make('otp_code')
@@ -172,10 +176,11 @@ class SecureTenantDeactivateAction extends Action
                             ->placeholder('Escribe el código exacto mostrado arriba')
                             ->helperText('El código distingue mayúsculas y minúsculas.')
                             ->rule(function ($state, $record) {
-                                $expectedCode = 'DEACTIVATE' . strtoupper(substr($record->name, 0, 4));
+                                $expectedCode = 'DEACTIVATE'.strtoupper(substr($record->name, 0, 4));
                                 if (strtoupper(trim($state)) !== $expectedCode) {
                                     return 'El código OTP no es válido.';
                                 }
+
                                 return true;
                             }),
                     ]),
@@ -224,8 +229,7 @@ class SecureTenantDeactivateAction extends Action
                         ->send();
                 }
             })
-            ->visible(fn (Tenant $record): bool =>
-                $record->isActive() &&
+            ->visible(fn (Tenant $record): bool => $record->isActive() &&
                 auth('superadmin')->user()?->can('admin.tenants.update')
             );
     }
@@ -236,7 +240,7 @@ class SecureTenantDeactivateAction extends Action
     private function validateSecurityPreconditions(array $data, User $admin): void
     {
         // 1. Verify admin password (additional check)
-        if (!Hash::check($data['admin_password'], $admin->password)) {
+        if (! Hash::check($data['admin_password'], $admin->password)) {
             throw new \Exception('La contraseña de administrador es inválida.');
         }
 
@@ -250,19 +254,19 @@ class SecureTenantDeactivateAction extends Action
         }
 
         // 3. Verify OTP code
-        $expectedOTP = 'DEACTIVATE' . strtoupper(substr($this->tenant->name, 0, 4));
+        $expectedOTP = 'DEACTIVATE'.strtoupper(substr($this->tenant->name, 0, 4));
         if (strtoupper(trim($data['otp_code'])) !== $expectedOTP) {
             throw new \Exception('El código de verificación OTP es inválido.');
         }
 
         // 4. Check rate limiting
         $rateLimitKey = "tenant_deactivate_{$admin->id}";
-        if (!Cache::add($rateLimitKey, true, Carbon::now()->addHour())) {
+        if (! Cache::add($rateLimitKey, true, Carbon::now()->addHour())) {
             throw new \Exception('Límite de desactivaciones alcanzado. Solo se permite 1 desactivación por hora.');
         }
 
         // 5. Validate consequences acknowledgment
-        if (!$data['understand_consequences']) {
+        if (! $data['understand_consequences']) {
             throw new \Exception('Debe aceptar las consecuencias de esta acción.');
         }
 

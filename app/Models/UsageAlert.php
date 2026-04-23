@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class UsageAlert extends Model
 {
@@ -74,7 +74,7 @@ class UsageAlert extends Model
         return $query->whereJsonContains('delivery_channels', 'in_app');
     }
 
-    public function scopeDelivered($query, string $channel = null)
+    public function scopeDelivered($query, ?string $channel = null)
     {
         if ($channel) {
             return $query->where("delivery_status->{$channel}", 'sent');
@@ -83,7 +83,7 @@ class UsageAlert extends Model
         return $query->whereJsonContains('delivery_status', 'sent');
     }
 
-    public function scopeFailed($query, string $channel = null)
+    public function scopeFailed($query, ?string $channel = null)
     {
         if ($channel) {
             return $query->where("delivery_status->{$channel}", 'failed');
@@ -105,7 +105,7 @@ class UsageAlert extends Model
 
     public function isPending(): bool
     {
-        return !$this->isDelivered() && !$this->isFailed();
+        return ! $this->isDelivered() && ! $this->isFailed();
     }
 
     public function markDelivered(string $channel): void
@@ -116,7 +116,7 @@ class UsageAlert extends Model
         $this->saveQuietly();
     }
 
-    public function markFailed(string $channel, string $reason = null): void
+    public function markFailed(string $channel, ?string $reason = null): void
     {
         $status = $this->delivery_status ?? [];
         $status[$channel] = 'failed';
@@ -133,7 +133,7 @@ class UsageAlert extends Model
 
     public function getSeverityLevel(): string
     {
-        return match($this->alert_type) {
+        return match ($this->alert_type) {
             'warning' => 'medium',
             'overdraft' => 'high',
             'critical' => 'critical',
@@ -143,7 +143,7 @@ class UsageAlert extends Model
 
     public function getMetricDisplayName(): string
     {
-        return match($this->metric_type) {
+        return match ($this->metric_type) {
             'sales' => 'Ventas Mensuales',
             'products' => 'Productos',
             'users' => 'Usuarios',
@@ -160,7 +160,7 @@ class UsageAlert extends Model
         $limit = number_format($this->limit_value);
         $percentage = number_format($this->percentage, 1);
 
-        return match($this->alert_type) {
+        return match ($this->alert_type) {
             'warning' => "⚠️ **Advertencia de Uso**: {$metricName} está al {$percentage}% ({$current}/{$limit}). Acercándose al límite del plan.",
             'overdraft' => "🔴 **Exceso de Uso**: {$metricName} ha excedido el límite en un {$percentage}% ({$current}/{$limit}). Se requiere actualizar el plan.",
             'critical' => "🚨 **Uso Crítico**: {$metricName} ha excedido el límite en un {$percentage}% ({$current}/{$limit}). Funciones limitadas hasta actualizar el plan.",

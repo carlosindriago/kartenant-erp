@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -21,7 +21,7 @@ class DocumentVerification extends Model
      * Conexión a base de datos landlord
      */
     protected $connection = 'landlord';
-    
+
     protected $fillable = [
         'hash',
         'document_type',
@@ -34,7 +34,7 @@ class DocumentVerification extends Model
         'expires_at',
         'is_valid',
     ];
-    
+
     protected function casts(): array
     {
         return [
@@ -46,7 +46,7 @@ class DocumentVerification extends Model
             'verification_count' => 'integer',
         ];
     }
-    
+
     /**
      * Tenant que generó el documento
      */
@@ -54,7 +54,7 @@ class DocumentVerification extends Model
     {
         return $this->belongsTo(\App\Models\Tenant::class, 'tenant_id');
     }
-    
+
     /**
      * Usuario que generó el documento
      */
@@ -62,7 +62,7 @@ class DocumentVerification extends Model
     {
         return $this->belongsTo(\App\Models\User::class, 'generated_by');
     }
-    
+
     /**
      * Logs de verificación del documento
      */
@@ -70,7 +70,7 @@ class DocumentVerification extends Model
     {
         return $this->hasMany(\App\Models\DocumentVerificationLog::class, 'verification_id');
     }
-    
+
     /**
      * Scope: Solo documentos válidos
      */
@@ -78,7 +78,7 @@ class DocumentVerification extends Model
     {
         return $query->where('is_valid', true);
     }
-    
+
     /**
      * Scope: Filtrar por tipo de documento
      */
@@ -86,7 +86,7 @@ class DocumentVerification extends Model
     {
         return $query->where('document_type', $type);
     }
-    
+
     /**
      * Scope: Documentos no expirados
      */
@@ -94,17 +94,17 @@ class DocumentVerification extends Model
     {
         return $query->where(function ($q) {
             $q->whereNull('expires_at')
-              ->orWhere('expires_at', '>', now());
+                ->orWhere('expires_at', '>', now());
         });
     }
-    
+
     /**
      * Verifica el documento y registra la verificación
      */
-    public function verify(string $ipAddress = null, string $userAgent = null): array
+    public function verify(?string $ipAddress = null, ?string $userAgent = null): array
     {
         // Verificar si es válido
-        if (!$this->is_valid) {
+        if (! $this->is_valid) {
             $result = 'invalid';
             $message = 'Documento invalidado manualmente';
         } elseif ($this->expires_at && $this->expires_at->isPast()) {
@@ -114,11 +114,11 @@ class DocumentVerification extends Model
             $result = 'valid';
             $message = 'Documento legítimo';
         }
-        
+
         // Incrementar contador
         $this->increment('verification_count');
         $this->update(['last_verified_at' => now()]);
-        
+
         // Registrar en log
         $this->verificationLogs()->create([
             'ip_address' => $ipAddress,
@@ -126,18 +126,18 @@ class DocumentVerification extends Model
             'verified_at' => now(),
             'result' => $result,
         ]);
-        
+
         return [
             'result' => $result,
             'message' => $message,
             'verification' => $this,
         ];
     }
-    
+
     /**
      * Invalida el documento manualmente
      */
-    public function invalidate(string $reason = null): void
+    public function invalidate(?string $reason = null): void
     {
         $this->update([
             'is_valid' => false,
@@ -147,14 +147,14 @@ class DocumentVerification extends Model
             ]),
         ]);
     }
-    
+
     /**
      * Obtiene metadata sanitizada (sin datos sensibles)
      */
     public function getSanitizedMetadata(): array
     {
         $metadata = $this->metadata ?? [];
-        
+
         // Remover datos sensibles
         $sensitive_keys = [
             'client_name',
@@ -166,14 +166,14 @@ class DocumentVerification extends Model
             'prices',
             'user_email',
         ];
-        
+
         foreach ($sensitive_keys as $key) {
             unset($metadata[$key]);
         }
-        
+
         return $metadata;
     }
-    
+
     /**
      * Verifica si el documento está expirado
      */
@@ -181,12 +181,12 @@ class DocumentVerification extends Model
     {
         return $this->expires_at && $this->expires_at->isPast();
     }
-    
+
     /**
      * Verifica si el documento es válido (no expirado y no invalidado)
      */
     public function isCurrentlyValid(): bool
     {
-        return $this->is_valid && !$this->isExpired();
+        return $this->is_valid && ! $this->isExpired();
     }
 }

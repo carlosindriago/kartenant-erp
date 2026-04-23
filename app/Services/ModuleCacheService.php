@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Redis;
 class ModuleCacheService
 {
     private const CACHE_TTL = 3600; // 1 hour
+
     private const FAST_CACHE_TTL = 300; // 5 minutes
 
     /**
@@ -89,6 +90,7 @@ class ModuleCacheService
 
         return Cache::remember($cacheKey, self::FAST_CACHE_TTL, function () use ($tenant, $moduleSlug) {
             $tenantModule = $tenant->getTenantModule($moduleSlug);
+
             return $tenantModule ? $tenantModule->getEffectiveLimits() : null;
         });
     }
@@ -105,7 +107,7 @@ class ModuleCacheService
 
         // Merge with new usage data
         foreach ($usageData as $metric => $value) {
-            if (!isset($existingUsage[$metric])) {
+            if (! isset($existingUsage[$metric])) {
                 $existingUsage[$metric] = 0;
             }
 
@@ -152,7 +154,7 @@ class ModuleCacheService
         // Clear Redis keys if available
         if (app()->bound('redis')) {
             $redisKeys = Redis::keys("modules:usage:{$tenant->id}:*");
-            if (!empty($redisKeys)) {
+            if (! empty($redisKeys)) {
                 Redis::del($redisKeys);
             }
         }
@@ -266,6 +268,7 @@ class ModuleCacheService
     public function getTenantModuleConfiguration(Tenant $tenant, Module $module): array
     {
         $cacheKey = "tenant.{$tenant->id}.config.{$module->slug}";
+
         return Cache::get($cacheKey, []);
     }
 
@@ -284,6 +287,7 @@ class ModuleCacheService
     public function getTenantModulePermissions(Tenant $tenant, Module $module): array
     {
         $cacheKey = "tenant.{$tenant->id}.permissions.{$module->slug}";
+
         return Cache::get($cacheKey, []);
     }
 

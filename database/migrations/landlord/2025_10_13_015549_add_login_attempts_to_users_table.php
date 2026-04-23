@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('users') && !Schema::hasColumn('users', 'login_attempts')) {
+        if (Schema::hasTable('users') && ! Schema::hasColumn('users', 'login_attempts')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->integer('login_attempts')->default(0)->after('two_factor_expires_at');
             });

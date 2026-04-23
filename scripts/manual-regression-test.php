@@ -5,7 +5,6 @@
  * Tests all critical SuperAdmin panel endpoints via curl
  * Bypasses Dusk screenshot permission issues while providing comprehensive testing
  */
-
 $adminUrl = 'https://emporiodigital.test';
 $adminEmail = 'admin@emporiodigital.test';
 $sessionCookie = null;
@@ -18,13 +17,14 @@ echo "Target: {$adminUrl}\n\n";
 $tests = [
     'passed' => 0,
     'failed' => 0,
-    'details' => []
+    'details' => [],
 ];
 
 /**
  * Make HTTP request with optional session cookie
  */
-function makeRequest($url, $method = 'GET', $data = null, $cookie = null) {
+function makeRequest($url, $method = 'GET', $data = null, $cookie = null)
+{
     $ch = curl_init();
 
     $headers = [
@@ -61,14 +61,15 @@ function makeRequest($url, $method = 'GET', $data = null, $cookie = null) {
     return [
         'status_code' => $statusCode,
         'response' => $response,
-        'error' => $error
+        'error' => $error,
     ];
 }
 
 /**
  * Record test result
  */
-function recordTest(&$tests, $name, $passed, $details = '', $statusCode = null) {
+function recordTest(&$tests, $name, $passed, $details = '', $statusCode = null)
+{
     if ($passed) {
         $tests['passed']++;
         echo "✅ {$name}: PASSED";
@@ -89,7 +90,7 @@ function recordTest(&$tests, $name, $passed, $details = '', $statusCode = null) 
         'name' => $name,
         'passed' => $passed,
         'details' => $details,
-        'status_code' => $statusCode
+        'status_code' => $statusCode,
     ];
 }
 
@@ -101,10 +102,10 @@ $loginPageAccessible = $loginResponse['status_code'] === 200 &&
                        strpos($loginResponse['response'], 'Iniciar Sesión') !== false;
 
 recordTest($tests, 'Login Page Access', $loginPageAccessible,
-           $loginPageAccessible ? 'Page loads correctly' : 'Page not accessible',
-           $loginResponse['status_code']);
+    $loginPageAccessible ? 'Page loads correctly' : 'Page not accessible',
+    $loginResponse['status_code']);
 
-if (!$loginPageAccessible) {
+if (! $loginPageAccessible) {
     echo "\n❌ CRITICAL: Cannot access login page. Aborting regression test.\n";
     exit(1);
 }
@@ -126,7 +127,7 @@ if (preg_match('/<meta name="csrf-token" content="([^"]+)">/', $loginResponse['r
 $loginData = [
     'email' => $adminEmail,
     'password' => 'password',
-    '_token' => $csrfToken
+    '_token' => $csrfToken,
 ];
 
 $loginPostResponse = makeRequest("{$adminUrl}/admin/login", 'POST', $loginData);
@@ -147,10 +148,10 @@ $loginSuccess = $dashboardResponse['status_code'] === 200 &&
                strpos($dashboardResponse['response'], 'Panel de Administración') !== false;
 
 recordTest($tests, 'SuperAdmin Login', $loginSuccess,
-           $loginSuccess ? 'Login successful' : 'Login failed',
-           $dashboardResponse['status_code']);
+    $loginSuccess ? 'Login successful' : 'Login failed',
+    $dashboardResponse['status_code']);
 
-if (!$loginSuccess) {
+if (! $loginSuccess) {
     echo "\n❌ CRITICAL: Login failed. Aborting regression test.\n";
     exit(1);
 }
@@ -160,7 +161,7 @@ echo "\n📊 Step 3: Testing Dashboard Health\n";
 // Test 4: Dashboard widgets load
 $widgetsLoaded = strpos($dashboardResponse['response'], 'filament-widget') !== false;
 recordTest($tests, 'Dashboard Widgets', $widgetsLoaded,
-           $widgetsLoaded ? 'Widgets present' : 'Widgets missing');
+    $widgetsLoaded ? 'Widgets present' : 'Widgets missing');
 
 echo "\n🏢 Step 4: Testing Tenant Management\n";
 
@@ -168,8 +169,8 @@ echo "\n🏢 Step 4: Testing Tenant Management\n";
 $tenantsResponse = makeRequest("{$adminUrl}/admin/tenants", 'GET', null, $sessionCookie);
 $tenantsAccessible = $tenantsResponse['status_code'] === 200;
 recordTest($tests, 'Tenants List', $tenantsAccessible,
-           $tenantsAccessible ? 'Tenants list loads' : 'Tenants list failed',
-           $tenantsResponse['status_code']);
+    $tenantsAccessible ? 'Tenants list loads' : 'Tenants list failed',
+    $tenantsResponse['status_code']);
 
 // Test 6: Archived Tenants (CRITICAL 404 FIX TEST)
 $archivedTenantsResponse = makeRequest("{$adminUrl}/admin/archived-tenants", 'GET', null, $sessionCookie);
@@ -181,9 +182,9 @@ $is404Error = $archivedTenantsResponse['status_code'] === 404 ||
               strpos($archivedTenantsResponse['response'], 'Not Found') !== false;
 
 recordTest($tests, 'Archived Tenants Access (CRITICAL 404 FIX)',
-           $archivedTenantsAccessible && !$is404Error,
-           $archivedTenantsAccessible ? 'Accessible' : 'Not accessible or 404 error',
-           $archivedTenantsResponse['status_code']);
+    $archivedTenantsAccessible && ! $is404Error,
+    $archivedTenantsAccessible ? 'Accessible' : 'Not accessible or 404 error',
+    $archivedTenantsResponse['status_code']);
 
 echo "\n💳 Step 5: Testing Billing Module\n";
 
@@ -191,15 +192,15 @@ echo "\n💳 Step 5: Testing Billing Module\n";
 $paymentProofsResponse = makeRequest("{$adminUrl}/admin/payment-proofs", 'GET', null, $sessionCookie);
 $paymentProofsAccessible = $paymentProofsResponse['status_code'] === 200;
 recordTest($tests, 'Payment Proofs List', $paymentProofsAccessible,
-           $paymentProofsAccessible ? 'Payment proofs loads' : 'Payment proofs failed',
-           $paymentProofsResponse['status_code']);
+    $paymentProofsAccessible ? 'Payment proofs loads' : 'Payment proofs failed',
+    $paymentProofsResponse['status_code']);
 
 // Test 8: Invoices
 $invoicesResponse = makeRequest("{$adminUrl}/admin/invoices", 'GET', null, $sessionCookie);
 $invoicesAccessible = $invoicesResponse['status_code'] === 200;
 recordTest($tests, 'Invoices List', $invoicesAccessible,
-           $invoicesAccessible ? 'Invoices loads' : 'Invoices failed',
-           $invoicesResponse['status_code']);
+    $invoicesAccessible ? 'Invoices loads' : 'Invoices failed',
+    $invoicesResponse['status_code']);
 
 echo "\n🏥 Step 6: Testing System Health Pages\n";
 
@@ -207,33 +208,33 @@ echo "\n🏥 Step 6: Testing System Health Pages\n";
 $errorLogsResponse = makeRequest("{$adminUrl}/admin/error-logs", 'GET', null, $sessionCookie);
 $errorLogsAccessible = $errorLogsResponse['status_code'] === 200;
 recordTest($tests, 'Error Logs', $errorLogsAccessible,
-           $errorLogsAccessible ? 'Error logs loads' : 'Error logs failed',
-           $errorLogsResponse['status_code']);
+    $errorLogsAccessible ? 'Error logs loads' : 'Error logs failed',
+    $errorLogsResponse['status_code']);
 
 // Test 10: Backups
 $backupsResponse = makeRequest("{$adminUrl}/admin/backups", 'GET', null, $sessionCookie);
 $backupsAccessible = $backupsResponse['status_code'] === 200;
 recordTest($tests, 'Backups Page', $backupsAccessible,
-           $backupsAccessible ? 'Backups page loads' : 'Backups page failed',
-           $backupsResponse['status_code']);
+    $backupsAccessible ? 'Backups page loads' : 'Backups page failed',
+    $backupsResponse['status_code']);
 
 // Test 11: Support Tickets
 $supportTicketsResponse = makeRequest("{$adminUrl}/admin/support-tickets", 'GET', null, $sessionCookie);
 $supportTicketsAccessible = $supportTicketsResponse['status_code'] === 200;
 recordTest($tests, 'Support Tickets', $supportTicketsAccessible,
-           $supportTicketsAccessible ? 'Support tickets loads' : 'Support tickets failed',
-           $supportTicketsResponse['status_code']);
+    $supportTicketsAccessible ? 'Support tickets loads' : 'Support tickets failed',
+    $supportTicketsResponse['status_code']);
 
 echo "\n🎯 REGRESSION TEST SUMMARY\n";
 echo "===========================\n";
 echo "Tests Passed: {$tests['passed']}\n";
 echo "Tests Failed: {$tests['failed']}\n";
-echo "Total Tests: " . ($tests['passed'] + $tests['failed']) . "\n\n";
+echo 'Total Tests: '.($tests['passed'] + $tests['failed'])."\n\n";
 
 // Critical issues check
 $criticalIssues = [];
 foreach ($tests['details'] as $test) {
-    if (!$test['passed'] && strpos($test['name'], 'CRITICAL') !== false) {
+    if (! $test['passed'] && strpos($test['name'], 'CRITICAL') !== false) {
         $criticalIssues[] = $test;
     }
 }

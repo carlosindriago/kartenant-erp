@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('permissions', function (Blueprint $table) {
-            if (!Schema::hasColumn('permissions', 'description')) {
+            if (! Schema::hasColumn('permissions', 'description')) {
                 $table->string('description')->nullable()->after('name');
             }
         });
-        
+
         Schema::table('roles', function (Blueprint $table) {
-            if (!Schema::hasColumn('roles', 'description')) {
+            if (! Schema::hasColumn('roles', 'description')) {
                 $table->string('description')->nullable()->after('name');
             }
         });
@@ -32,7 +32,7 @@ return new class extends Migration
         Schema::table('permissions', function (Blueprint $table) {
             $table->dropColumn('description');
         });
-        
+
         Schema::table('roles', function (Blueprint $table) {
             $table->dropColumn('description');
         });

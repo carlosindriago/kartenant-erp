@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -39,18 +39,18 @@ class UserResource extends JsonResource
             // Include roles and permissions if available
             'roles' => $this->when(
                 $this->relationLoaded('roles'),
-                fn() => $this->roles->pluck('name')
+                fn () => $this->roles->pluck('name')
             ),
 
             'permissions' => $this->when(
                 $this->relationLoaded('permissions'),
-                fn() => $this->permissions->pluck('name')
+                fn () => $this->permissions->pluck('name')
             ),
 
             // Include all permissions (direct + via roles) if requested
             'all_permissions' => $this->when(
                 $request->has('include_permissions'),
-                fn() => $this->getAllPermissions()->pluck('name')
+                fn () => $this->getAllPermissions()->pluck('name')
             ),
         ];
     }

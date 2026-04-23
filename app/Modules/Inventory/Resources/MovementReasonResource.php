@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -23,15 +23,20 @@ class MovementReasonResource extends Resource
     protected static ?string $model = MovementReason::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
+
     protected static ?string $navigationLabel = 'Motivos de Movimiento';
+
     protected static ?string $modelLabel = 'Motivo';
+
     protected static ?string $pluralModelLabel = 'Motivos de Movimiento';
+
     protected static ?string $navigationGroup = 'Configuración';
+
     protected static ?int $navigationSort = 4;
-    
+
     // Disable Filament's tenant scoping
     protected static bool $isScopedToTenant = false;
-    
+
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         // En database-per-tenant, no necesitamos filtrar por tenant_id
@@ -50,7 +55,7 @@ class MovementReasonResource extends Resource
                             ->maxLength(255)
                             ->placeholder('Ej: Compra a Proveedor')
                             ->columnSpanFull(),
-                        
+
                         Forms\Components\Select::make('type')
                             ->label('Tipo de Movimiento')
                             ->required()
@@ -59,7 +64,7 @@ class MovementReasonResource extends Resource
                                 'salida' => 'Salida (Disminuye Stock)',
                             ])
                             ->helperText('Indica si este motivo es para entradas o salidas de stock'),
-                        
+
                         Forms\Components\Toggle::make('is_active')
                             ->label('Activo')
                             ->default(true)
@@ -76,7 +81,7 @@ class MovementReasonResource extends Resource
                     ->label('Nombre')
                     ->searchable()
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('type')
                     ->label('Tipo')
                     ->badge()
@@ -90,7 +95,7 @@ class MovementReasonResource extends Resource
                         'salida' => 'Salida',
                         default => $state,
                     }),
-                
+
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Estado')
                     ->boolean()
@@ -98,7 +103,7 @@ class MovementReasonResource extends Resource
                     ->falseIcon('heroicon-o-x-circle')
                     ->trueColor('success')
                     ->falseColor('danger'),
-                
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime('d/m/Y')
@@ -112,7 +117,7 @@ class MovementReasonResource extends Resource
                         'entrada' => 'Entrada',
                         'salida' => 'Salida',
                     ]),
-                
+
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Estado')
                     ->placeholder('Todos')

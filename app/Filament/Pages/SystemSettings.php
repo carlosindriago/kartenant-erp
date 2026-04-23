@@ -3,13 +3,13 @@
 namespace App\Filament\Pages;
 
 use App\Models\SystemSetting;
-use Filament\Pages\Page;
 use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Form;
 use Filament\Notifications\Notification;
-use Filament\Forms\Components\Section;
+use Filament\Pages\Page;
 
 class SystemSettings extends Page implements HasForms
 {
@@ -50,7 +50,7 @@ class SystemSettings extends Page implements HasForms
                             ->helperText('Si está activado, los usuarios obtienen automáticamente un período de prueba al registrarse. Si está desactivado, deben pagar inmediatamente.')
                             ->reactive()
                             ->inline(false),
-                        
+
                         Forms\Components\TextInput::make('trial_duration_days')
                             ->label('Duración del Trial (días)')
                             ->numeric()
@@ -81,7 +81,7 @@ class SystemSettings extends Page implements HasForms
                                 $trialEnabled = SystemSetting::get('trial.auto_enable', true);
                                 $trialDays = SystemSetting::get('trial.duration_days', 7);
                                 $activeGateway = SystemSetting::get('payments.active_gateway', 'manual_transfer');
-                                
+
                                 if ($trialEnabled) {
                                     $message = "✅ **Trial Automático ACTIVADO**\n\n";
                                     $message .= "Los usuarios obtienen {$trialDays} días de prueba gratis al registrarse.\n\n";
@@ -89,7 +89,7 @@ class SystemSettings extends Page implements HasForms
                                     $message = "💰 **Venta Directa ACTIVADA**\n\n";
                                     $message .= "Los usuarios deben pagar inmediatamente usando: **{$activeGateway}**\n\n";
                                 }
-                                
+
                                 return $message;
                             })
                             ->columnSpanFull(),
@@ -116,10 +116,10 @@ class SystemSettings extends Page implements HasForms
             ->send();
     }
 
-    
     public function canView(): bool
     {
         $user = auth('superadmin')->user();
+
         return $user?->is_super_admin ?? false;
     }
 }

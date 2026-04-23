@@ -7,8 +7,10 @@ use Filament\Widgets\Widget;
 class QuickActionsWidget extends Widget
 {
     protected static string $view = 'filament.app.widgets.quick-actions';
+
     protected static ?int $sort = 2;
-    protected int | string | array $columnSpan = 'full';
+
+    protected int|string|array $columnSpan = 'full';
 
     public function getActions(): array
     {

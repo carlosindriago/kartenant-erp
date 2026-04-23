@@ -2,29 +2,29 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Filament\App\Resources\DocumentVerificationResource\Widgets;
 
+use App\Models\DocumentVerificationLog;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
-use App\Models\DocumentVerificationLog;
 use Illuminate\Database\Eloquent\Model;
 
 class VerificationLogsWidget extends BaseWidget
 {
     public ?Model $record = null;
-    
-    protected int | string | array $columnSpan = 'full';
-    
+
+    protected int|string|array $columnSpan = 'full';
+
     protected static ?string $heading = 'Historial de Verificaciones';
-    
+
     public function table(Table $table): Table
     {
         return $table
@@ -38,18 +38,18 @@ class VerificationLogsWidget extends BaseWidget
                     ->label('Fecha de Verificación')
                     ->dateTime('d/m/Y H:i:s')
                     ->sortable(),
-                    
+
                 Tables\Columns\TextColumn::make('ip_address')
                     ->label('Dirección IP')
                     ->searchable()
                     ->copyable(),
-                    
+
                 Tables\Columns\TextColumn::make('user_agent')
                     ->label('Navegador')
                     ->limit(50)
                     ->tooltip(fn ($record) => $record->user_agent)
                     ->searchable(),
-                    
+
                 Tables\Columns\BadgeColumn::make('result')
                     ->label('Resultado')
                     ->colors([

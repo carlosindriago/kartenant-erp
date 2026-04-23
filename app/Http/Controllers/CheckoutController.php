@@ -2,13 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Tenant;
-use App\Models\TenantSubscription;
 use App\Models\PaymentTransaction;
+use App\Models\TenantSubscription;
 use App\Services\PaymentGatewayManager;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
 {
@@ -47,7 +44,7 @@ class CheckoutController extends Controller
 
         if ($request->hasFile('proof')) {
             $path = $request->file('proof')->store('payment-proofs', 'local');
-            
+
             $transaction->update([
                 'proof_of_payment' => $path,
                 'status' => PaymentTransaction::STATUS_PENDING,

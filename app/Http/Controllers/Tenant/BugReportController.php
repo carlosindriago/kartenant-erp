@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -25,7 +25,7 @@ class BugReportController extends Controller
     public function submit(Request $request)
     {
         // Verify user is authenticated with tenant guard
-        if (!auth('tenant')->check()) {
+        if (! auth('tenant')->check()) {
             Log::warning('[BugReport] Unauthenticated request attempt', [
                 'tenant_guard' => auth('tenant')->check(),
                 'web_guard' => auth('web')->check(),
@@ -74,7 +74,7 @@ class BugReportController extends Controller
                     }
                 }
             } catch (\Throwable $e) {
-                Log::warning('[BugReport] Could not determine tenant name: ' . $e->getMessage());
+                Log::warning('[BugReport] Could not determine tenant name: '.$e->getMessage());
             }
 
             // Handle file uploads
@@ -115,7 +115,7 @@ class BugReportController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Datos inválidos: ' . implode(', ', $e->validator->errors()->all())
+                'message' => 'Datos inválidos: '.implode(', ', $e->validator->errors()->all()),
             ], 422);
 
         } catch (\Throwable $e) {
@@ -123,12 +123,12 @@ class BugReportController extends Controller
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error al enviar el reporte: ' . $e->getMessage()
+                'message' => 'Error al enviar el reporte: '.$e->getMessage(),
             ], 500);
         }
     }

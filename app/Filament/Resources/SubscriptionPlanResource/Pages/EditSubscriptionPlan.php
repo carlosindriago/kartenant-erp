@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -31,7 +31,7 @@ class EditSubscriptionPlan extends EditRecord
 
     public function getTitle(): string
     {
-        return 'Editar: ' . $this->record->name;
+        return 'Editar: '.$this->record->name;
     }
 
     public function getHeading(): string

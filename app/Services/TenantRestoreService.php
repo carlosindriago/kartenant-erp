@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Spatie\DbDumper\Databases\PostgreSql;
 use Throwable;
 
 /**
@@ -53,17 +52,17 @@ class TenantRestoreService
             ];
         }
 
-        $backupPath = storage_path('app/' . $backupLog->file_path);
+        $backupPath = storage_path('app/'.$backupLog->file_path);
 
-        if (!$backupLog->file_path || !file_exists($backupPath)) {
+        if (! $backupLog->file_path || ! file_exists($backupPath)) {
             return [
                 'success' => false,
-                'error' => 'Archivo de backup no encontrado: ' . $backupPath,
+                'error' => 'Archivo de backup no encontrado: '.$backupPath,
             ];
         }
 
         try {
-            $tempDbName = $backupLog->database_name . '_preview_' . time();
+            $tempDbName = $backupLog->database_name.'_preview_'.time();
 
             // Create temporary database
             DB::connection('landlord')->statement("CREATE DATABASE {$tempDbName}");
@@ -153,10 +152,10 @@ class TenantRestoreService
                 throw new \Exception('Solo se pueden restaurar backups exitosos');
             }
 
-            $backupPath = storage_path('app/' . $backupLog->file_path);
+            $backupPath = storage_path('app/'.$backupLog->file_path);
 
-            if (!$backupLog->file_path || !file_exists($backupPath)) {
-                throw new \Exception('Archivo de backup no encontrado: ' . $backupPath);
+            if (! $backupLog->file_path || ! file_exists($backupPath)) {
+                throw new \Exception('Archivo de backup no encontrado: '.$backupPath);
             }
 
             $databaseName = $backupLog->database_name;
@@ -165,11 +164,11 @@ class TenantRestoreService
             Log::info("[Restore] Starting restore for database: {$databaseName}");
 
             // 2. Create safety backup of current database
-            Log::info("[Restore] Creating safety backup...");
+            Log::info('[Restore] Creating safety backup...');
 
             $safetyResult = $this->backupService->backupDatabase($databaseName, $tenantId, 'pre-restore');
 
-            if (!$safetyResult['success']) {
+            if (! $safetyResult['success']) {
                 throw new \Exception("Error al crear backup de seguridad: {$safetyResult['error']}");
             }
 
@@ -184,7 +183,7 @@ class TenantRestoreService
             if ($tenantId) {
                 $tenant = Tenant::find($tenantId);
                 if ($tenant) {
-                    Log::info("[Restore] Tenant found, putting in maintenance mode...");
+                    Log::info('[Restore] Tenant found, putting in maintenance mode...');
                     // Note: Spatie multitenancy doesn't have built-in maintenance mode
                     // We'll use activity log to mark as "restoring"
                     activity('restore')
@@ -195,7 +194,7 @@ class TenantRestoreService
             }
 
             // 4. Drop current database
-            Log::info("[Restore] Dropping current database...");
+            Log::info('[Restore] Dropping current database...');
             // Terminate active connections first
             DB::connection('landlord')->statement("
                 SELECT pg_terminate_backend(pg_stat_activity.pid)
@@ -207,11 +206,11 @@ class TenantRestoreService
             $originalDbExists = false;
 
             // 5. Create new database
-            Log::info("[Restore] Creating new database...");
+            Log::info('[Restore] Creating new database...');
             DB::connection('landlord')->statement("CREATE DATABASE {$databaseName}");
 
             // 6. Restore from backup file
-            Log::info("[Restore] Restoring from backup file...");
+            Log::info('[Restore] Restoring from backup file...');
             // backupPath already defined at the beginning
             $dbConfig = config('database.connections.tenant');
 
@@ -228,11 +227,11 @@ class TenantRestoreService
             exec($command, $output, $returnCode);
 
             if ($returnCode !== 0) {
-                throw new \Exception('Error al restaurar el backup: ' . implode("\n", $output));
+                throw new \Exception('Error al restaurar el backup: '.implode("\n", $output));
             }
 
             // 7. Verify database integrity
-            Log::info("[Restore] Verifying database integrity...");
+            Log::info('[Restore] Verifying database integrity...');
             $stats = $this->getDatabaseStatistics($databaseName);
 
             if (empty($stats)) {
@@ -252,7 +251,7 @@ class TenantRestoreService
                 ])
                 ->log('Database restored successfully');
 
-            Log::info("[Restore] Restoration completed successfully in " . $startTime->diffInSeconds(now()) . "s");
+            Log::info('[Restore] Restoration completed successfully in '.$startTime->diffInSeconds(now()).'s');
 
             return [
                 'success' => true,
@@ -267,8 +266,8 @@ class TenantRestoreService
             Log::error("[Restore] Restoration failed: {$e->getMessage()}");
 
             // Rollback: Restore from safety backup if it exists
-            if ($safetyBackupLog && !$originalDbExists) {
-                Log::warning("[Restore] Attempting rollback from safety backup...");
+            if ($safetyBackupLog && ! $originalDbExists) {
+                Log::warning('[Restore] Attempting rollback from safety backup...');
 
                 try {
                     // Drop failed database
@@ -278,7 +277,7 @@ class TenantRestoreService
                     DB::connection('landlord')->statement("CREATE DATABASE {$databaseName}");
 
                     // Restore from safety backup
-                    $safetyBackupPath = storage_path('app/' . $safetyBackupLog->file_path);
+                    $safetyBackupPath = storage_path('app/'.$safetyBackupLog->file_path);
                     $dbConfig = config('database.connections.tenant');
 
                     $rollbackCommand = sprintf(
@@ -294,7 +293,7 @@ class TenantRestoreService
                     exec($rollbackCommand, $rollbackOutput, $rollbackReturnCode);
 
                     if ($rollbackReturnCode === 0) {
-                        Log::info("[Restore] Rollback successful");
+                        Log::info('[Restore] Rollback successful');
 
                         activity('restore')
                             ->causedBy($userId)
@@ -311,7 +310,7 @@ class TenantRestoreService
                             'message' => 'Error en la restauración, pero se recuperó la base de datos anterior',
                         ];
                     } else {
-                        Log::error("[Restore] Rollback FAILED!");
+                        Log::error('[Restore] Rollback FAILED!');
 
                         return [
                             'success' => false,
@@ -376,6 +375,7 @@ class TenantRestoreService
 
         } catch (Throwable $e) {
             Log::error("[Restore] Error getting statistics: {$e->getMessage()}");
+
             return [];
         }
     }
@@ -410,7 +410,7 @@ class TenantRestoreService
             }
         }
 
-        Log::info("[Restore] Cleanup complete. Deleted " . count($deleted) . " pre-restore backups");
+        Log::info('[Restore] Cleanup complete. Deleted '.count($deleted).' pre-restore backups');
 
         return [
             'deleted_count' => count($deleted),

@@ -25,7 +25,7 @@ return new class extends Migration
             $table->unsignedBigInteger('processed_by_user_id'); // Usuario que procesa
             $table->timestamp('processed_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['status', 'created_at']);
             $table->index('original_sale_id');
         });

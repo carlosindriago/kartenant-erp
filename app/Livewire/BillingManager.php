@@ -2,25 +2,27 @@
 
 namespace App\Livewire;
 
-use App\Models\Tenant;
 use App\Models\PaymentProof;
-use Illuminate\Http\Request;
+use App\Models\Tenant;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Livewire\Attributes\Rule;
-use Filament\Notifications\Notification;
 
 class BillingManager extends Component
 {
     use WithFileUploads;
 
     public $payment_proof;
+
     public $notes;
+
     public $uploadProgress = 0;
+
     public $isUploading = false;
+
     public $billingData = [];
+
     public $payments = [];
 
     protected $rules = [
@@ -45,8 +47,9 @@ class BillingManager extends Component
     {
         try {
             $tenant = Tenant::current();
-            if (!$tenant) {
+            if (! $tenant) {
                 $this->billingData = $this->getDefaultBillingData();
+
                 return;
             }
 
@@ -69,8 +72,9 @@ class BillingManager extends Component
     {
         try {
             $tenant = Tenant::current();
-            if (!$tenant) {
+            if (! $tenant) {
                 $this->payments = [];
+
                 return;
             }
 
@@ -108,12 +112,13 @@ class BillingManager extends Component
 
         try {
             $tenant = Tenant::current();
-            if (!$tenant) {
+            if (! $tenant) {
                 Notification::make()
                     ->danger()
                     ->title('Error')
                     ->body('No se pudo identificar tu cuenta de tenant')
                     ->send();
+
                 return;
             }
 
@@ -146,7 +151,7 @@ class BillingManager extends Component
                 // Dispatch event for frontend
                 $this->dispatch('payment-proof-submitted', [
                     'success' => true,
-                    'message' => 'Payment proof submitted successfully'
+                    'message' => 'Payment proof submitted successfully',
                 ]);
 
             } else {
@@ -159,7 +164,7 @@ class BillingManager extends Component
 
                 $this->dispatch('payment-proof-submitted', [
                     'success' => false,
-                    'message' => $errorData['message'] ?? 'Upload failed'
+                    'message' => $errorData['message'] ?? 'Upload failed',
                 ]);
             }
 
@@ -172,7 +177,7 @@ class BillingManager extends Component
 
             $this->dispatch('payment-proof-submitted', [
                 'success' => false,
-                'message' => 'Connection error: ' . $e->getMessage()
+                'message' => 'Connection error: '.$e->getMessage(),
             ]);
 
         } finally {
@@ -207,7 +212,7 @@ class BillingManager extends Component
     {
         try {
             $tenant = Tenant::current();
-            if (!$tenant) {
+            if (! $tenant) {
                 return response()->json(['error' => 'Tenant not found'], 404);
             }
 
@@ -215,12 +220,12 @@ class BillingManager extends Component
                 ->where('id', $paymentId)
                 ->first();
 
-            if (!$paymentProof || !$paymentProof->file_path) {
+            if (! $paymentProof || ! $paymentProof->file_path) {
                 return response()->json(['error' => 'Payment proof not found'], 404);
             }
 
-            $filePath = storage_path('app/' . $paymentProof->file_path);
-            if (!file_exists($filePath)) {
+            $filePath = storage_path('app/'.$paymentProof->file_path);
+            if (! file_exists($filePath)) {
                 return response()->json(['error' => 'File not found'], 404);
             }
 

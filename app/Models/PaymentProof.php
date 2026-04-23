@@ -4,24 +4,30 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PaymentProof extends Model
 {
     protected $connection = 'landlord';
+
     protected $table = 'payment_proofs';
 
     use SoftDeletes;
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_UNDER_REVIEW = 'under_review';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_REJECTED = 'rejected';
 
     const PAYMENT_METHOD_BANK_TRANSFER = 'bank_transfer';
+
     const PAYMENT_METHOD_CASH = 'cash';
+
     const PAYMENT_METHOD_MOBILE_MONEY = 'mobile_money';
+
     const PAYMENT_METHOD_OTHER = 'other';
 
     protected $fillable = [
@@ -183,8 +189,8 @@ class PaymentProof extends Model
         return collect($this->file_paths ?? [])->map(function ($path) {
             return [
                 'original_name' => basename($path),
-                'full_path' => storage_path('app/' . $path),
-                'url' => asset('storage/' . $path),
+                'full_path' => storage_path('app/'.$path),
+                'url' => asset('storage/'.$path),
                 'size' => $this->getFileSize($path),
             ];
         })->toArray();
@@ -195,8 +201,8 @@ class PaymentProof extends Model
      */
     private function getFileSize(string $path): ?string
     {
-        $fullPath = storage_path('app/' . $path);
-        if (!file_exists($fullPath)) {
+        $fullPath = storage_path('app/'.$path);
+        if (! file_exists($fullPath)) {
             return null;
         }
 
@@ -205,7 +211,7 @@ class PaymentProof extends Model
             return null;
         }
 
-        return number_format($bytes / 1024 / 1024, 2) . ' MB';
+        return number_format($bytes / 1024 / 1024, 2).' MB';
     }
 
     /**
@@ -213,7 +219,7 @@ class PaymentProof extends Model
      */
     public function getStatusColorAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_PENDING => 'warning',
             self::STATUS_UNDER_REVIEW => 'info',
             self::STATUS_APPROVED => 'success',
@@ -227,7 +233,7 @@ class PaymentProof extends Model
      */
     public function getPaymentMethodDisplayAttribute(): string
     {
-        return match($this->payment_method) {
+        return match ($this->payment_method) {
             self::PAYMENT_METHOD_BANK_TRANSFER => 'Transferencia Bancaria',
             self::PAYMENT_METHOD_CASH => 'Efectivo',
             self::PAYMENT_METHOD_MOBILE_MONEY => 'Dinero Móvil',

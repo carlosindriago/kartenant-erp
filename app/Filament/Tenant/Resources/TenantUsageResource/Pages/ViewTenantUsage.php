@@ -8,7 +8,6 @@ use App\Models\UsageAlert;
 use App\Services\TenantUsageService;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
-use Illuminate\Database\Eloquent\Builder;
 
 class ViewTenantUsage extends ViewRecord
 {
@@ -58,6 +57,7 @@ class ViewTenantUsage extends ViewRecord
     public function getTitle(): string
     {
         $record = $this->getRecord();
+
         return "Uso del Plan - {$record->getPeriodLabel()}";
     }
 
@@ -97,7 +97,7 @@ class ViewTenantUsage extends ViewRecord
 
                             \Filament\Infolists\Components\TextEntry::make('days_remaining')
                                 ->label('Días Restantes')
-                                ->getStateUsing(fn (TenantUsage $record) => $record->getDaysRemainingInPeriod() . ' días')
+                                ->getStateUsing(fn (TenantUsage $record) => $record->getDaysRemainingInPeriod().' días')
                                 ->color(fn (TenantUsage $record) => $record->isNearPeriodEnd() ? 'danger' : 'primary'),
 
                             \Filament\Infolists\Components\IconEntry::make('upgrade_required_next_cycle')
@@ -128,8 +128,7 @@ class ViewTenantUsage extends ViewRecord
                                             return "**{$current} / {$limitText}** ({$percentage}%)\n\nRestantes: {$remainingText}";
                                         })
                                         ->markdown()
-                                        ->color(fn (TenantUsage $record) =>
-                                            $record->getZoneForMetric('sales') === 'critical' ? 'danger' :
+                                        ->color(fn (TenantUsage $record) => $record->getZoneForMetric('sales') === 'critical' ? 'danger' :
                                             ($record->getZoneForMetric('sales') === 'overdraft' ? 'warning' :
                                             ($record->getZoneForMetric('sales') === 'warning' ? 'warning' : 'success'))
                                         ),
@@ -148,8 +147,7 @@ class ViewTenantUsage extends ViewRecord
                                             return "**{$current} / {$limitText}** ({$percentage}%)\n\nRestantes: {$remainingText}";
                                         })
                                         ->markdown()
-                                        ->color(fn (TenantUsage $record) =>
-                                            $record->getZoneForMetric('products') === 'critical' ? 'danger' :
+                                        ->color(fn (TenantUsage $record) => $record->getZoneForMetric('products') === 'critical' ? 'danger' :
                                             ($record->getZoneForMetric('products') === 'overdraft' ? 'warning' :
                                             ($record->getZoneForMetric('products') === 'warning' ? 'warning' : 'success'))
                                         ),
@@ -168,8 +166,7 @@ class ViewTenantUsage extends ViewRecord
                                             return "**{$current} / {$limitText}** ({$percentage}%)\n\nRestantes: {$remainingText}";
                                         })
                                         ->markdown()
-                                        ->color(fn (TenantUsage $record) =>
-                                            $record->getZoneForMetric('users') === 'critical' ? 'danger' :
+                                        ->color(fn (TenantUsage $record) => $record->getZoneForMetric('users') === 'critical' ? 'danger' :
                                             ($record->getZoneForMetric('users') === 'overdraft' ? 'warning' :
                                             ($record->getZoneForMetric('users') === 'warning' ? 'warning' : 'success'))
                                         ),
@@ -182,14 +179,13 @@ class ViewTenantUsage extends ViewRecord
                                             $percentage = $record->storage_percentage;
                                             $remaining = $record->getRemaining('storage');
 
-                                            $limitText = $limit ? number_format($limit) . ' MB' : 'Ilimitado';
-                                            $remainingText = $limit !== null ? number_format($remaining) . ' MB' : 'Ilimitado';
+                                            $limitText = $limit ? number_format($limit).' MB' : 'Ilimitado';
+                                            $remainingText = $limit !== null ? number_format($remaining).' MB' : 'Ilimitado';
 
                                             return "**{$current} MB / {$limitText}** ({$percentage}%)\n\nRestantes: {$remainingText}";
                                         })
                                         ->markdown()
-                                        ->color(fn (TenantUsage $record) =>
-                                            $record->getZoneForMetric('storage') === 'critical' ? 'danger' :
+                                        ->color(fn (TenantUsage $record) => $record->getZoneForMetric('storage') === 'critical' ? 'danger' :
                                             ($record->getZoneForMetric('storage') === 'overdraft' ? 'warning' :
                                             ($record->getZoneForMetric('storage') === 'warning' ? 'warning' : 'success'))
                                         ),
@@ -255,8 +251,13 @@ class ViewTenantUsage extends ViewRecord
                             $delivered = in_array('sent', $record->delivery_status ?? []);
                             $failed = in_array('failed', $record->delivery_status ?? []);
 
-                            if ($delivered && !$failed) return 'Enviado';
-                            if ($failed) return 'Parcialmente Fallado';
+                            if ($delivered && ! $failed) {
+                                return 'Enviado';
+                            }
+                            if ($failed) {
+                                return 'Parcialmente Fallado';
+                            }
+
                             return 'Pendiente';
                         })
                         ->color(fn (string $state): string => match ($state) {

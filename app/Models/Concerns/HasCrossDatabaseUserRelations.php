@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -40,7 +40,7 @@ trait HasCrossDatabaseUserRelations
     {
         $userId = $this->attributes['user_id'] ?? null;
 
-        if (!$userId) {
+        if (! $userId) {
             return null;
         }
 
@@ -54,7 +54,7 @@ trait HasCrossDatabaseUserRelations
     {
         $cancelledBy = $this->attributes['cancelled_by'] ?? null;
 
-        if (!$cancelledBy) {
+        if (! $cancelledBy) {
             return null;
         }
 
@@ -68,7 +68,7 @@ trait HasCrossDatabaseUserRelations
     {
         $processedBy = $this->attributes['processed_by_user_id'] ?? null;
 
-        if (!$processedBy) {
+        if (! $processedBy) {
             return null;
         }
 
@@ -82,7 +82,7 @@ trait HasCrossDatabaseUserRelations
     {
         $authorizedBy = $this->attributes['authorized_by'] ?? null;
 
-        if (!$authorizedBy) {
+        if (! $authorizedBy) {
             return null;
         }
 
@@ -96,7 +96,7 @@ trait HasCrossDatabaseUserRelations
     {
         $openedBy = $this->attributes['opened_by_user_id'] ?? null;
 
-        if (!$openedBy) {
+        if (! $openedBy) {
             return null;
         }
 
@@ -110,7 +110,7 @@ trait HasCrossDatabaseUserRelations
     {
         $closedBy = $this->attributes['closed_by_user_id'] ?? null;
 
-        if (!$closedBy) {
+        if (! $closedBy) {
             return null;
         }
 
@@ -124,7 +124,7 @@ trait HasCrossDatabaseUserRelations
     {
         $forcedBy = $this->attributes['forced_by_user_id'] ?? null;
 
-        if (!$forcedBy) {
+        if (! $forcedBy) {
             return null;
         }
 
@@ -134,9 +134,8 @@ trait HasCrossDatabaseUserRelations
     /**
      * Obtener usuario de la base de datos landlord con cache
      *
-     * @param string $cacheKey Clave para el cache interno
-     * @param int $userId ID del usuario
-     * @return User|null
+     * @param  string  $cacheKey  Clave para el cache interno
+     * @param  int  $userId  ID del usuario
      */
     protected function getCachedUser(string $cacheKey, int $userId): ?User
     {
@@ -165,9 +164,8 @@ trait HasCrossDatabaseUserRelations
      * $sales = Sale::with('items')->get();
      * Sale::eagerLoadUsers($sales, ['user_id', 'cancelled_by']);
      *
-     * @param \Illuminate\Support\Collection $models
-     * @param array $fields Campos a cargar (user_id, cancelled_by, etc.)
-     * @return void
+     * @param  \Illuminate\Support\Collection  $models
+     * @param  array  $fields  Campos a cargar (user_id, cancelled_by, etc.)
      */
     public static function eagerLoadUsers($models, array $fields = ['user_id']): void
     {
@@ -202,8 +200,6 @@ trait HasCrossDatabaseUserRelations
 
     /**
      * Limpiar cache de usuarios
-     *
-     * @return void
      */
     public function clearUserCache(): void
     {

@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TenantActivity extends Model
 {
@@ -43,18 +43,31 @@ class TenantActivity extends Model
      * Activity types
      */
     const ACTION_LOGIN = 'login';
+
     const ACTION_LOGOUT = 'logout';
+
     const ACTION_CREATED = 'created';
+
     const ACTION_UPDATED = 'updated';
+
     const ACTION_DELETED = 'deleted';
+
     const ACTION_SUSPENDED = 'suspended';
+
     const ACTION_ACTIVATED = 'activated';
+
     const ACTION_TRIAL_STARTED = 'trial_started';
+
     const ACTION_TRIAL_EXPIRED = 'trial_expired';
+
     const ACTION_BACKUP_CREATED = 'backup_created';
+
     const ACTION_BACKUP_RESTORED = 'backup_restored';
+
     const ACTION_SETTINGS_UPDATED = 'settings_updated';
+
     const ACTION_USER_ADDED = 'user_added';
+
     const ACTION_USER_REMOVED = 'user_removed';
 
     /**
@@ -101,7 +114,7 @@ class TenantActivity extends Model
      */
     public function getActionLabelAttribute(): string
     {
-        return match($this->action) {
+        return match ($this->action) {
             self::ACTION_LOGIN => 'Inicio de Sesión',
             self::ACTION_LOGOUT => 'Cierre de Sesión',
             self::ACTION_CREATED => 'Creado',
@@ -125,7 +138,7 @@ class TenantActivity extends Model
      */
     public function getActionColorAttribute(): string
     {
-        return match($this->action) {
+        return match ($this->action) {
             self::ACTION_LOGIN => 'success',
             self::ACTION_LOGOUT => 'gray',
             self::ACTION_CREATED => 'success',

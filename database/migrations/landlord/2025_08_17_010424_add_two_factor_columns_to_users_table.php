@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('two_factor_code')->nullable()->after('password');
             $table->timestamp('two_factor_expires_at')->nullable()->after('two_factor_code');
         });
-}
+    }
 
     /**
      * Reverse the migrations.

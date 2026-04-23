@@ -16,13 +16,13 @@ class TenantAdminPanelTest extends DuskTestCase
             $browser->driver->manage()->deleteAllCookies();
 
             $browser->visit('https://mandarinastore.emporiodigital.test/login')
-                    ->waitFor('#email', 10)
-                    ->type('email', 'julio@mandarinastore.test')
-                    ->type('password', '54a38607b6709518a177')
-                    ->press('Ingresar')
-                    ->waitForLocation('/dashboard', 15)
-                    ->assertPathIs('/dashboard')
-                    ->screenshot('tenant-login-success');
+                ->waitFor('#email', 10)
+                ->type('email', 'julio@mandarinastore.test')
+                ->type('password', '54a38607b6709518a177')
+                ->press('Ingresar')
+                ->waitForLocation('/dashboard', 15)
+                ->assertPathIs('/dashboard')
+                ->screenshot('tenant-login-success');
 
             // Test Dashboard/Overview
             $this->testDashboard($browser);
@@ -50,19 +50,19 @@ class TenantAdminPanelTest extends DuskTestCase
     /**
      * Test dashboard functionality
      */
-    private function testDashboard(Browser $browser): void
+    private function test_dashboard(Browser $browser): void
     {
         $browser->waitFor('.filament-app-layout', 10)
-                ->assertSee('Panel')
-                ->screenshot('tenant-dashboard-overview')
-                ->assertPresent('nav[aria-label="Main navigation"]');
+            ->assertSee('Panel')
+            ->screenshot('tenant-dashboard-overview')
+            ->assertPresent('nav[aria-label="Main navigation"]');
 
         // Look for common dashboard elements
         $dashboardElements = [
             'Products',
             'Sales',
             'Customers',
-            'Reports'
+            'Reports',
         ];
 
         foreach ($dashboardElements as $element) {
@@ -80,17 +80,17 @@ class TenantAdminPanelTest extends DuskTestCase
     /**
      * Test Product Management module
      */
-    private function testProductManagement(Browser $browser): void
+    private function test_product_management(Browser $browser): void
     {
         $browser->clickLink('Products')
-                ->waitForLocationIn(['/products', '/inventory'], 10)
-                ->screenshot('tenant-products-page');
+            ->waitForLocationIn(['/products', '/inventory'], 10)
+            ->screenshot('tenant-products-page');
 
         // Test product listing
         try {
             $browser->waitFor('.filament-tables-container', 10)
-                    ->assertPresent('table')
-                    ->screenshot('tenant-products-list');
+                ->assertPresent('table')
+                ->screenshot('tenant-products-list');
         } catch (\Exception $e) {
             $browser->screenshot('tenant-products-error');
             throw $e;
@@ -99,8 +99,8 @@ class TenantAdminPanelTest extends DuskTestCase
         // Test create product form
         try {
             $browser->clickLink('New Product', 'button')
-                    ->waitFor('form', 10)
-                    ->screenshot('tenant-products-create-form');
+                ->waitFor('form', 10)
+                ->screenshot('tenant-products-create-form');
 
             // Check for essential fields
             $productFields = ['name', 'price', 'stock', 'category'];
@@ -113,7 +113,7 @@ class TenantAdminPanelTest extends DuskTestCase
 
             // Go back to list without creating
             $browser->clickLink('Cancel', 'button')
-                    ->waitFor('.filament-tables-container', 10);
+                ->waitFor('.filament-tables-container', 10);
         } catch (\Exception $e) {
             $browser->screenshot('tenant-products-create-error');
         }
@@ -122,12 +122,12 @@ class TenantAdminPanelTest extends DuskTestCase
     /**
      * Test Point of Sale module
      */
-    private function testPointOfSale(Browser $browser): void
+    private function test_point_of_sale(Browser $browser): void
     {
         try {
             $browser->clickLink('POS', 'Point of Sale')
-                    ->waitForLocationIn(['/pos', '/sales'], 10)
-                    ->screenshot('tenant-pos-page');
+                ->waitForLocationIn(['/pos', '/sales'], 10)
+                ->screenshot('tenant-pos-page');
 
             // Test POS interface elements
             $posElements = ['.filament-tables-container', 'button', 'input'];
@@ -148,25 +148,25 @@ class TenantAdminPanelTest extends DuskTestCase
     /**
      * Test Client Management module
      */
-    private function testClientManagement(Browser $browser): void
+    private function test_client_management(Browser $browser): void
     {
         try {
             $browser->clickLink('Customers', 'Clients')
-                    ->waitForLocationIn(['/customers', '/clients'], 10)
-                    ->screenshot('tenant-clients-page');
+                ->waitForLocationIn(['/customers', '/clients'], 10)
+                ->screenshot('tenant-clients-page');
 
             // Test client listing
             $browser->waitFor('.filament-tables-container', 10)
-                    ->screenshot('tenant-clients-list');
+                ->screenshot('tenant-clients-list');
 
             // Test create client form
             $browser->clickLink('New Customer', 'button')
-                    ->waitFor('form', 10)
-                    ->screenshot('tenant-clients-create-form');
+                ->waitFor('form', 10)
+                ->screenshot('tenant-clients-create-form');
 
             // Go back to list
             $browser->clickLink('Cancel', 'button')
-                    ->waitFor('.filament-tables-container', 10);
+                ->waitFor('.filament-tables-container', 10);
         } catch (\Exception $e) {
             $browser->screenshot('tenant-clients-error');
             // Customers might have different navigation
@@ -176,12 +176,12 @@ class TenantAdminPanelTest extends DuskTestCase
     /**
      * Test Reports functionality
      */
-    private function testReports(Browser $browser): void
+    private function test_reports(Browser $browser): void
     {
         try {
             $browser->clickLink('Reports')
-                    ->waitForLocation('/reports', 10)
-                    ->screenshot('tenant-reports-page');
+                ->waitForLocation('/reports', 10)
+                ->screenshot('tenant-reports-page');
 
             // Look for report options
             $reportOptions = ['Sales', 'Products', 'Inventory', 'Customers'];
@@ -202,16 +202,16 @@ class TenantAdminPanelTest extends DuskTestCase
     /**
      * Test Settings/Configuration
      */
-    private function testSettings(Browser $browser): void
+    private function test_settings(Browser $browser): void
     {
         try {
             $browser->clickLink('Settings')
-                    ->waitForLocationIn(['/settings', '/profile'], 10)
-                    ->screenshot('tenant-settings-page');
+                ->waitForLocationIn(['/settings', '/profile'], 10)
+                ->screenshot('tenant-settings-page');
 
             // Test profile form
             $browser->waitFor('form', 10)
-                    ->screenshot('tenant-settings-form');
+                ->screenshot('tenant-settings-form');
 
             // Check for essential profile fields
             $profileFields = ['name', 'email'];
@@ -230,12 +230,12 @@ class TenantAdminPanelTest extends DuskTestCase
     /**
      * Test data isolation verification
      */
-    private function testDataIsolation(Browser $browser): void
+    private function test_data_isolation(Browser $browser): void
     {
         // Verify tenant branding/data
         try {
             $browser->assertSee('mandarinastore')
-                    ->screenshot('tenant-data-isolation');
+                ->screenshot('tenant-data-isolation');
         } catch (\Exception $e) {
             // Branding might be subtle or not present
             $browser->screenshot('tenant-branding-check');

@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -14,13 +14,12 @@ namespace App\Filament\App\Widgets;
 use App\Models\Tenant;
 use App\Services\SubscriptionLimitService;
 use Filament\Widgets\Widget;
-use Illuminate\Contracts\View\View;
 
 class SubscriptionStatusWidget extends Widget
 {
     protected static string $view = 'filament.app.widgets.subscription-status';
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     public static function canView(): bool
     {
@@ -33,7 +32,7 @@ class SubscriptionStatusWidget extends Widget
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return [];
         }
 

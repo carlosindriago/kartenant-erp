@@ -2,24 +2,24 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Modules\Inventory\Resources\StockMovementResource\Pages;
 
-use App\Modules\Inventory\Resources\StockMovementResource;
-use App\Modules\Inventory\Models\StockMovement;
-use App\Modules\Inventory\Models\Product;
 use App\Modules\Inventory\Models\MovementReason;
+use App\Modules\Inventory\Models\Product;
+use App\Modules\Inventory\Models\StockMovement;
+use App\Modules\Inventory\Resources\StockMovementResource;
 use Filament\Actions;
-use Filament\Forms;
-use Filament\Resources\Pages\ListRecords;
 use Filament\Facades\Filament;
+use Filament\Forms;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\ListRecords;
 use pxlrbt\FilamentExcel\Actions\Pages\ExportAction;
 
 class ListStockMovements extends ListRecords
@@ -34,21 +34,21 @@ class ListStockMovements extends ListRecords
                 ->label('Exportar a Excel')
                 ->color('success')
                 ->icon('heroicon-o-document-arrow-down'),
-            
+
             // Acción: Registrar Entrada (nueva página)
             Actions\Action::make('register_entry')
                 ->label('Registrar Entrada')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
                 ->url(fn () => StockMovementResource::getUrl('create-entry')),
-            
+
             // Acción: Registrar Salida (nueva página)
             Actions\Action::make('register_exit')
                 ->label('Registrar Salida')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('danger')
                 ->url(fn () => StockMovementResource::getUrl('create-exit')),
-            
+
             // ACCIONES LEGACY (Mantener por compatibilidad temporal)
             // Acción: Registrar Entrada (Modal Legacy)
             Actions\Action::make('register_entry_quick')
@@ -65,7 +65,7 @@ class ListStockMovements extends ListRecords
                         ->relationship('product', 'name')
                         ->getOptionLabelFromRecordUsing(fn (Product $record) => "{$record->name} (Stock actual: {$record->stock})")
                         ->helperText('Selecciona el producto al que deseas agregar stock'),
-                    
+
                     Forms\Components\TextInput::make('quantity')
                         ->label('Cantidad')
                         ->required()
@@ -73,7 +73,7 @@ class ListStockMovements extends ListRecords
                         ->minValue(1)
                         ->default(1)
                         ->helperText('Cantidad de unidades a agregar'),
-                    
+
                     Forms\Components\Select::make('reason_id')
                         ->label('Motivo')
                         ->required()
@@ -95,17 +95,18 @@ class ListStockMovements extends ListRecords
                                 'name' => $data['name'],
                                 'type' => 'entrada',
                             ]);
+
                             return $reason->id;
                         })
                         ->helperText('Selecciona el motivo de la entrada o crea uno nuevo'),
-                    
+
                     Forms\Components\Textarea::make('reason_detail')
                         ->label('Detalles adicionales (opcional)')
                         ->maxLength(500)
                         ->rows(3)
                         ->placeholder('Ej: Factura #12345, Proveedor XYZ')
                         ->helperText('Información adicional para referencia futura'),
-                    
+
                     Forms\Components\TextInput::make('reference')
                         ->label('Número de Referencia (opcional)')
                         ->maxLength(255)
@@ -116,14 +117,14 @@ class ListStockMovements extends ListRecords
                     $product = Product::find($data['product_id']);
                     $previousStock = $product->stock;
                     $newStock = $previousStock + $data['quantity'];
-                    
+
                     // Obtener el motivo
                     $movementReason = MovementReason::find($data['reason_id']);
                     $fullReason = $movementReason->name;
-                    if (!empty($data['reason_detail'])) {
-                        $fullReason .= ': ' . $data['reason_detail'];
+                    if (! empty($data['reason_detail'])) {
+                        $fullReason .= ': '.$data['reason_detail'];
                     }
-                    
+
                     // Crear el movimiento
                     StockMovement::create([
                         'product_id' => $product->id,
@@ -136,10 +137,10 @@ class ListStockMovements extends ListRecords
                         'previous_stock' => $previousStock,
                         'new_stock' => $newStock,
                     ]);
-                    
+
                     // Actualizar el stock del producto sin triggering de observers
                     $product->updateQuietly(['stock' => $newStock]);
-                    
+
                     // Notificación de éxito
                     Notification::make()
                         ->success()

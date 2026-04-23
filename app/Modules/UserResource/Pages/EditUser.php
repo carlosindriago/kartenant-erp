@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -31,7 +31,7 @@ class EditUser extends EditRecord
                 }),
         ];
     }
-    
+
     protected function mutateFormDataBeforeSave(array $data): array
     {
         // Only hash password if it was provided
@@ -40,13 +40,13 @@ class EditUser extends EditRecord
         } else {
             unset($data['password']);
         }
-        
+
         // Remove password confirmation field
         unset($data['password_confirmation']);
-        
+
         return $data;
     }
-    
+
     protected function getSavedNotificationTitle(): ?string
     {
         return 'Empleado actualizado exitosamente';

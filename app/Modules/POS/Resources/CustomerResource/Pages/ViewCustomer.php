@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,9 +13,9 @@ namespace App\Modules\POS\Resources\CustomerResource\Pages;
 
 use App\Modules\POS\Resources\CustomerResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Filament\Resources\Pages\ViewRecord;
 
 class ViewCustomer extends ViewRecord
 {
@@ -28,7 +28,7 @@ class ViewCustomer extends ViewRecord
             Actions\DeleteAction::make(),
         ];
     }
-    
+
     public function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -53,7 +53,7 @@ class ViewCustomer extends ViewRecord
                             ->boolean(),
                     ])
                     ->columns(2),
-                
+
                 Infolists\Components\Section::make('Dirección')
                     ->schema([
                         Infolists\Components\TextEntry::make('address')
@@ -68,7 +68,7 @@ class ViewCustomer extends ViewRecord
                     ])
                     ->columns(3)
                     ->collapsible(),
-                
+
                 Infolists\Components\Section::make('Notas')
                     ->schema([
                         Infolists\Components\TextEntry::make('notes')
@@ -77,7 +77,7 @@ class ViewCustomer extends ViewRecord
                     ])
                     ->collapsible()
                     ->collapsed(true),
-                
+
                 Infolists\Components\Section::make('Información del Sistema')
                     ->schema([
                         Infolists\Components\TextEntry::make('created_at')

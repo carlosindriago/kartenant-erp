@@ -2,10 +2,9 @@
 
 namespace Tests\Browser;
 
+use App\Models\User;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
-use App\Models\User;
-use App\Models\SubscriptionPlan;
 
 class ArchivedPlansAccessTest extends DuskTestCase
 {
@@ -121,8 +120,9 @@ class ArchivedPlansAccessTest extends DuskTestCase
             // Get a regular user (not superadmin)
             $regularUser = User::where('email', 'test@emporiodigital.test')->first();
 
-            if (!$regularUser) {
+            if (! $regularUser) {
                 $this->markTestSkipped('No regular user found for testing');
+
                 return;
             }
 
@@ -150,7 +150,7 @@ class ArchivedPlansAccessTest extends DuskTestCase
                 $hasAccessDenied = true;
             }
 
-            if (!$hasAccessDenied && !str_contains($currentUrl, 'archived')) {
+            if (! $hasAccessDenied && ! str_contains($currentUrl, 'archived')) {
                 // If redirected, capture where we ended up
                 $browser->screenshot('16-regular-user-redirected');
             }
@@ -168,7 +168,7 @@ class ArchivedPlansAccessTest extends DuskTestCase
 
         // Ensure we have the test users
         $superadmin = User::where('email', 'admin@emporiodigital.com')->first();
-        if (!$superadmin) {
+        if (! $superadmin) {
             $this->markTestSkipped('Superadmin user not found. Please run: php artisan emporio:make-superadmin');
         }
     }

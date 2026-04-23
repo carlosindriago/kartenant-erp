@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -14,12 +14,12 @@ namespace App\Filament\App\Pages;
 use App\Models\Tenant;
 use App\Services\LogoOptimizationService;
 use Filament\Forms;
+use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\ColorPicker;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
@@ -49,7 +49,7 @@ class BrandingSettings extends Page implements HasForms
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             abort(404, 'Tenant not found');
         }
 
@@ -118,6 +118,7 @@ class BrandingSettings extends Page implements HasForms
                             ->imageResizeTargetHeight('100')
                             ->helperText(function () {
                                 $restrictions = LogoOptimizationService::getRestrictions();
+
                                 return "Formatos: {$restrictions['allowed_formats']} | Tamaño máx: {$restrictions['max_size']} | Dimensiones recomendadas: {$restrictions['recommended_dimensions']}";
                             })
                             ->visible(fn (Forms\Get $get) => $get('logo_type') === 'image')
@@ -128,7 +129,7 @@ class BrandingSettings extends Page implements HasForms
                             ->content(function () {
                                 $tenant = Tenant::current();
 
-                                if (!$tenant) {
+                                if (! $tenant) {
                                     return 'No disponible';
                                 }
 
@@ -171,20 +172,21 @@ class BrandingSettings extends Page implements HasForms
         $data = $this->form->getState();
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             Notification::make()
                 ->title('Error')
                 ->body('No se pudo identificar el tenant')
                 ->danger()
                 ->send();
+
             return;
         }
 
         try {
-            $logoService = new LogoOptimizationService();
+            $logoService = new LogoOptimizationService;
 
             // Si cambió a tipo imagen y se subió un archivo
-            if ($data['logo_type'] === 'image' && !empty($data['logo_image'])) {
+            if ($data['logo_type'] === 'image' && ! empty($data['logo_image'])) {
                 // Obtener el archivo temporal
                 $tempPath = $data['logo_image'];
                 $fullPath = Storage::disk('public')->path($tempPath);
@@ -204,12 +206,13 @@ class BrandingSettings extends Page implements HasForms
                     // Eliminar archivo temporal
                     Storage::disk('public')->delete($tempPath);
 
-                    if (!$result['success']) {
+                    if (! $result['success']) {
                         Notification::make()
                             ->title('Error al procesar el logo')
                             ->body($result['message'])
                             ->danger()
                             ->send();
+
                         return;
                     }
 
@@ -227,6 +230,7 @@ class BrandingSettings extends Page implements HasForms
                         ->send();
 
                     $this->redirect(static::getUrl());
+
                     return;
                 }
             }
@@ -253,6 +257,7 @@ class BrandingSettings extends Page implements HasForms
                     ->send();
 
                 $this->redirect(static::getUrl());
+
                 return;
             }
 
@@ -272,7 +277,7 @@ class BrandingSettings extends Page implements HasForms
         } catch (\Exception $e) {
             Notification::make()
                 ->title('Error al guardar')
-                ->body('Ocurrió un error: ' . $e->getMessage())
+                ->body('Ocurrió un error: '.$e->getMessage())
                 ->danger()
                 ->send();
         }
@@ -282,12 +287,12 @@ class BrandingSettings extends Page implements HasForms
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return;
         }
 
         try {
-            $logoService = new LogoOptimizationService();
+            $logoService = new LogoOptimizationService;
             $logoService->deleteLogo($tenant);
 
             $tenant->update([
@@ -308,7 +313,7 @@ class BrandingSettings extends Page implements HasForms
         } catch (\Exception $e) {
             Notification::make()
                 ->title('Error')
-                ->body('No se pudo restablecer el branding: ' . $e->getMessage())
+                ->body('No se pudo restablecer el branding: '.$e->getMessage())
                 ->danger()
                 ->send();
         }

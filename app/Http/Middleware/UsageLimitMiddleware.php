@@ -25,19 +25,19 @@ class UsageLimitMiddleware
         }
 
         $tenant = tenant();
-        if (!$tenant) {
+        if (! $tenant) {
             return $next($request);
         }
 
         $routeName = Route::currentRouteName();
         $action = $this->getActionFromRoute($routeName);
 
-        if (!$action) {
+        if (! $action) {
             return $next($request);
         }
 
         // Check if action is allowed based on current usage
-        if (!$this->usageService->canPerformAction($tenant->id, $action)) {
+        if (! $this->usageService->canPerformAction($tenant->id, $action)) {
             return $this->handleBlockedAction($request, $action, $tenant->id);
         }
 
@@ -47,7 +47,7 @@ class UsageLimitMiddleware
         if (app()->environment('local', 'testing')) {
             $usageStatus = $this->usageService->getUsageStatus($tenant->id);
             $response->headers->set('X-Usage-Status', $usageStatus['status']);
-            $response->headers->set('X-Usage-Zone-' . $action, $usageStatus['metrics'][$this->getMetricFromAction($action)]['zone'] ?? 'unknown');
+            $response->headers->set('X-Usage-Zone-'.$action, $usageStatus['metrics'][$this->getMetricFromAction($action)]['zone'] ?? 'unknown');
         }
 
         return $response;
@@ -93,7 +93,7 @@ class UsageLimitMiddleware
      */
     private function getActionFromRoute(?string $routeName): ?string
     {
-        if (!$routeName) {
+        if (! $routeName) {
             return null;
         }
 
@@ -128,7 +128,7 @@ class UsageLimitMiddleware
      */
     private function getMetricFromAction(string $action): string
     {
-        return match($action) {
+        return match ($action) {
             'create_product' => 'products',
             'create_user' => 'users',
             'make_sale' => 'sales',
@@ -178,11 +178,11 @@ class UsageLimitMiddleware
         $metricType = $this->getMetricFromAction($action);
         $metricInfo = $usageStatus['metrics'][$metricType] ?? null;
 
-        if (!$metricInfo) {
-            return "Límite de uso alcanzado. Por favor, actualiza tu plan para continuar.";
+        if (! $metricInfo) {
+            return 'Límite de uso alcanzado. Por favor, actualiza tu plan para continuar.';
         }
 
-        $metricName = match($metricType) {
+        $metricName = match ($metricType) {
             'products' => 'productos',
             'users' => 'usuarios',
             'sales' => 'ventas',
@@ -190,7 +190,7 @@ class UsageLimitMiddleware
             default => 'recursos',
         };
 
-        return match($status) {
+        return match ($status) {
             'warning' => "Estás cerca del límite de {$metricName} ({$metricInfo['percentage']}%). Considera actualizar tu plan pronto para evitar interrupciones.",
             'overdraft' => "Has excedido el límite de {$metricName}. Las nuevas creaciones serán limitadas. Por favor, actualiza tu plan para restaurar todas las funcionalidades.",
             'critical' => "Límite crítico de {$metricName} excedido. Debes actualizar tu plan para continuar creando {$metricName}.",

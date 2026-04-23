@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,8 +12,8 @@
 namespace App\Filament\App\Resources\CashRegisterClosingResource\Pages;
 
 use App\Filament\App\Resources\CashRegisterClosingResource;
-use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\CreateRecord;
 
 class CreateCashRegisterClosing extends CreateRecord
 {
@@ -27,10 +27,10 @@ class CreateCashRegisterClosing extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Calcular saldo esperado si no está presente
-        if (!isset($data['expected_balance'])) {
+        if (! isset($data['expected_balance'])) {
             $data['expected_balance'] = ($data['opening_balance'] ?? 0) + ($data['total_sales'] ?? 0);
         }
-        
+
         return $data;
     }
 
@@ -38,12 +38,12 @@ class CreateCashRegisterClosing extends CreateRecord
     {
         $difference = $this->getRecord()->difference;
         $hasDiscrepancy = abs($difference) > 0.01;
-        
+
         return Notification::make()
             ->success()
             ->title('Cierre de Caja Registrado')
             ->body(
-                $hasDiscrepancy 
+                $hasDiscrepancy
                     ? sprintf(
                         'Cierre registrado con %s de $%s',
                         $difference > 0 ? 'sobrante' : 'faltante',
@@ -74,7 +74,7 @@ class CreateCashRegisterClosing extends CreateRecord
                 'has_discrepancy' => $this->record->hasDiscrepancy(),
             ])
             ->log('Cierre de caja registrado');
-        
+
         // Si hay discrepancia, registrar actividad adicional
         if ($this->record->hasDiscrepancy()) {
             activity()

@@ -3,25 +3,22 @@
 namespace App\Filament\App\Pages;
 
 use App\Models\Tenant;
-use App\Models\PaymentProof;
-use Filament\Pages\Page;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Form;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Form;
 use Filament\Notifications\Notification;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Pages\Page;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 
 class BillingDashboard extends Page implements HasForms, HasTable
 {
@@ -56,7 +53,8 @@ class BillingDashboard extends Page implements HasForms, HasTable
     public function getSubheading(): ?string
     {
         $tenant = Tenant::current();
-        return $tenant ? "Gestiona los pagos de tu suscripción" : 'Gestión de Suscripción';
+
+        return $tenant ? 'Gestiona los pagos de tu suscripción' : 'Gestión de Suscripción';
     }
 
     protected function getHeaderActions(): array
@@ -88,8 +86,7 @@ class BillingDashboard extends Page implements HasForms, HasTable
                             ->visibility('private')
                             ->required()
                             ->reactive()
-                            ->afterStateUpdated(fn ($state, callable $set) =>
-                                $state ? $set('file_uploaded', true) : $set('file_uploaded', false)
+                            ->afterStateUpdated(fn ($state, callable $set) => $state ? $set('file_uploaded', true) : $set('file_uploaded', false)
                             ),
 
                         Textarea::make('notes')
@@ -102,9 +99,11 @@ class BillingDashboard extends Page implements HasForms, HasTable
                             ->label('Información del Archivo')
                             ->content(function (callable $get) {
                                 $file = $get('payment_proof');
-                                if (!$file) return 'No se ha seleccionado ningún archivo';
+                                if (! $file) {
+                                    return 'No se ha seleccionado ningún archivo';
+                                }
 
-                                return "✅ Archivo listo para subir: " . basename($file);
+                                return '✅ Archivo listo para subir: '.basename($file);
                             })
                             ->visible(fn (callable $get) => $get('payment_proof')),
                     ])
@@ -126,7 +125,7 @@ class BillingDashboard extends Page implements HasForms, HasTable
                     ->label('Fecha')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
-                    ->description(fn ($record): string => 'Hace ' . $record->created_at->diffForHumans()),
+                    ->description(fn ($record): string => 'Hace '.$record->created_at->diffForHumans()),
 
                 TextColumn::make('amount')
                     ->label('Monto')
@@ -195,7 +194,7 @@ class BillingDashboard extends Page implements HasForms, HasTable
     {
         $data = $this->form->getState();
 
-        if (!isset($data['payment_proof'])) {
+        if (! isset($data['payment_proof'])) {
             Notification::make()
                 ->danger()
                 ->title('Error')
@@ -208,12 +207,13 @@ class BillingDashboard extends Page implements HasForms, HasTable
         try {
             // Get current tenant
             $tenant = Tenant::current();
-            if (!$tenant) {
+            if (! $tenant) {
                 Notification::make()
                     ->danger()
                     ->title('Error')
                     ->body('No se pudo identificar tu cuenta')
                     ->send();
+
                 return;
             }
 
@@ -273,7 +273,7 @@ class BillingDashboard extends Page implements HasForms, HasTable
     {
         try {
             $tenant = Tenant::current();
-            if (!$tenant) {
+            if (! $tenant) {
                 return $this->getDefaultBillingData();
             }
 

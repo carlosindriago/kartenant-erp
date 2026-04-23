@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -25,7 +25,7 @@ class StockMovementObserver
     {
         // El stock ya se actualiza en las acciones modales
         // Este espacio queda disponible para auditoría o notificaciones adicionales
-        
+
         // Por ejemplo, podríamos enviar notificaciones si el stock es bajo
         // o registrar en activity log, etc.
     }

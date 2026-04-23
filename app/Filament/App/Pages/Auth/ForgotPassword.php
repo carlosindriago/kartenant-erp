@@ -2,25 +2,24 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Filament\App\Pages\Auth;
 
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Pages\SimplePage;
+use App\Mail\SecurityCodeMail;
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 use Filament\Notifications\Notification;
+use Filament\Pages\SimplePage;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
-use App\Models\User;
-use App\Mail\SecurityCodeMail;
 
 class ForgotPassword extends SimplePage
 {
@@ -50,32 +49,34 @@ class ForgotPassword extends SimplePage
     public function sendSecurityCode(): void
     {
         $data = $this->form->getState();
-        
+
         $user = User::where('email', $data['email'])->first();
-        
-        if (!$user) {
+
+        if (! $user) {
             Notification::make()
                 ->title('Email no encontrado')
                 ->body('No encontramos una cuenta con ese correo electrónico.')
                 ->danger()
                 ->send();
+
             return;
         }
 
         // Verificar que el usuario tenga acceso al tenant actual
         $tenant = Filament::getTenant();
-        if (!$user->canAccessTenant($tenant)) {
+        if (! $user->canAccessTenant($tenant)) {
             Notification::make()
                 ->title('Acceso denegado')
                 ->body('Este usuario no tiene acceso a esta empresa.')
                 ->danger()
                 ->send();
+
             return;
         }
 
         // Generar código de seguridad de 6 dígitos
         $securityCode = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
-        
+
         // Guardar el código en la sesión con expiración de 10 minutos
         session([
             'password_reset_code' => $securityCode,
@@ -86,7 +87,7 @@ class ForgotPassword extends SimplePage
         // Enviar el código por email
         try {
             Mail::to($user->email)->send(new SecurityCodeMail($user, $securityCode));
-            
+
             Notification::make()
                 ->title('Código enviado')
                 ->body('Hemos enviado un código de seguridad a tu correo electrónico.')
@@ -95,7 +96,7 @@ class ForgotPassword extends SimplePage
 
             // Redirigir a la página de verificación del código
             $this->redirect(route('tenant.verify-security-code', ['tenant' => $tenant]));
-            
+
         } catch (\Exception $e) {
             Notification::make()
                 ->title('Error al enviar email')

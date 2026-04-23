@@ -5,12 +5,12 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PaymentGatewayResource\Pages;
 use App\Models\PaymentGatewaySetting;
 use Filament\Forms;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Grid;
 
 class PaymentGatewayResource extends Resource
 {
@@ -40,7 +40,7 @@ class PaymentGatewayResource extends Resource
                                     ->label('Nombre de Visualización')
                                     ->required()
                                     ->maxLength(255),
-                                
+
                                 Forms\Components\Select::make('driver_name')
                                     ->label('Driver')
                                     ->options([
@@ -51,7 +51,7 @@ class PaymentGatewayResource extends Resource
                                     ->required()
                                     ->disabled(fn ($record) => $record !== null)
                                     ->helperText('El driver no puede cambiarse después de crear'),
-                                
+
                                 Forms\Components\Toggle::make('is_active')
                                     ->label('Activa')
                                     ->helperText('Solo una pasarela puede estar activa a la vez')
@@ -63,7 +63,7 @@ class PaymentGatewayResource extends Resource
                                                 ->update(['is_active' => false]);
                                         }
                                     }),
-                                
+
                                 Forms\Components\TextInput::make('sort_order')
                                     ->label('Orden')
                                     ->numeric()
@@ -75,7 +75,7 @@ class PaymentGatewayResource extends Resource
                     ->schema([
                         Forms\Components\Placeholder::make('config_helper')
                             ->label('')
-                            ->content(fn ($get) => match($get('driver_name')) {
+                            ->content(fn ($get) => match ($get('driver_name')) {
                                 'manual_transfer' => '🏦 Transferencia Bancaria - Configura los datos de tu cuenta bancaria',
                                 'lemon_squeezy' => '🍋 Lemon Squeezy - Necesitas API Key y Store ID',
                                 'stripe' => '💳 Stripe - Necesitas Secret Key y Publishable Key',
@@ -88,23 +88,23 @@ class PaymentGatewayResource extends Resource
                                 Forms\Components\TextInput::make('config.bank_name')
                                     ->label('Nombre del Banco')
                                     ->visible(fn ($get) => $get('driver_name') === 'manual_transfer'),
-                                
+
                                 Forms\Components\TextInput::make('config.account_holder')
                                     ->label('Titular de la Cuenta')
                                     ->visible(fn ($get) => $get('driver_name') === 'manual_transfer'),
-                                
+
                                 Forms\Components\TextInput::make('config.account_number')
                                     ->label('Número de Cuenta')
                                     ->visible(fn ($get) => $get('driver_name') === 'manual_transfer'),
-                                
+
                                 Forms\Components\TextInput::make('config.cbu')
                                     ->label('CBU')
                                     ->visible(fn ($get) => $get('driver_name') === 'manual_transfer'),
-                                
+
                                 Forms\Components\TextInput::make('config.alias')
                                     ->label('Alias')
                                     ->visible(fn ($get) => $get('driver_name') === 'manual_transfer'),
-                                
+
                                 Forms\Components\Select::make('config.currency')
                                     ->label('Moneda')
                                     ->options([
@@ -116,7 +116,7 @@ class PaymentGatewayResource extends Resource
                                     ->default('USD')
                                     ->visible(fn ($get) => $get('driver_name') === 'manual_transfer'),
                             ]),
-                        
+
                         Forms\Components\Textarea::make('config.instructions')
                             ->label('Instrucciones para el Cliente')
                             ->rows(3)
@@ -131,11 +131,11 @@ class PaymentGatewayResource extends Resource
                                     ->label('API Key')
                                     ->password()
                                     ->visible(fn ($get) => $get('driver_name') === 'lemon_squeezy'),
-                                
+
                                 Forms\Components\TextInput::make('config.store_id')
                                     ->label('Store ID')
                                     ->visible(fn ($get) => $get('driver_name') === 'lemon_squeezy'),
-                                
+
                                 Forms\Components\TextInput::make('config.webhook_secret')
                                     ->label('Webhook Secret')
                                     ->password()
@@ -149,11 +149,11 @@ class PaymentGatewayResource extends Resource
                                     ->label('Secret Key')
                                     ->password()
                                     ->visible(fn ($get) => $get('driver_name') === 'stripe'),
-                                
+
                                 Forms\Components\TextInput::make('config.publishable_key')
                                     ->label('Publishable Key')
                                     ->visible(fn ($get) => $get('driver_name') === 'stripe'),
-                                
+
                                 Forms\Components\TextInput::make('config.webhook_secret')
                                     ->label('Webhook Secret')
                                     ->password()
@@ -171,7 +171,7 @@ class PaymentGatewayResource extends Resource
                     ->label('Pasarela')
                     ->searchable()
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('driver_name')
                     ->label('Driver')
                     ->badge()
@@ -181,7 +181,7 @@ class PaymentGatewayResource extends Resource
                         'stripe' => 'success',
                         default => 'gray',
                     }),
-                
+
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Activa')
                     ->boolean()
@@ -189,11 +189,11 @@ class PaymentGatewayResource extends Resource
                     ->falseIcon('heroicon-o-x-circle')
                     ->trueColor('success')
                     ->falseColor('gray'),
-                
+
                 Tables\Columns\TextColumn::make('sort_order')
                     ->label('Orden')
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Última Actualización')
                     ->dateTime()
@@ -212,14 +212,14 @@ class PaymentGatewayResource extends Resource
                     ->label('Activar')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->visible(fn ($record) => !$record->is_active)
+                    ->visible(fn ($record) => ! $record->is_active)
                     ->requiresConfirmation()
                     ->action(function ($record) {
                         // Deactivate all
                         PaymentGatewaySetting::query()->update(['is_active' => false]);
                         // Activate this one
                         $record->update(['is_active' => true]);
-                        
+
                         \Filament\Notifications\Notification::make()
                             ->title('Pasarela activada')
                             ->success()
@@ -246,6 +246,7 @@ class PaymentGatewayResource extends Resource
     public static function canViewAny(): bool
     {
         $user = auth('superadmin')->user();
+
         return $user?->is_super_admin ?? false;
     }
 }

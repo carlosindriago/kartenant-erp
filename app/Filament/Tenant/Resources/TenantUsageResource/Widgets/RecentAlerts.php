@@ -11,7 +11,7 @@ class RecentAlerts extends BaseWidget
 {
     protected static ?int $sort = 3;
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     public function table(Table $table): Table
     {
@@ -26,8 +26,7 @@ class RecentAlerts extends BaseWidget
                     ->label('Fecha')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
-                    ->description(fn (UsageAlert $record): string =>
-                        $record->created_at->diffForHumans()
+                    ->description(fn (UsageAlert $record): string => $record->created_at->diffForHumans()
                     ),
 
                 Tables\Columns\TextColumn::make('alert_type')
@@ -60,8 +59,7 @@ class RecentAlerts extends BaseWidget
                     ->suffix('%')
                     ->formatStateUsing(fn ($state) => number_format($state, 1))
                     ->color(fn ($record) => $record->percentage > 100 ? 'danger' : ($record->percentage >= 80 ? 'warning' : 'success'))
-                    ->description(fn (UsageAlert $record): string =>
-                        "{$record->current_value} / {$record->limit_value}"
+                    ->description(fn (UsageAlert $record): string => "{$record->current_value} / {$record->limit_value}"
                     ),
 
                 Tables\Columns\ViewColumn::make('delivery_status')

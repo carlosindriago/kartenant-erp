@@ -2,18 +2,18 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Livewire;
 
-use Livewire\Component;
 use App\Services\Dashboard\InsightsEngine;
 use Illuminate\Support\Facades\Cache;
+use Livewire\Component;
 
 /**
  * CriticalAlertsNotification: Componente de notificaciones globales
@@ -36,7 +36,7 @@ class CriticalAlertsNotification extends Component
      */
     public function toggleDropdown()
     {
-        $this->showDropdown = !$this->showDropdown;
+        $this->showDropdown = ! $this->showDropdown;
     }
 
     /**
@@ -53,7 +53,7 @@ class CriticalAlertsNotification extends Component
     public function getAlertsProperty()
     {
         return Cache::remember('critical_alerts_notification', 300, function () {
-            $engine = new InsightsEngine();
+            $engine = new InsightsEngine;
             $allActions = $engine->generateTopActions(limit: 10);
 
             // Solo alertas críticas y de alta prioridad
@@ -76,12 +76,12 @@ class CriticalAlertsNotification extends Component
      */
     public function getCriticalCountProperty()
     {
-        return count(array_filter($this->alerts, fn($a) => $a['priority'] === 'critical'));
+        return count(array_filter($this->alerts, fn ($a) => $a['priority'] === 'critical'));
     }
 
     public function getHighCountProperty()
     {
-        return count(array_filter($this->alerts, fn($a) => $a['priority'] === 'high'));
+        return count(array_filter($this->alerts, fn ($a) => $a['priority'] === 'high'));
     }
 
     /**

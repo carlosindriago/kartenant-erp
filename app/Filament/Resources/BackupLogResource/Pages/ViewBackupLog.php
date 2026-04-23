@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -16,8 +16,8 @@ use App\Services\TenantRestoreService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\TextInput;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
@@ -90,8 +90,7 @@ class ViewBackupLog extends ViewRecord
                         ->rule('in:CONFIRMAR')
                         ->helperText('Debes escribir exactamente: CONFIRMAR (en mayúsculas)'),
                 ])
-                ->visible(fn ($record) =>
-                    $record->status === 'success' &&
+                ->visible(fn ($record) => $record->status === 'success' &&
                     auth('superadmin')->user()?->is_super_admin
                 )
                 ->action(function ($record, $data) {
@@ -186,8 +185,7 @@ class ViewBackupLog extends ViewRecord
                             ->dateTime('d/m/Y H:i:s'),
                         TextEntry::make('duration')
                             ->label('Duración')
-                            ->formatStateUsing(fn (?int $state): string =>
-                                $state ? "{$state} segundos" : '-'
+                            ->formatStateUsing(fn (?int $state): string => $state ? "{$state} segundos" : '-'
                             ),
                         TextEntry::make('created_at')
                             ->label('Creado')

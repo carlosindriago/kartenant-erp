@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -19,22 +19,22 @@ use Illuminate\Support\Facades\DB;
 class InventoryTrendChart extends ChartWidget
 {
     protected static ?string $heading = 'Tendencia del Valor del Inventario';
-    
+
     protected static ?int $sort = 4;
-    
-    protected int | string | array $columnSpan = 'full';
-    
+
+    protected int|string|array $columnSpan = 'full';
+
     protected static ?string $maxHeight = '300px';
-    
+
     protected static ?string $pollingInterval = '60s';
-    
+
     public ?string $filter = '30';
 
     protected function getData(): array
     {
         $days = (int) $this->filter;
         $data = $this->getInventoryValueTrend($days);
-        
+
         return [
             'datasets' => [
                 [
@@ -54,7 +54,7 @@ class InventoryTrendChart extends ChartWidget
     {
         return 'line';
     }
-    
+
     protected function getFilters(): ?array
     {
         return [
@@ -64,7 +64,7 @@ class InventoryTrendChart extends ChartWidget
             '60' => 'Últimos 60 días',
         ];
     }
-    
+
     protected function getOptions(): array
     {
         return [
@@ -100,35 +100,35 @@ class InventoryTrendChart extends ChartWidget
             ],
         ];
     }
-    
+
     protected function getInventoryValueTrend(int $days): array
     {
         $values = [];
         $labels = [];
-        
+
         for ($i = $days - 1; $i >= 0; $i--) {
             $date = now()->subDays($i);
             $value = $this->getHistoricalInventoryValue($date);
-            
+
             $values[] = round($value, 2);
             $labels[] = $date->format('d/m');
         }
-        
+
         return [
             'values' => $values,
             'labels' => $labels,
         ];
     }
-    
+
     protected function getHistoricalInventoryValue($date): float
     {
         // Obtener el valor aproximado del inventario en una fecha pasada
         $movementsAfterDate = StockMovement::where('created_at', '>', $date)
             ->with('product')
             ->get();
-        
+
         $currentValue = Product::sum(DB::raw('stock * price'));
-        
+
         // Calcular diferencia por movimientos
         $valueDifference = 0;
         foreach ($movementsAfterDate as $movement) {
@@ -137,7 +137,7 @@ class InventoryTrendChart extends ChartWidget
                 $valueDifference += ($movement->type === 'entrada' ? $impact : -$impact);
             }
         }
-        
+
         return max(0, $currentValue - $valueDifference);
     }
 }

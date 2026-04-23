@@ -175,7 +175,7 @@ class ModuleResource extends Resource
                         Forms\Components\CheckboxList::make('feature_flags')
                             ->label('Funcionalidades que Habilita')
                             ->options(function () {
-                                return array_map(fn($label) => $label, [
+                                return array_map(fn ($label) => $label, [
                                     'has_inventory_management' => 'Gestión de Inventario',
                                     'has_stock_tracking' => 'Seguimiento de Stock',
                                     'has_barcode_scanning' => 'Escaneo de Códigos de Barras',
@@ -312,7 +312,7 @@ class ModuleResource extends Resource
 
                 Tables\Columns\TextColumn::make('average_rating')
                     ->label('Rating')
-                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 1) . ' ⭐' : 'N/A')
+                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 1).' ⭐' : 'N/A')
                     ->sortable()
                     ->toggleable(),
 
@@ -368,11 +368,11 @@ class ModuleResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
                         ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
-                            $modulesWithInstallations = $records->filter(fn($record) => $record->activeTenants()->count() > 0);
+                            $modulesWithInstallations = $records->filter(fn ($record) => $record->activeTenants()->count() > 0);
                             if ($modulesWithInstallations->isNotEmpty()) {
                                 $action->cancel();
                                 $names = $modulesWithInstallations->pluck('name')->join(', ');
-                                $action->failureNotificationTitle("No se pueden eliminar los módulos seleccionados");
+                                $action->failureNotificationTitle('No se pueden eliminar los módulos seleccionados');
                                 $action->failureNotificationDescription("Los siguientes módulos tienen instalaciones activas: {$names}");
                             }
                         }),

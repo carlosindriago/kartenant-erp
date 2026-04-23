@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ModuleUsageLog extends Model
 {
     protected $connection = 'landlord';
+
     protected $table = 'module_usage_logs';
 
     protected $fillable = [
@@ -66,18 +67,25 @@ class ModuleUsageLog extends Model
 
     // Event Type Constants
     public const EVENT_ACCESS = 'access';
+
     public const EVENT_ACTION = 'action';
+
     public const EVENT_ERROR = 'error';
+
     public const EVENT_LIMIT_REACHED = 'limit_reached';
+
     public const EVENT_INSTALL = 'install';
+
     public const EVENT_UNINSTALL = 'uninstall';
+
     public const EVENT_CONFIGURATION = 'configuration';
+
     public const EVENT_USAGE = 'usage';
 
     // Helper Methods
     public function getEventLabel(): string
     {
-        return match($this->event_type) {
+        return match ($this->event_type) {
             self::EVENT_ACCESS => 'Acceso',
             self::EVENT_ACTION => 'Acción',
             self::EVENT_ERROR => 'Error',
@@ -97,48 +105,48 @@ class ModuleUsageLog extends Model
 
     public function getFormattedExecutionTime(): string
     {
-        if (!$this->execution_time_ms) {
+        if (! $this->execution_time_ms) {
             return 'N/A';
         }
 
         if ($this->execution_time_ms < 1000) {
-            return $this->execution_time_ms . ' ms';
+            return $this->execution_time_ms.' ms';
         }
 
-        return number_format($this->execution_time_ms / 1000, 2) . ' s';
+        return number_format($this->execution_time_ms / 1000, 2).' s';
     }
 
     public function getFormattedMemoryUsage(): string
     {
-        if (!$this->memory_usage_mb) {
+        if (! $this->memory_usage_mb) {
             return 'N/A';
         }
 
-        return $this->memory_usage_mb . ' MB';
+        return $this->memory_usage_mb.' MB';
     }
 
     public function getFormattedCost(): string
     {
-        if (!$this->usage_cost) {
+        if (! $this->usage_cost) {
             return '$0.0000';
         }
 
-        return '$' . number_format($this->usage_cost, 4);
+        return '$'.number_format($this->usage_cost, 4);
     }
 
     public function hasFeatureAccessed(): bool
     {
-        return !empty($this->feature_accessed);
+        return ! empty($this->feature_accessed);
     }
 
     public function hasActionPerformed(): bool
     {
-        return !empty($this->action_performed);
+        return ! empty($this->action_performed);
     }
 
     public function hasUsageData(): bool
     {
-        return !empty($this->usage_data);
+        return ! empty($this->usage_data);
     }
 
     public function getUsageMetric(string $metric): mixed
@@ -148,7 +156,7 @@ class ModuleUsageLog extends Model
 
     public function hasPerformanceData(): bool
     {
-        return !empty($this->performance_metrics);
+        return ! empty($this->performance_metrics);
     }
 
     public function getPerformanceMetric(string $metric): mixed
@@ -170,7 +178,7 @@ class ModuleUsageLog extends Model
             'user_id' => $user?->id,
             'event_type' => self::EVENT_ACCESS,
             'feature_accessed' => $feature,
-            'description' => "Acceso al módulo {$module->name}" . ($feature ? " - {$feature}" : ''),
+            'description' => "Acceso al módulo {$module->name}".($feature ? " - {$feature}" : ''),
             'usage_data' => $data,
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
@@ -280,7 +288,7 @@ class ModuleUsageLog extends Model
             'module_id' => $module->id,
             'user_id' => $user?->id,
             'event_type' => self::EVENT_UNINSTALL,
-            'description' => "Desinstalación del módulo {$module->name}" . ($reason ? " - {$reason}" : ''),
+            'description' => "Desinstalación del módulo {$module->name}".($reason ? " - {$reason}" : ''),
             'usage_data' => ['reason' => $reason],
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),

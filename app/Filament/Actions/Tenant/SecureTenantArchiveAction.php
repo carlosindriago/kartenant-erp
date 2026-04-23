@@ -5,12 +5,12 @@ namespace App\Filament\Actions\Tenant;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantSecurityService;
+use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Maximum-Friction Secure Tenant Archive Action
@@ -28,6 +28,7 @@ use Carbon\Carbon;
 class SecureTenantArchiveAction extends Action
 {
     private TenantSecurityService $securityService;
+
     private Tenant $tenant;
 
     public static function make(string $name = 'archive_tenant'): static
@@ -39,6 +40,7 @@ class SecureTenantArchiveAction extends Action
             ->requiresConfirmation(false)
             ->modalContent(function ($action) {
                 $tenant = $action->getRecord();
+
                 return view('filament.actions.secure-tenant-archive-modal', [
                     'tenant' => $tenant,
                     'userCount' => $tenant->users()->count(),
@@ -101,7 +103,7 @@ class SecureTenantArchiveAction extends Action
                     ->label('Confirmar Nombre Completo')
                     ->required()
                     ->placeholder(function ($record) {
-                        return "Escribe exactamente: " . $record->name;
+                        return 'Escribe exactamente: '.$record->name;
                     }),
 
                 Forms\Components\TextInput::make('confirm_archive_keyword')
@@ -131,7 +133,7 @@ class SecureTenantArchiveAction extends Action
                     $this->validateAllSecurityPhases($data, $admin);
 
                     // COOLDOWN PERIOD (if not emergency)
-                    if (!($data['emergency_override'] ?? false)) {
+                    if (! ($data['emergency_override'] ?? false)) {
                         $this->implementCooldownPeriod($data, $admin);
                     }
 
@@ -168,8 +170,7 @@ class SecureTenantArchiveAction extends Action
                         ->send();
                 }
             })
-            ->visible(fn (Tenant $record): bool =>
-                !$record->trashed() &&
+            ->visible(fn (Tenant $record): bool => ! $record->trashed() &&
                 auth('superadmin')->user()?->is_super_admin
             );
     }
@@ -180,23 +181,23 @@ class SecureTenantArchiveAction extends Action
     private function validateAllSecurityPhases(array $data, User $admin): void
     {
         // PHASE 1: Identity Verification
-        if (!Hash::check($data['admin_password'], $admin->password)) {
+        if (! Hash::check($data['admin_password'], $admin->password)) {
             throw new \Exception('Verificación de identidad fallida: contraseña incorrecta.');
         }
 
         // PHASE 2: Enhanced OTP Verification
         $otpResult = $this->securityService->validateArchiveOTP($admin, $data['otp_code'], $this->tenant);
-        if (!$otpResult['valid']) {
+        if (! $otpResult['valid']) {
             throw new \Exception($otpResult['error']);
         }
 
         // PHASE 3: Email Verification
-        if (!$this->securityService->validateArchiveEmailToken($admin, $data['email_verification_token'], $this->tenant)) {
+        if (! $this->securityService->validateArchiveEmailToken($admin, $data['email_verification_token'], $this->tenant)) {
             throw new \Exception('Verificación por email fallida: token inválido o expirado.');
         }
 
         // PHASE 4: Legal Compliance Check
-        if (!$data['legal_retention_confirmed'] || !$data['contractual_obligations_met'] || !$data['data_backup_verified']) {
+        if (! $data['legal_retention_confirmed'] || ! $data['contractual_obligations_met'] || ! $data['data_backup_verified']) {
             throw new \Exception('No se han completado todas las verificaciones de cumplimiento legal.');
         }
 
@@ -210,7 +211,7 @@ class SecureTenantArchiveAction extends Action
         }
 
         // PHASE 6: Liability Acceptance
-        if (!$data['understand_irreversibility'] || !$data['accept_liability']) {
+        if (! $data['understand_irreversibility'] || ! $data['accept_liability']) {
             throw new \Exception('No se han aceptado todos los términos de responsabilidad.');
         }
 
@@ -289,7 +290,7 @@ class SecureTenantArchiveAction extends Action
             'pre_archive_critical'
         );
 
-        if (!$backupResult['success']) {
+        if (! $backupResult['success']) {
             throw new \Exception('Error crítico: No se pudo crear el backup pre-archivado.');
         }
 

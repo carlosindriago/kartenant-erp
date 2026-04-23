@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,29 +13,28 @@ namespace App\Filament\App\Resources;
 
 use App\Filament\App\Resources\DocumentVerificationResource\Pages;
 use App\Models\DocumentVerification;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Support\Enums\FontWeight;
-use Filament\Facades\Filament;
 
 class DocumentVerificationResource extends Resource
 {
     protected static ?string $model = DocumentVerification::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shield-check';
-    
+
     protected static ?string $navigationLabel = 'Documentos Verificados';
-    
+
     protected static ?string $modelLabel = 'Documento Verificado';
-    
+
     protected static ?string $pluralModelLabel = 'Documentos Verificados';
-    
+
     protected static ?string $navigationGroup = 'Seguridad';
-    
+
     protected static ?int $navigationSort = 10;
 
     public static function form(Form $form): Form
@@ -60,7 +59,7 @@ class DocumentVerificationResource extends Resource
                             ->required()
                             ->disabled(),
                     ])->columns(2),
-                
+
                 Forms\Components\Section::make('Estado del Documento')
                     ->schema([
                         Forms\Components\Toggle::make('is_valid')
@@ -78,7 +77,7 @@ class DocumentVerificationResource extends Resource
                             ->label('Fecha de Expiración')
                             ->helperText('Dejar vacío para documentos sin expiración'),
                     ])->columns(2),
-                
+
                 Forms\Components\Section::make('Metadata')
                     ->schema([
                         Forms\Components\KeyValue::make('metadata')
@@ -113,7 +112,7 @@ class DocumentVerificationResource extends Resource
                     })
                     ->searchable()
                     ->sortable(),
-                    
+
                 Tables\Columns\TextColumn::make('hash')
                     ->label('Hash')
                     ->limit(16)
@@ -121,27 +120,27 @@ class DocumentVerificationResource extends Resource
                     ->copyable()
                     ->copyMessage('Hash copiado')
                     ->searchable(),
-                    
+
                 Tables\Columns\TextColumn::make('generated_at')
                     ->label('Generado')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->description(fn ($record) => $record->generated_at->diffForHumans()),
-                    
+
                 Tables\Columns\TextColumn::make('verification_count')
                     ->label('Verificaciones')
                     ->numeric()
                     ->sortable()
                     ->badge()
                     ->color('gray'),
-                    
+
                 Tables\Columns\TextColumn::make('last_verified_at')
                     ->label('Última Verificación')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable()
                     ->placeholder('Sin verificar'),
-                    
+
                 Tables\Columns\IconColumn::make('is_valid')
                     ->label('Estado')
                     ->boolean()
@@ -150,7 +149,7 @@ class DocumentVerificationResource extends Resource
                     ->trueColor('success')
                     ->falseColor('danger')
                     ->sortable(),
-                    
+
                 Tables\Columns\TextColumn::make('expires_at')
                     ->label('Expira')
                     ->dateTime('d/m/Y')
@@ -169,18 +168,18 @@ class DocumentVerificationResource extends Resource
                         'financial_report' => 'Reporte Financiero',
                     ])
                     ->multiple(),
-                    
+
                 Tables\Filters\TernaryFilter::make('is_valid')
                     ->label('Estado del Documento')
                     ->placeholder('Todos')
                     ->trueLabel('Solo Válidos')
                     ->falseLabel('Solo Invalidados'),
-                    
+
                 Tables\Filters\Filter::make('expired')
                     ->label('Documentos Expirados')
                     ->query(fn (Builder $query): Builder => $query->where('expires_at', '<', now()))
                     ->toggle(),
-                    
+
                 Tables\Filters\Filter::make('generated_at')
                     ->label('Fecha de Generación')
                     ->form([
@@ -207,7 +206,7 @@ class DocumentVerificationResource extends Resource
                     ->icon('heroicon-o-eye')
                     ->url(fn ($record) => route('verify.hash', ['hash' => $record->hash]))
                     ->openUrlInNewTab(),
-                    
+
                 Tables\Actions\Action::make('invalidate')
                     ->label('Invalidar')
                     ->icon('heroicon-o-x-circle')
@@ -225,7 +224,7 @@ class DocumentVerificationResource extends Resource
                         $record->invalidate($data['reason']);
                     })
                     ->visible(fn ($record) => $record->is_valid),
-                    
+
                 Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
@@ -268,16 +267,16 @@ class DocumentVerificationResource extends Resource
             'view' => Pages\ViewDocumentVerification::route('/{record}'),
         ];
     }
-    
+
     public static function getEloquentQuery(): Builder
     {
         $tenant = Filament::getTenant();
-        
+
         return parent::getEloquentQuery()
             ->where('tenant_id', $tenant->id)
             ->latest('generated_at');
     }
-    
+
     public static function canCreate(): bool
     {
         return false; // Los documentos se generan automáticamente

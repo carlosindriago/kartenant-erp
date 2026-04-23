@@ -27,7 +27,7 @@ return [
          * `Spatie\Permission\Contracts\Role` contract.
          */
 
-        // CRITICAL: Default models MUST be Landlord models  
+        // CRITICAL: Default models MUST be Landlord models
         'role' => App\Models\Landlord\Role::class,
 
     ],

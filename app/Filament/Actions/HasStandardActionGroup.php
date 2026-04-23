@@ -30,6 +30,7 @@ trait HasStandardActionGroup
                     if (method_exists($this, 'getDashboardUrl')) {
                         return $this->getDashboardUrl();
                     }
+
                     return null;
                 })
                 ->openUrlInNewTab()
@@ -287,12 +288,12 @@ trait HasStandardActionGroup
                 ->requiresConfirmation()
                 ->modalHeading('🔄 Restaurar Tenant Archivado')
                 ->modalDescription(function ($record) {
-                    return "**¿Estás seguro de restaurar la tienda '{$record->name}'?**\n\n" .
-                           "Esta acción:\n" .
-                           "• Reactivará el tenant y todos sus datos\n" .
-                           "• Restaurará el acceso para los usuarios\n" .
-                           "• Requerirá verificación de seguridad\n" .
-                           "• Generará un backup previo a la restauración";
+                    return "**¿Estás seguro de restaurar la tienda '{$record->name}'?**\n\n".
+                           "Esta acción:\n".
+                           "• Reactivará el tenant y todos sus datos\n".
+                           "• Restaurará el acceso para los usuarios\n".
+                           "• Requerirá verificación de seguridad\n".
+                           '• Generará un backup previo a la restauración';
                 })
                 ->modalSubmitActionLabel('Restaurar Tenant')
                 ->form([
@@ -314,7 +315,7 @@ trait HasStandardActionGroup
                         ->label('Confirmar Nombre de la Tienda')
                         ->required()
                         ->placeholder(function ($record) {
-                            return "Escribe exactamente: " . $record->name;
+                            return 'Escribe exactamente: '.$record->name;
                         })
                         ->helperText('Escribe el nombre exacto de la tienda para confirmar.'),
 
@@ -396,12 +397,12 @@ trait HasStandardActionGroup
                 ->requiresConfirmation()
                 ->modalHeading('⚠️ ELIMINAR PERMANENTEMENTE')
                 ->modalDescription(function ($record) {
-                    return "**ADVERTENCIA: Esta acción es IRREVERSIBLE**\n\n" .
-                           "Eliminar permanentemente el tenant '{$record->name}' significa:\n\n" .
-                           "• Todos los datos serán borrados para siempre\n" .
-                           "• No se podrá recuperar ninguna información\n" .
-                           "• Los backups podrían ser eliminados también\n" .
-                           "• Esta acción no puede deshacerse bajo ninguna circunstancia";
+                    return "**ADVERTENCIA: Esta acción es IRREVERSIBLE**\n\n".
+                           "Eliminar permanentemente el tenant '{$record->name}' significa:\n\n".
+                           "• Todos los datos serán borrados para siempre\n".
+                           "• No se podrá recuperar ninguna información\n".
+                           "• Los backups podrían ser eliminados también\n".
+                           '• Esta acción no puede deshacerse bajo ninguna circunstancia';
                 })
                 ->modalSubmitActionLabel('Entiendo, Eliminar Permanentemente')
                 ->form([
@@ -462,25 +463,27 @@ trait HasStandardActionGroup
                 ->latest('created_at')
                 ->first();
 
-            if (!$latestBackup || !$latestBackup->file_path) {
+            if (! $latestBackup || ! $latestBackup->file_path) {
                 Notification::make()
                     ->title('❌ Backup No Disponible')
                     ->body('No hay backups disponibles para este tenant.')
                     ->danger()
                     ->send();
+
                 return;
             }
 
-            if (!Storage::exists($latestBackup->file_path)) {
+            if (! Storage::exists($latestBackup->file_path)) {
                 Notification::make()
                     ->title('❌ Archivo No Encontrado')
                     ->body('El archivo de backup no existe en el almacenamiento.')
                     ->danger()
                     ->send();
+
                 return;
             }
 
-            return Storage::download($latestBackup->file_path, "backup_{$record->database}_" . date('Y-m-d_H-i-s') . ".sql.gz");
+            return Storage::download($latestBackup->file_path, "backup_{$record->database}_".date('Y-m-d_H-i-s').'.sql.gz');
 
         } catch (\Exception $e) {
             Notification::make()
@@ -500,12 +503,13 @@ trait HasStandardActionGroup
             $admin = auth('superadmin')->user();
 
             // Validate admin password
-            if (!\Illuminate\Support\Facades\Hash::check($data['admin_password'], $admin->password)) {
+            if (! \Illuminate\Support\Facades\Hash::check($data['admin_password'], $admin->password)) {
                 Notification::make()
                     ->title('Error de Autenticación')
                     ->body('La contraseña de administrador es incorrecta.')
                     ->danger()
                     ->send();
+
                 return;
             }
 
@@ -516,6 +520,7 @@ trait HasStandardActionGroup
                     ->body('El nombre de la tienda no coincide. Restauración cancelada.')
                     ->danger()
                     ->send();
+
                 return;
             }
 
@@ -528,7 +533,7 @@ trait HasStandardActionGroup
                     'pre_restore'
                 );
 
-                if (!$backupResult['success']) {
+                if (! $backupResult['success']) {
                     throw new \Exception('No se pudo crear el backup previo a la restauración.');
                 }
             }
@@ -597,7 +602,7 @@ trait HasStandardActionGroup
             if ($result['success']) {
                 Notification::make()
                     ->title('✅ Backup Creado Exitosamente')
-                    ->body("Backup completado: " . round($result['file_size'] / 1024 / 1024, 2) . " MB")
+                    ->body('Backup completado: '.round($result['file_size'] / 1024 / 1024, 2).' MB')
                     ->success()
                     ->duration(10000)
                     ->send();
@@ -652,12 +657,13 @@ trait HasStandardActionGroup
             $admin = auth('superadmin')->user();
 
             // Validate admin password
-            if (!\Illuminate\Support\Facades\Hash::check($data['admin_password'], $admin->password)) {
+            if (! \Illuminate\Support\Facades\Hash::check($data['admin_password'], $admin->password)) {
                 Notification::make()
                     ->title('Error de Autenticación')
                     ->body('La contraseña de administrador es incorrecta.')
                     ->danger()
                     ->send();
+
                 return;
             }
 
@@ -668,6 +674,7 @@ trait HasStandardActionGroup
                     ->body('La palabra clave es incorrecta. Eliminación cancelada.')
                     ->danger()
                     ->send();
+
                 return;
             }
 

@@ -2,15 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Tenant;
-use App\Models\TenantSubscription;
-use App\Models\SubscriptionPlan;
 use App\Models\Invoice;
-use App\Models\PaymentTransaction;
-use App\Models\PaymentSettings;
-use App\Models\User;
 use App\Models\Module;
+use App\Models\PaymentSettings;
+use App\Models\SubscriptionPlan;
+use App\Models\Tenant;
 use App\Models\TenantModule;
+use App\Models\TenantSubscription;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -25,7 +23,7 @@ class BillingService
     /**
      * Generate monthly invoices for all active subscriptions
      */
-    public function generateMonthlyInvoices(Carbon $billingDate = null): array
+    public function generateMonthlyInvoices(?Carbon $billingDate = null): array
     {
         $billingDate = $billingDate ?? now();
         $results = [
@@ -78,7 +76,7 @@ class BillingService
     /**
      * Generate yearly invoices for all active subscriptions
      */
-    public function generateYearlyInvoices(Carbon $billingDate = null): array
+    public function generateYearlyInvoices(?Carbon $billingDate = null): array
     {
         $billingDate = $billingDate ?? now();
         $results = [
@@ -139,7 +137,7 @@ class BillingService
             ->whereNull('expires_at')
             ->where(function ($query) use ($billingDate) {
                 $query->whereNull('next_billing_at')
-                      ->orWhereDate('next_billing_at', '<=', $billingDate);
+                    ->orWhereDate('next_billing_at', '<=', $billingDate);
             })
             ->distinct('tenant_id')
             ->pluck('tenant_id');
@@ -147,7 +145,7 @@ class BillingService
         foreach ($tenantsWithMonthlyModules as $tenantId) {
             try {
                 $tenant = Tenant::find($tenantId);
-                if (!$tenant) {
+                if (! $tenant) {
                     continue;
                 }
 
@@ -166,13 +164,12 @@ class BillingService
         }
     }
 
-    
     /**
      * Generate invoice for a specific subscription
      */
     public function generateSubscriptionInvoice(
         TenantSubscription $subscription,
-        Carbon $billingDate = null
+        ?Carbon $billingDate = null
     ): ?Invoice {
         return DB::connection('landlord')->transaction(function () use ($subscription, $billingDate) {
             $billingDate = $billingDate ?? now();
@@ -190,6 +187,7 @@ class BillingService
                     'subscription_id' => $subscription->id,
                     'invoice_id' => $existingInvoice->id,
                 ]);
+
                 return null;
             }
 
@@ -229,7 +227,7 @@ class BillingService
                 ],
                 'line_items' => [
                     [
-                        'description' => $plan->name . ' - ' . ucfirst($subscription->billing_cycle),
+                        'description' => $plan->name.' - '.ucfirst($subscription->billing_cycle),
                         'quantity' => 1,
                         'unit_price' => (float) $subscription->price,
                         'total' => (float) $subscription->price,
@@ -287,7 +285,7 @@ class BillingService
                 ],
                 'line_items' => [
                     [
-                        'description' => 'Cuota de configuración - ' . $plan->name,
+                        'description' => 'Cuota de configuración - '.$plan->name,
                         'quantity' => 1,
                         'unit_price' => $setupFee,
                         'total' => $setupFee,
@@ -310,7 +308,7 @@ class BillingService
      */
     public function generateModulesInvoice(
         Tenant $tenant,
-        Carbon $billingDate = null
+        ?Carbon $billingDate = null
     ): ?Invoice {
         return DB::connection('landlord')->transaction(function () use ($tenant, $billingDate) {
             $billingDate = $billingDate ?? now();
@@ -319,11 +317,11 @@ class BillingService
             $modulesToBill = $tenant->activeTenantModules()
                 ->where(function ($query) use ($billingDate) {
                     $query->whereNull('expires_at')
-                          ->orWhere('expires_at', '>', $billingDate);
+                        ->orWhere('expires_at', '>', $billingDate);
                 })
                 ->where(function ($query) use ($billingDate) {
                     $query->whereNull('next_billing_at')
-                          ->orWhereDate('next_billing_at', '<=', $billingDate);
+                        ->orWhereDate('next_billing_at', '<=', $billingDate);
                 })
                 ->get();
 
@@ -339,7 +337,7 @@ class BillingService
                 $billingCycle = $tenantModule->billing_cycle;
 
                 $lineItems[] = [
-                    'description' => $tenantModule->module->name . ' - ' . $tenantModule->getDisplayBillingCycle(),
+                    'description' => $tenantModule->module->name.' - '.$tenantModule->getDisplayBillingCycle(),
                     'quantity' => 1,
                     'unit_price' => $price,
                     'total' => $price,
@@ -353,7 +351,7 @@ class BillingService
                 $subtotal += $price;
 
                 // Update next billing date
-                $nextBillingDate = match($billingCycle) {
+                $nextBillingDate = match ($billingCycle) {
                     'monthly' => $billingDate->copy()->addMonth(),
                     'yearly' => $billingDate->copy()->addYear(),
                     'once' => null, // One-time payment, no next billing
@@ -416,7 +414,7 @@ class BillingService
         ?TenantModule $tenantModule = null
     ): Invoice {
         return DB::connection('landlord')->transaction(function () use ($tenant, $module, $tenantModule) {
-            if (!$module->hasSetupFee()) {
+            if (! $module->hasSetupFee()) {
                 throw new \InvalidArgumentException('El módulo no tiene cuota de configuración');
             }
 
@@ -447,7 +445,7 @@ class BillingService
                 ],
                 'line_items' => [
                     [
-                        'description' => 'Cuota de configuración - Módulo: ' . $module->name,
+                        'description' => 'Cuota de configuración - Módulo: '.$module->name,
                         'quantity' => 1,
                         'unit_price' => $setupFee,
                         'total' => $setupFee,
@@ -506,7 +504,7 @@ class BillingService
                 'customer_data' => $overdueInvoice->customer_data,
                 'line_items' => [
                     [
-                        'description' => 'Cargo por mora - Factura ' . $overdueInvoice->invoice_number,
+                        'description' => 'Cargo por mora - Factura '.$overdueInvoice->invoice_number,
                         'quantity' => 1,
                         'unit_price' => $penaltyAmount,
                         'total' => $penaltyAmount,
@@ -536,11 +534,12 @@ class BillingService
         try {
             $tenant = $invoice->tenant;
 
-            if (!$tenant->owner_email) {
+            if (! $tenant->owner_email) {
                 Log::warning('No email address for tenant', [
                     'tenant_id' => $tenant->id,
                     'invoice_id' => $invoice->id,
                 ]);
+
                 return false;
             }
 
@@ -571,6 +570,7 @@ class BillingService
                 'invoice_id' => $invoice->id,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -681,7 +681,7 @@ class BillingService
             ->whereJsonContains('metadata->related_invoice_id', $invoice->id)
             ->exists();
 
-        if (!$penaltyExists) {
+        if (! $penaltyExists) {
             $penaltyAmount = $invoice->total_amount * 0.10; // 10% penalty
             $this->generatePenaltyInvoice($invoice, $penaltyAmount);
         }
@@ -775,8 +775,8 @@ class BillingService
 
         // Module-specific billing information
         $activeModules = $tenant->activeTenantModules();
-        $modulesMonthlyCost = $activeModules->sum(fn($tm) => $tm->getMonthlyCost());
-        $modulesYearlyCost = $activeModules->sum(fn($tm) => $tm->getYearlyCost());
+        $modulesMonthlyCost = $activeModules->sum(fn ($tm) => $tm->getMonthlyCost());
+        $modulesYearlyCost = $activeModules->sum(fn ($tm) => $tm->getYearlyCost());
         $modulesCount = $activeModules->count();
 
         $subscriptionBillingDate = $tenant->subscriptions()->active()->value('next_billing_at');

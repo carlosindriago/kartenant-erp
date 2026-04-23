@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -32,7 +32,7 @@ class Dashboard extends BaseDashboard
      */
     public function getSubheading(): ?string
     {
-        return 'Resumen Ejecutivo - ' . now()->format('d/m/Y') . ' ' . now()->format('H:i');
+        return 'Resumen Ejecutivo - '.now()->format('d/m/Y').' '.now()->format('H:i');
     }
 
     /**
@@ -50,7 +50,7 @@ class Dashboard extends BaseDashboard
      * - Desktop: 3 columnas (vista panorámica completa)
      * - Large Desktop: 4 columnas (máxima densidad de información)
      */
-    public function getColumns(): int | string | array
+    public function getColumns(): int|string|array
     {
         return [
             'default' => 1,
@@ -77,7 +77,7 @@ class Dashboard extends BaseDashboard
      */
     protected function getDashboardData(): array
     {
-        $cacheKey = 'superadmin_dashboard_data_' . auth('superadmin')->id() . '_' . now()->format('Y-m-d-H');
+        $cacheKey = 'superadmin_dashboard_data_'.auth('superadmin')->id().'_'.now()->format('Y-m-d-H');
 
         return Cache::remember($cacheKey, 300, function () {
             $metricsService = app(DashboardMetricsService::class);
@@ -110,7 +110,7 @@ class Dashboard extends BaseDashboard
         $hour = now()->hour;
         $name = auth('superadmin')->user()->name ?? 'Administrador';
 
-        return match(true) {
+        return match (true) {
             $hour >= 5 && $hour < 12 => "☀️ Buenos días, {$name}",
             $hour >= 12 && $hour < 17 => "🌤️ Buenas tardes, {$name}",
             $hour >= 17 && $hour < 21 => "🌆 Buenas tardes, {$name}",
@@ -314,6 +314,7 @@ class Dashboard extends BaseDashboard
                 ->map(function ($tenant) use ($tenantStats) {
                     try {
                         $stats = $tenantStats->getTenantStats($tenant);
+
                         return [
                             'id' => $tenant->id,
                             'name' => $tenant->name,
@@ -381,7 +382,7 @@ class Dashboard extends BaseDashboard
             $totalTenants = \App\Models\Tenant::count();
             if ($totalTenants > 0) {
                 $distribution['by_status_percentages'] = array_map(
-                    fn($count) => round(($count / $totalTenants) * 100, 1),
+                    fn ($count) => round(($count / $totalTenants) * 100, 1),
                     $distribution['by_status']
                 );
             }
@@ -418,7 +419,7 @@ class Dashboard extends BaseDashboard
             }),
             'users_without_2fa' => Cache::remember('users_without_2fa', 600, function () {
                 return \App\Models\User::where('two_factor_secret', null)
-                    ->whereHas('tenant', fn($q) => $q->where('status', 'active'))
+                    ->whereHas('tenant', fn ($q) => $q->where('status', 'active'))
                     ->count();
             }),
             'expired_passwords' => 0, // Implementar si se requiere cambio de contraseña
@@ -477,7 +478,7 @@ class Dashboard extends BaseDashboard
 
     private function getActivityIcon(?string $action): string
     {
-        return match($action) {
+        return match ($action) {
             'create_tenant' => 'heroicon-o-plus-circle',
             'update_tenant' => 'heroicon-o-pencil',
             'delete_tenant' => 'heroicon-o-trash',
@@ -498,7 +499,7 @@ class Dashboard extends BaseDashboard
             'backup' => $this->checkBackupStatus(),
         ];
 
-        $healthyChecks = collect($checks)->filter(fn($status) => $status === 'healthy')->count();
+        $healthyChecks = collect($checks)->filter(fn ($status) => $status === 'healthy')->count();
 
         return (int) round(($healthyChecks / count($checks)) * 100);
     }
@@ -508,6 +509,7 @@ class Dashboard extends BaseDashboard
         try {
             \DB::connection('landlord')->select('SELECT 1');
             \DB::connection('tenant')->select('SELECT 1');
+
             return 'healthy';
         } catch (\Exception $e) {
             return 'unhealthy';
@@ -519,6 +521,7 @@ class Dashboard extends BaseDashboard
         try {
             Cache::put('health_check', 'ok', 60);
             $result = Cache::get('health_check') === 'ok';
+
             return $result ? 'healthy' : 'unhealthy';
         } catch (\Exception $e) {
             return 'unhealthy';
@@ -538,6 +541,7 @@ class Dashboard extends BaseDashboard
             file_put_contents($testFile, 'test');
             $result = file_exists($testFile);
             unlink($testFile);
+
             return $result ? 'healthy' : 'unhealthy';
         } catch (\Exception $e) {
             return 'unhealthy';
@@ -553,10 +557,16 @@ class Dashboard extends BaseDashboard
     private function checkBackupStatus(): string
     {
         $latestBackup = \App\Models\BackupLog::latest()->first();
-        if (!$latestBackup) return 'warning';
+        if (! $latestBackup) {
+            return 'warning';
+        }
 
-        if ($latestBackup->status === 'failed') return 'unhealthy';
-        if ($latestBackup->created_at->diffInHours() > 48) return 'warning';
+        if ($latestBackup->status === 'failed') {
+            return 'unhealthy';
+        }
+        if ($latestBackup->created_at->diffInHours() > 48) {
+            return 'warning';
+        }
 
         return 'healthy';
     }
@@ -565,6 +575,7 @@ class Dashboard extends BaseDashboard
     {
         if (function_exists('sys_getloadavg')) {
             $load = sys_getloadavg();
+
             return [
                 '1min' => round($load[0] ?? 0, 2),
                 '5min' => round($load[1] ?? 0, 2),
@@ -593,11 +604,11 @@ class Dashboard extends BaseDashboard
         $averageHours = $totalHours / $resolvedTickets->count();
 
         if ($averageHours < 1) {
-            return round($averageHours * 60) . ' min';
+            return round($averageHours * 60).' min';
         } elseif ($averageHours < 24) {
-            return round($averageHours, 1) . ' hrs';
+            return round($averageHours, 1).' hrs';
         } else {
-            return round($averageHours / 24, 1) . ' días';
+            return round($averageHours / 24, 1).' días';
         }
     }
 
@@ -639,6 +650,7 @@ class Dashboard extends BaseDashboard
 
         if ($totalSpace && $freeSpace) {
             $usedSpace = $totalSpace - $freeSpace;
+
             return [
                 'total' => round($totalSpace / 1024 / 1024 / 1024, 2),
                 'used' => round($usedSpace / 1024 / 1024 / 1024, 2),

@@ -9,10 +9,15 @@ use Illuminate\View\View;
 class UsageWarningBanner extends Component
 {
     public array $usageStatus;
+
     public bool $showBanner;
+
     public string $bannerType;
+
     public string $title;
+
     public string $message;
+
     public array $actions;
 
     public function __construct()
@@ -52,7 +57,7 @@ class UsageWarningBanner extends Component
 
     private function getBannerType(): string
     {
-        return match($this->usageStatus['status']) {
+        return match ($this->usageStatus['status']) {
             'warning' => 'warning',
             'overdraft' => 'danger',
             'critical' => 'danger',
@@ -62,7 +67,7 @@ class UsageWarningBanner extends Component
 
     private function getBannerTitle(): string
     {
-        return match($this->usageStatus['status']) {
+        return match ($this->usageStatus['status']) {
             'warning' => '⚠️ Advertencia de Uso',
             'overdraft' => '🔴 Límites Excedidos',
             'critical' => '🚨 Uso Crítico - Acción Requerida',
@@ -91,11 +96,11 @@ class UsageWarningBanner extends Component
 
         $mainMetric = $criticalMetrics[0] ?? null;
 
-        if (!$mainMetric) {
-            return "Revisa el estado de tu plan de suscripción.";
+        if (! $mainMetric) {
+            return 'Revisa el estado de tu plan de suscripción.';
         }
 
-        $metricName = match($mainMetric['zone']) {
+        $metricName = match ($mainMetric['zone']) {
             'sales' => 'ventas mensuales',
             'products' => 'productos',
             'users' => 'usuarios',
@@ -103,18 +108,18 @@ class UsageWarningBanner extends Component
             default => 'recursos',
         };
 
-        $baseMessage = match($status) {
+        $baseMessage = match ($status) {
             'warning' => "Estás cerca del límite de {$metricName} ({$mainMetric['percentage']}%).",
-            'overdraft' => "Has excedido el límite de {$metricName} en un " . ($mainMetric['percentage'] - 100) . "%.",
+            'overdraft' => "Has excedido el límite de {$metricName} en un ".($mainMetric['percentage'] - 100).'%.',
             'critical' => "Has excedido significativamente el límite de {$metricName}. Algunas funciones están limitadas.",
             default => "Revisa tu uso actual de {$metricName}.",
         };
 
         $timeMessage = $daysRemaining <= 3
             ? " Quedan solo {$daysRemaining} días en este período."
-            : "";
+            : '';
 
-        return $baseMessage . $timeMessage;
+        return $baseMessage.$timeMessage;
     }
 
     private function getBannerActions(): array
@@ -148,17 +153,17 @@ class UsageWarningBanner extends Component
     {
         $baseClasses = 'border-l-4 p-4 mb-6 rounded-lg shadow-sm';
 
-        return match($this->bannerType) {
-            'warning' => $baseClasses . ' bg-yellow-50 border-yellow-400',
-            'danger' => $baseClasses . ' bg-red-50 border-red-400',
-            'info' => $baseClasses . ' bg-blue-50 border-blue-400',
-            default => $baseClasses . ' bg-gray-50 border-gray-400',
+        return match ($this->bannerType) {
+            'warning' => $baseClasses.' bg-yellow-50 border-yellow-400',
+            'danger' => $baseClasses.' bg-red-50 border-red-400',
+            'info' => $baseClasses.' bg-blue-50 border-blue-400',
+            default => $baseClasses.' bg-gray-50 border-gray-400',
         };
     }
 
     public function getTitleClasses(): string
     {
-        return match($this->bannerType) {
+        return match ($this->bannerType) {
             'warning' => 'text-yellow-800',
             'danger' => 'text-red-800',
             'info' => 'text-blue-800',
@@ -168,7 +173,7 @@ class UsageWarningBanner extends Component
 
     public function getTextClasses(): string
     {
-        return match($this->bannerType) {
+        return match ($this->bannerType) {
             'warning' => 'text-yellow-700',
             'danger' => 'text-red-700',
             'info' => 'text-blue-700',
@@ -180,10 +185,10 @@ class UsageWarningBanner extends Component
     {
         $baseClasses = 'px-4 py-2 rounded-md text-sm font-medium transition-colors';
 
-        return match($type) {
-            'primary' => $baseClasses . ' bg-blue-600 text-white hover:bg-blue-700',
-            'secondary' => $baseClasses . ' bg-gray-200 text-gray-800 hover:bg-gray-300',
-            'ghost' => $baseClasses . ' text-gray-600 hover:text-gray-800',
+        return match ($type) {
+            'primary' => $baseClasses.' bg-blue-600 text-white hover:bg-blue-700',
+            'secondary' => $baseClasses.' bg-gray-200 text-gray-800 hover:bg-gray-300',
+            'ghost' => $baseClasses.' text-gray-600 hover:text-gray-800',
             default => $baseClasses,
         };
     }

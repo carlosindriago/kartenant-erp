@@ -39,13 +39,13 @@ class RegressionTestCommand extends Command
         $tests = [
             'passed' => 0,
             'failed' => 0,
-            'details' => []
+            'details' => [],
         ];
 
         /**
          * Record test result
          */
-        $recordTest = function(&$tests, $name, $passed, $details = '', $statusCode = null) {
+        $recordTest = function (&$tests, $name, $passed, $details = '', $statusCode = null) {
             if ($passed) {
                 $tests['passed']++;
                 $this->info("✅ {$name}: PASSED");
@@ -65,7 +65,7 @@ class RegressionTestCommand extends Command
                 'name' => $name,
                 'passed' => $passed,
                 'details' => $details,
-                'status_code' => $statusCode
+                'status_code' => $statusCode,
             ];
         };
 
@@ -82,12 +82,13 @@ class RegressionTestCommand extends Command
                                    strpos($loginResponse->body(), 'Iniciar Sesión') !== false;
 
             $recordTest($tests, 'Login Page Access', $loginPageAccessible,
-                       $loginPageAccessible ? 'Page loads correctly' : 'Page not accessible',
-                       $loginResponse->status());
+                $loginPageAccessible ? 'Page loads correctly' : 'Page not accessible',
+                $loginResponse->status());
 
-            if (!$loginPageAccessible) {
+            if (! $loginPageAccessible) {
                 $this->newLine();
                 $this->error('❌ CRITICAL: Cannot access login page. Aborting regression test.');
+
                 return 1;
             }
 
@@ -102,7 +103,7 @@ class RegressionTestCommand extends Command
             $patterns = [
                 '/<meta\s+name="csrf-token"\s+content="([^"]+)"/',
                 '/<input\s+type="hidden"\s+name="_token"\s+value="([^"]+)"[^>]*>/',
-                '/name="_token"\s+value="([^"]+)"/'
+                '/name="_token"\s+value="([^"]+)"/',
             ];
 
             foreach ($patterns as $pattern) {
@@ -113,10 +114,11 @@ class RegressionTestCommand extends Command
                 }
             }
 
-            if (!$csrfToken) {
+            if (! $csrfToken) {
                 $this->error('❌ Could not extract CSRF token');
-                $this->line('Response preview: ' . substr($body, 0, 500) . '...');
+                $this->line('Response preview: '.substr($body, 0, 500).'...');
                 $recordTest($tests, 'CSRF Token Extraction', false, 'No CSRF token found');
+
                 return 1;
             }
 
@@ -124,7 +126,7 @@ class RegressionTestCommand extends Command
             $loginData = [
                 'email' => $adminEmail,
                 'password' => 'password',
-                '_token' => $csrfToken
+                '_token' => $csrfToken,
             ];
 
             $sessionCookies = [];
@@ -139,7 +141,7 @@ class RegressionTestCommand extends Command
 
             if (isset($setCookieHeaders['Set-Cookie'])) {
                 $cookieHeaders = $setCookieHeaders['Set-Cookie'];
-                if (!is_array($cookieHeaders)) {
+                if (! is_array($cookieHeaders)) {
                     $cookieHeaders = [$cookieHeaders];
                 }
 
@@ -156,6 +158,7 @@ class RegressionTestCommand extends Command
             } else {
                 $this->error('❌ Could not extract session cookie');
                 $recordTest($tests, 'Session Cookie Extraction', false, 'No session cookie found');
+
                 return 1;
             }
 
@@ -172,24 +175,25 @@ class RegressionTestCommand extends Command
             $isLoginAgain = strpos($body, 'Iniciar Sesión') !== false;
             $isDashboard = strpos($body, 'Panel de Administración') !== false;
 
-            $loginSuccess = $dashboardResponse->status() === 200 && $isDashboard && !$isLoginAgain;
+            $loginSuccess = $dashboardResponse->status() === 200 && $isDashboard && ! $isLoginAgain;
 
-            if (!$loginSuccess) {
+            if (! $loginSuccess) {
                 // Debug information
-                $this->line('Debug - Response body preview: ' . substr($body, 0, 300));
-                $this->line('Debug - Found "Iniciar Sesión": ' . ($isLoginAgain ? 'Yes' : 'No'));
-                $this->line('Debug - Found "Panel de Administración": ' . ($isDashboard ? 'Yes' : 'No'));
-                $this->line('Debug - Status Code: ' . $dashboardResponse->status());
-                $this->line('Debug - Cookie used: ' . substr($sessionCookie, 0, 100) . '...');
+                $this->line('Debug - Response body preview: '.substr($body, 0, 300));
+                $this->line('Debug - Found "Iniciar Sesión": '.($isLoginAgain ? 'Yes' : 'No'));
+                $this->line('Debug - Found "Panel de Administración": '.($isDashboard ? 'Yes' : 'No'));
+                $this->line('Debug - Status Code: '.$dashboardResponse->status());
+                $this->line('Debug - Cookie used: '.substr($sessionCookie, 0, 100).'...');
             }
 
             $recordTest($tests, 'SuperAdmin Login', $loginSuccess,
-                       $loginSuccess ? 'Login successful' : 'Login failed - redirected back to login page',
-                       $dashboardResponse->status());
+                $loginSuccess ? 'Login successful' : 'Login failed - redirected back to login page',
+                $dashboardResponse->status());
 
-            if (!$loginSuccess) {
+            if (! $loginSuccess) {
                 $this->newLine();
                 $this->error('❌ CRITICAL: Login failed. Aborting regression test.');
+
                 return 1;
             }
 
@@ -199,7 +203,7 @@ class RegressionTestCommand extends Command
             // Test 4: Dashboard widgets load
             $widgetsLoaded = strpos($dashboardResponse->body(), 'filament-widget') !== false;
             $recordTest($tests, 'Dashboard Widgets', $widgetsLoaded,
-                       $widgetsLoaded ? 'Widgets present' : 'Widgets missing');
+                $widgetsLoaded ? 'Widgets present' : 'Widgets missing');
 
             $this->newLine();
             $this->info('🏢 Step 4: Testing Tenant Management');
@@ -214,8 +218,8 @@ class RegressionTestCommand extends Command
 
             $tenantsAccessible = $tenantsResponse->status() === 200;
             $recordTest($tests, 'Tenants List', $tenantsAccessible,
-                       $tenantsAccessible ? 'Tenants list loads' : 'Tenants list failed',
-                       $tenantsResponse->status());
+                $tenantsAccessible ? 'Tenants list loads' : 'Tenants list failed',
+                $tenantsResponse->status());
 
             // Test 6: Archived Tenants (CRITICAL 404 FIX TEST)
             $archivedTenantsResponse = Http::withOptions([
@@ -233,9 +237,9 @@ class RegressionTestCommand extends Command
                           strpos($archivedTenantsResponse->body(), 'Not Found') !== false;
 
             $recordTest($tests, 'Archived Tenants Access (CRITICAL 404 FIX)',
-                       $archivedTenantsAccessible && !$is404Error,
-                       $archivedTenantsAccessible ? 'Accessible' : 'Not accessible or 404 error',
-                       $archivedTenantsResponse->status());
+                $archivedTenantsAccessible && ! $is404Error,
+                $archivedTenantsAccessible ? 'Accessible' : 'Not accessible or 404 error',
+                $archivedTenantsResponse->status());
 
             $this->newLine();
             $this->info('💳 Step 5: Testing Billing Module');
@@ -250,8 +254,8 @@ class RegressionTestCommand extends Command
 
             $paymentProofsAccessible = $paymentProofsResponse->status() === 200;
             $recordTest($tests, 'Payment Proofs List', $paymentProofsAccessible,
-                       $paymentProofsAccessible ? 'Payment proofs loads' : 'Payment proofs failed',
-                       $paymentProofsResponse->status());
+                $paymentProofsAccessible ? 'Payment proofs loads' : 'Payment proofs failed',
+                $paymentProofsResponse->status());
 
             // Test 8: Invoices
             $invoicesResponse = Http::withOptions([
@@ -263,8 +267,8 @@ class RegressionTestCommand extends Command
 
             $invoicesAccessible = $invoicesResponse->status() === 200;
             $recordTest($tests, 'Invoices List', $invoicesAccessible,
-                       $invoicesAccessible ? 'Invoices loads' : 'Invoices failed',
-                       $invoicesResponse->status());
+                $invoicesAccessible ? 'Invoices loads' : 'Invoices failed',
+                $invoicesResponse->status());
 
             $this->newLine();
             $this->info('🏥 Step 6: Testing System Health Pages');
@@ -279,8 +283,8 @@ class RegressionTestCommand extends Command
 
             $errorLogsAccessible = $errorLogsResponse->status() === 200;
             $recordTest($tests, 'Error Logs', $errorLogsAccessible,
-                       $errorLogsAccessible ? 'Error logs loads' : 'Error logs failed',
-                       $errorLogsResponse->status());
+                $errorLogsAccessible ? 'Error logs loads' : 'Error logs failed',
+                $errorLogsResponse->status());
 
             // Test 10: Backups
             $backupsResponse = Http::withOptions([
@@ -292,8 +296,8 @@ class RegressionTestCommand extends Command
 
             $backupsAccessible = $backupsResponse->status() === 200;
             $recordTest($tests, 'Backups Page', $backupsAccessible,
-                       $backupsAccessible ? 'Backups page loads' : 'Backups page failed',
-                       $backupsResponse->status());
+                $backupsAccessible ? 'Backups page loads' : 'Backups page failed',
+                $backupsResponse->status());
 
             // Test 11: Support Tickets
             $supportTicketsResponse = Http::withOptions([
@@ -305,21 +309,21 @@ class RegressionTestCommand extends Command
 
             $supportTicketsAccessible = $supportTicketsResponse->status() === 200;
             $recordTest($tests, 'Support Tickets', $supportTicketsAccessible,
-                       $supportTicketsAccessible ? 'Support tickets loads' : 'Support tickets failed',
-                       $supportTicketsResponse->status());
+                $supportTicketsAccessible ? 'Support tickets loads' : 'Support tickets failed',
+                $supportTicketsResponse->status());
 
             $this->newLine();
             $this->info('🎯 REGRESSION TEST SUMMARY');
             $this->info('===========================');
             $this->line("Tests Passed: {$tests['passed']}");
             $this->line("Tests Failed: {$tests['failed']}");
-            $this->line("Total Tests: " . ($tests['passed'] + $tests['failed']));
+            $this->line('Total Tests: '.($tests['passed'] + $tests['failed']));
             $this->newLine();
 
             // Critical issues check
             $criticalIssues = [];
             foreach ($tests['details'] as $test) {
-                if (!$test['passed'] && strpos($test['name'], 'CRITICAL') !== false) {
+                if (! $test['passed'] && strpos($test['name'], 'CRITICAL') !== false) {
                     $criticalIssues[] = $test;
                 }
             }
@@ -330,6 +334,7 @@ class RegressionTestCommand extends Command
                 $this->info('✅ No blocking issues detected');
                 $this->newLine();
                 $this->info('🎉 REGRESSION TEST PASSED: System is ready for production');
+
                 return 0;
             } else {
                 $this->error('🔴 HEALTH STATUS: CRITICAL ISSUES DETECTED');
@@ -339,12 +344,14 @@ class RegressionTestCommand extends Command
                 }
                 $this->newLine();
                 $this->error('🚨 REGRESSION TEST FAILED: System requires immediate fixes');
+
                 return 1;
             }
 
         } catch (\Exception $e) {
-            $this->error('❌ REGRESSION TEST ERROR: ' . $e->getMessage());
-            $this->error('Location: ' . $e->getFile() . ':' . $e->getLine());
+            $this->error('❌ REGRESSION TEST ERROR: '.$e->getMessage());
+            $this->error('Location: '.$e->getFile().':'.$e->getLine());
+
             return 1;
         }
     }

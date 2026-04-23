@@ -9,9 +9,9 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__.'/../vendor/autoload.php';
 
-$app = require_once __DIR__ . '/../bootstrap/app.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
 echo "\n";
@@ -25,7 +25,8 @@ $warnings = [];
 $passed = 0;
 $total = 0;
 
-function test($name, $callback) {
+function test($name, $callback)
+{
     global $errors, $warnings, $passed, $total;
     $total++;
     echo "→ Testing: $name ... ";
@@ -43,8 +44,8 @@ function test($name, $callback) {
             $errors[] = $name;
         }
     } catch (Exception $e) {
-        echo "❌ ERROR: " . $e->getMessage() . "\n";
-        $errors[] = "$name: " . $e->getMessage();
+        echo '❌ ERROR: '.$e->getMessage()."\n";
+        $errors[] = "$name: ".$e->getMessage();
     }
 }
 
@@ -52,34 +53,40 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "  1. LANDLORD DATABASE TESTS\n";
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
 
-test('Landlord connection works', function() {
+test('Landlord connection works', function () {
     DB::connection('landlord')->getPdo();
+
     return true;
 });
 
-test('Users table exists with data', function() {
+test('Users table exists with data', function () {
     $count = DB::connection('landlord')->table('users')->count();
-    return $count > 0 ? true : "No users found";
+
+    return $count > 0 ? true : 'No users found';
 });
 
-test('Superadmin exists', function() {
+test('Superadmin exists', function () {
     $admin = DB::connection('landlord')->table('users')->where('is_super_admin', true)->first();
+
     return $admin ? true : false;
 });
 
-test('Activity log table exists', function() {
+test('Activity log table exists', function () {
     $count = DB::connection('landlord')->table('activity_log')->count();
+
     return true;
 });
 
-test('Tenants table exists', function() {
+test('Tenants table exists', function () {
     $count = DB::connection('landlord')->table('tenants')->count();
+
     return true;
 });
 
-test('Landlord permission tables exist', function() {
+test('Landlord permission tables exist', function () {
     DB::connection('landlord')->table('permissions')->count();
     DB::connection('landlord')->table('roles')->count();
+
     return true;
 });
 
@@ -88,16 +95,17 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "  2. MULTITENANCY CONFIG TESTS\n";
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
 
-test('Tenant finder is disabled (null)', function() {
+test('Tenant finder is disabled (null)', function () {
     return config('multitenancy.tenant_finder') === null;
 });
 
-test('Switch tenant tasks configured', function() {
+test('Switch tenant tasks configured', function () {
     $tasks = config('multitenancy.switch_tenant_tasks');
+
     return count($tasks) > 0;
 });
 
-test('Tenant model configured', function() {
+test('Tenant model configured', function () {
     return config('multitenancy.tenant_model') === \App\Models\Tenant::class;
 });
 
@@ -106,34 +114,37 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "  3. TENANT DATABASE TESTS\n";
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
 
-test('At least one tenant exists', function() {
+test('At least one tenant exists', function () {
     $count = Tenant::count();
-    return $count > 0 ? true : "No tenants found";
+
+    return $count > 0 ? true : 'No tenants found';
 });
 
-test('Tenant database connection works', function() {
+test('Tenant database connection works', function () {
     $tenant = Tenant::first();
-    if (!$tenant) {
-        return "No tenant to test";
+    if (! $tenant) {
+        return 'No tenant to test';
     }
-    
-    $tenant->execute(function() {
+
+    $tenant->execute(function () {
         DB::connection('tenant')->getPdo();
     });
+
     return true;
 });
 
-test('Tenant has required tables', function() {
+test('Tenant has required tables', function () {
     $tenant = Tenant::first();
-    if (!$tenant) {
-        return "No tenant to test";
+    if (! $tenant) {
+        return 'No tenant to test';
     }
-    
-    $tenant->execute(function() {
+
+    $tenant->execute(function () {
         DB::connection('tenant')->table('products')->count();
         DB::connection('tenant')->table('permissions')->count();
         DB::connection('tenant')->table('roles')->count();
     });
+
     return true;
 });
 
@@ -142,20 +153,21 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "  4. AUTHENTICATION & GUARDS TESTS\n";
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
 
-test('Superadmin guard configured', function() {
+test('Superadmin guard configured', function () {
     return config('auth.guards.superadmin') !== null;
 });
 
-test('Web guard configured', function() {
+test('Web guard configured', function () {
     return config('auth.guards.web') !== null;
 });
 
-test('Tenant guard configured', function() {
+test('Tenant guard configured', function () {
     return config('auth.guards.tenant') !== null;
 });
 
-test('User model has landlord connection', function() {
-    $user = new User();
+test('User model has landlord connection', function () {
+    $user = new User;
+
     return $user->getConnectionName() === 'landlord';
 });
 
@@ -164,25 +176,27 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "  5. FILE STRUCTURE TESTS\n";
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
 
-test('Landlord migrations directory exists', function() {
+test('Landlord migrations directory exists', function () {
     return is_dir(database_path('migrations/landlord'));
 });
 
-test('Tenant migrations directory exists', function() {
+test('Tenant migrations directory exists', function () {
     return is_dir(database_path('migrations/tenant'));
 });
 
-test('No duplicate products migration', function() {
+test('No duplicate products migration', function () {
     $files = glob(database_path('migrations/tenant/*create_products_table.php'));
+
     return count($files) === 1;
 });
 
-test('Activity log migrations in landlord', function() {
+test('Activity log migrations in landlord', function () {
     $files = glob(database_path('migrations/landlord/*activity_log*.php'));
+
     return count($files) >= 4;
 });
 
-test('ARCHITECTURE.md exists', function() {
+test('ARCHITECTURE.md exists', function () {
     return file_exists(base_path('ARCHITECTURE.md'));
 });
 
@@ -193,8 +207,8 @@ echo "╚═══════════════════════�
 echo "\n";
 echo "Total Tests: $total\n";
 echo "✅ Passed: $passed\n";
-echo "⚠️  Warnings: " . count($warnings) . "\n";
-echo "❌ Failed: " . count($errors) . "\n";
+echo '⚠️  Warnings: '.count($warnings)."\n";
+echo '❌ Failed: '.count($errors)."\n";
 echo "\n";
 
 if (count($warnings) > 0) {

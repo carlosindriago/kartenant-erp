@@ -2,24 +2,21 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Services;
 
-use App\Mail\WelcomeNewTenant;
-use App\Models\Tenant;
-use App\Models\Tenancy\Role;
-use App\Models\User;
 use App\Models\SubscriptionPlan;
+use App\Models\Tenancy\Role;
+use App\Models\Tenant;
 use App\Models\TenantSubscription;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
 class TenantManagerService
 {
@@ -82,7 +79,7 @@ class TenantManagerService
         // 6) Enviar email de bienvenida con credenciales (usando mailer directo para evitar MailChannel::make() issue)
         try {
             $mailer = app(\Illuminate\Contracts\Mail\Mailer::class);
-            $loginUrl = "https://{$tenant->domain}." . parse_url(config('app.url'), PHP_URL_HOST);
+            $loginUrl = "https://{$tenant->domain}.".parse_url(config('app.url'), PHP_URL_HOST);
 
             $emailContent = "
 <!DOCTYPE html>
@@ -138,7 +135,7 @@ class TenantManagerService
 </body>
 </html>";
 
-            $mailer->html($emailContent, function ($message) use ($user, $tenant) {
+            $mailer->html($emailContent, function ($message) use ($user) {
                 $message->to($user->email, $user->name)
                     ->subject('¡Bienvenido a Emporio Digital!')
                     ->from(config('mail.from.address'), config('mail.from.name'));
@@ -148,7 +145,7 @@ class TenantManagerService
             \Log::error('Error sending welcome email during tenant creation', [
                 'user_id' => $user->id,
                 'tenant_id' => $tenant->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
 

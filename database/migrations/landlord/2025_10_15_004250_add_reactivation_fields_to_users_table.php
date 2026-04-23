@@ -31,7 +31,7 @@ return new class extends Migration
                 'reactivated_at',
                 'reactivated_by',
                 'reactivation_code',
-                'reactivation_code_expires_at'
+                'reactivation_code_expires_at',
             ]);
         });
     }

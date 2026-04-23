@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,7 +13,6 @@ namespace App\Filament\Widgets;
 
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
-use App\Models\SubscriptionPlan;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +28,7 @@ class SubscriptionStatsWidget extends BaseWidget
     {
         // Use filament() helper for proper panel context with null checks
         $panel = filament()->getCurrentPanel();
+
         return $panel && $panel->getId() === 'admin' && filament()->auth()->check();
     }
 
@@ -76,25 +76,25 @@ class SubscriptionStatsWidget extends BaseWidget
             ->first();
 
         return [
-            Stat::make('Suscripciones Activas', $activeSubscriptions . ' / ' . $totalTenants)
-                ->description($totalTenants > 0 ? round(($activeSubscriptions / $totalTenants) * 100, 1) . '% de tenants' : 'No hay tenants')
+            Stat::make('Suscripciones Activas', $activeSubscriptions.' / '.$totalTenants)
+                ->description($totalTenants > 0 ? round(($activeSubscriptions / $totalTenants) * 100, 1).'% de tenants' : 'No hay tenants')
                 ->descriptionIcon('heroicon-o-user-group')
                 ->color('success')
                 ->chart($this->getSubscriptionTrend()),
 
-            Stat::make('Trial vs Pago', $paidSubscriptions . ' pagando')
-                ->description($onTrial . ' en trial')
+            Stat::make('Trial vs Pago', $paidSubscriptions.' pagando')
+                ->description($onTrial.' en trial')
                 ->descriptionIcon('heroicon-o-clock')
                 ->color($onTrial > $paidSubscriptions ? 'warning' : 'success'),
 
-            Stat::make('MRR (Ingreso Mensual Recurrente)', '$' . number_format($mrr, 2))
-                ->description('ARR: $' . number_format($mrr * 12, 2))
+            Stat::make('MRR (Ingreso Mensual Recurrente)', '$'.number_format($mrr, 2))
+                ->description('ARR: $'.number_format($mrr * 12, 2))
                 ->descriptionIcon('heroicon-o-currency-dollar')
                 ->color('success')
                 ->chart($this->getRevenueTrend()),
 
             Stat::make('Plan Más Popular', $popularPlan->name ?? 'N/A')
-                ->description(($popularPlan->total ?? 0) . ' suscripciones activas')
+                ->description(($popularPlan->total ?? 0).' suscripciones activas')
                 ->descriptionIcon('heroicon-o-star')
                 ->color('info'),
 
@@ -121,6 +121,7 @@ class SubscriptionStatsWidget extends BaseWidget
                 ->count();
             $trend[] = $count;
         }
+
         return $trend;
     }
 
@@ -146,6 +147,7 @@ class SubscriptionStatsWidget extends BaseWidget
             $mrr = $monthly + ($yearly / 12);
             $trend[] = round($mrr, 2);
         }
+
         return $trend;
     }
 

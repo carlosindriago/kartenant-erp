@@ -19,7 +19,7 @@ class TestErrorMonitoring extends Command
         $this->info('🧪 Testing Error Monitoring System...');
         $this->newLine();
 
-        match($type) {
+        match ($type) {
             'critical' => $this->testCriticalError($errorMonitoring),
             'warning' => $this->testWarning($errorMonitoring),
             'database' => $this->testDatabaseError($errorMonitoring),
@@ -37,7 +37,7 @@ class TestErrorMonitoring extends Command
         $this->warn('Generating CRITICAL error test...');
 
         $exception = new RuntimeException(
-            'This is a TEST critical error from Kartenant monitoring system. ' .
+            'This is a TEST critical error from Kartenant monitoring system. '.
             'If you see this in Slack, your error monitoring is working correctly!'
         );
 

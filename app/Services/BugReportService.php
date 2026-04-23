@@ -2,20 +2,20 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Services;
 
+use App\Models\BugReport;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\UploadedFile;
-use App\Models\BugReport;
 
 /**
  * BugReportService
@@ -37,7 +37,7 @@ class BugReportService
         try {
             // Upload screenshots if provided
             $screenshotUrls = [];
-            if (!empty($data['screenshots'])) {
+            if (! empty($data['screenshots'])) {
                 $screenshotUrls = $this->uploadScreenshots($data['screenshots']);
             }
 
@@ -78,7 +78,7 @@ class BugReportService
                         ]);
                     }
                 } catch (\Throwable $e) {
-                    Log::warning('[BugReport] Failed to send to Slack (report still saved): ' . $e->getMessage());
+                    Log::warning('[BugReport] Failed to send to Slack (report still saved): '.$e->getMessage());
                 }
             }
 
@@ -89,11 +89,11 @@ class BugReportService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('[BugReport] Failed to save report: ' . $e->getMessage());
+            Log::error('[BugReport] Failed to save report: '.$e->getMessage());
 
             return [
                 'success' => false,
-                'message' => 'Error al procesar el reporte: ' . $e->getMessage(),
+                'message' => 'Error al procesar el reporte: '.$e->getMessage(),
             ];
         }
     }
@@ -103,7 +103,7 @@ class BugReportService
      */
     protected function determinePriority(string $severity): string
     {
-        return match($severity) {
+        return match ($severity) {
             'critical' => 'urgent',
             'high' => 'high',
             'medium' => 'normal',
@@ -123,8 +123,8 @@ class BugReportService
             if ($file instanceof UploadedFile) {
                 try {
                     // Generate unique filename with original extension
-                    $uniqueName = uniqid() . '-' . $index . '.' . $file->extension();
-                    $directory = 'bug-reports/' . now()->format('Y-m-d');
+                    $uniqueName = uniqid().'-'.$index.'.'.$file->extension();
+                    $directory = 'bug-reports/'.now()->format('Y-m-d');
 
                     // Store in public disk: storage/app/public/bug-reports/2025-10-19/xxxxx-0.png
                     $path = $file->storeAs($directory, $uniqueName, 'public');
@@ -153,7 +153,7 @@ class BugReportService
     /**
      * Build Slack message payload for bug report
      */
-    protected function buildSlackPayload(array $data, array $screenshotUrls, string $ticketNumber = null): array
+    protected function buildSlackPayload(array $data, array $screenshotUrls, ?string $ticketNumber = null): array
     {
         $severity = $data['severity'] ?? 'medium';
         $title = $data['title'] ?? 'Reporte de Error';
@@ -161,7 +161,7 @@ class BugReportService
         $stepsToReproduce = $data['steps'] ?? 'No especificados';
 
         // Determine color based on severity
-        $color = match($severity) {
+        $color = match ($severity) {
             'critical' => 'danger',
             'high' => '#ff9900',
             'medium' => 'warning',
@@ -203,7 +203,7 @@ class BugReportService
             ],
             [
                 'title' => 'URL',
-                'value' => '<' . ($data['url'] ?? 'No disponible') . '|Ver página>',
+                'value' => '<'.($data['url'] ?? 'No disponible').'|Ver página>',
                 'short' => false,
             ],
             [
@@ -214,7 +214,7 @@ class BugReportService
         ];
 
         // Add steps to reproduce if provided
-        if (!empty($stepsToReproduce) && $stepsToReproduce !== 'No especificados') {
+        if (! empty($stepsToReproduce) && $stepsToReproduce !== 'No especificados') {
             $fields[] = [
                 'title' => 'Pasos para Reproducir',
                 'value' => $stepsToReproduce,
@@ -225,27 +225,27 @@ class BugReportService
         // Build attachment
         $attachment = [
             'color' => $color,
-            'title' => '🐛 ' . ($ticketNumber ? "[{$ticketNumber}] " : '') . $title,
+            'title' => '🐛 '.($ticketNumber ? "[{$ticketNumber}] " : '').$title,
             'text' => $description,
             'fields' => $fields,
-            'footer' => 'Reporte de Usuario • ' . config('app.name') . ($ticketNumber ? " • Ticket: {$ticketNumber}" : ''),
+            'footer' => 'Reporte de Usuario • '.config('app.name').($ticketNumber ? " • Ticket: {$ticketNumber}" : ''),
             'footer_icon' => 'https://platform.slack-edge.com/img/default_application_icon.png',
             'ts' => time(),
         ];
 
         // Add screenshot URLs if available
-        if (!empty($screenshotUrls)) {
-            $screenshotText = "Se adjuntaron " . count($screenshotUrls) . " captura(s) de pantalla.\n";
-            $screenshotText .= "_Nota: Las imágenes están almacenadas localmente. ";
+        if (! empty($screenshotUrls)) {
+            $screenshotText = 'Se adjuntaron '.count($screenshotUrls)." captura(s) de pantalla.\n";
+            $screenshotText .= '_Nota: Las imágenes están almacenadas localmente. ';
             $screenshotText .= "En producción con un dominio público, Slack podrá mostrarlas directamente._\n\n";
             $screenshotText .= "Rutas:\n";
 
             foreach ($screenshotUrls as $index => $url) {
-                $screenshotText .= "• Screenshot " . ($index + 1) . ": `" . basename($url) . "`\n";
+                $screenshotText .= '• Screenshot '.($index + 1).': `'.basename($url)."`\n";
             }
 
             $attachment['fields'][] = [
-                'title' => '📸 Capturas de Pantalla (' . count($screenshotUrls) . ')',
+                'title' => '📸 Capturas de Pantalla ('.count($screenshotUrls).')',
                 'value' => $screenshotText,
                 'short' => false,
             ];
@@ -264,7 +264,7 @@ class BugReportService
      */
     protected function getSeverityLabel(string $severity): string
     {
-        return match($severity) {
+        return match ($severity) {
             'critical' => '🔴 Crítico - La aplicación no funciona',
             'high' => '🟠 Alto - Funcionalidad importante afectada',
             'medium' => '🟡 Medio - Problema molesto pero no bloqueante',

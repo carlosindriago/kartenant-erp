@@ -23,7 +23,7 @@ class UsageChart extends ChartWidget
         $endDate = Carbon::now();
         $startDate = $endDate->copy()->subDays(6);
 
-        $metricType = match($this->filter) {
+        $metricType = match ($this->filter) {
             'products' => 'product_created',
             'users' => 'user_created',
             'sales' => 'sale_created',
@@ -57,7 +57,7 @@ class UsageChart extends ChartWidget
         $limit = 0;
 
         if ($currentUsage) {
-            $limit = match($this->filter) {
+            $limit = match ($this->filter) {
                 'products' => $currentUsage->max_products ?? 0,
                 'users' => $currentUsage->max_users ?? 0,
                 'sales' => $currentUsage->max_sales_per_month ?? 0,
@@ -108,7 +108,7 @@ class UsageChart extends ChartWidget
 
     private function getMetricLabel(): string
     {
-        return match($this->filter) {
+        return match ($this->filter) {
             'products' => 'Productos Creados',
             'users' => 'Usuarios Creados',
             'sales' => 'Ventas Realizadas',
@@ -119,7 +119,7 @@ class UsageChart extends ChartWidget
 
     private function getChartColor(): string
     {
-        return match($this->filter) {
+        return match ($this->filter) {
             'products' => 'rgba(59, 130, 246, 0.2)',
             'users' => 'rgba(16, 185, 129, 0.2)',
             'sales' => 'rgba(251, 146, 60, 0.2)',
@@ -130,7 +130,7 @@ class UsageChart extends ChartWidget
 
     private function getChartBorderColor(): string
     {
-        return match($this->filter) {
+        return match ($this->filter) {
             'products' => 'rgb(59, 130, 246)',
             'users' => 'rgb(16, 185, 129)',
             'sales' => 'rgb(251, 146, 60)',
@@ -142,6 +142,7 @@ class UsageChart extends ChartWidget
     public function getHeading(): string
     {
         $metricLabel = $this->getMetricLabel();
+
         return "Tendencia de {$metricLabel} - Últimos 7 Días";
     }
 

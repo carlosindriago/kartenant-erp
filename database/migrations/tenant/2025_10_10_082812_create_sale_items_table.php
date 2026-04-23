@@ -25,7 +25,7 @@ return new class extends Migration
             $table->decimal('subtotal', 10, 2); // Subtotal (quantity * unit_price)
             $table->decimal('total', 10, 2); // Total con impuestos y descuentos
             $table->timestamps();
-            
+
             // Indexes
             $table->index('sale_id');
             $table->index('product_id');
