@@ -26,7 +26,7 @@ class UploadBackgroundRequest extends FormRequest
                 'image',
                 'mimes:jpeg,jpg,png,webp',
                 'max:5120', // 5MB
-                'dimensions:min_width=1200,min_height=800'
+                'dimensions:min_width=1200,min_height=800',
             ],
         ];
     }

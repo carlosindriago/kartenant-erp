@@ -2,14 +2,25 @@
 
 namespace App\Providers;
 
-use App\Observers\UsageTrackingObserver;
+use App\Console\Commands\UsageBillingProcessCommand;
+use App\Console\Commands\UsageRecalculateCommand;
+use App\Console\Commands\UsageResetCommand;
+use App\Console\Commands\UsageSyncCommand;
+use App\Console\Commands\UsageTestAlertCommand;
+use App\Http\Middleware\UsageLimitMiddleware;
+use App\Models\User;
+use App\Modules\Inventory\Models\Product;
+use App\Modules\POS\Models\Sale;
 use App\Observers\StorageUsageObserver;
+use App\Observers\UsageTrackingObserver;
+use App\Services\BillingService;
 use App\Services\TenantUsageService;
 use App\Services\UsageAlertService;
 use App\Services\UsageBillingIntegrationService;
+use App\View\Components\UsageWarningBanner;
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\ServiceProvider;
 
 class UsageTrackingServiceProvider extends ServiceProvider
 {
@@ -17,17 +28,17 @@ class UsageTrackingServiceProvider extends ServiceProvider
     {
         // Register services as singletons for performance
         $this->app->singleton(TenantUsageService::class, function ($app) {
-            return new TenantUsageService();
+            return new TenantUsageService;
         });
 
         $this->app->singleton(UsageAlertService::class, function ($app) {
-            return new UsageAlertService();
+            return new UsageAlertService;
         });
 
         $this->app->singleton(UsageBillingIntegrationService::class, function ($app) {
             return new UsageBillingIntegrationService(
                 $app->make(TenantUsageService::class),
-                $app->make(\App\Services\BillingService::class)
+                $app->make(BillingService::class)
             );
         });
 
@@ -83,15 +94,15 @@ class UsageTrackingServiceProvider extends ServiceProvider
 
         // Product observer (if exists)
         if (class_exists('\App\Modules\Inventory\Models\Product')) {
-            \App\Modules\Inventory\Models\Product::observe($usageObserver);
+            Product::observe($usageObserver);
         }
 
         // User observer
-        \App\Models\User::observe($usageObserver);
+        User::observe($usageObserver);
 
         // Sale observer (if exists)
         if (class_exists('\App\Modules\POS\Models\Sale')) {
-            \App\Modules\POS\Models\Sale::observe($usageObserver);
+            Sale::observe($usageObserver);
         }
 
         // Storage observer
@@ -136,18 +147,18 @@ class UsageTrackingServiceProvider extends ServiceProvider
         // Register middleware alias
         $router = $this->app['router'];
 
-        $router->aliasMiddleware('usage.limits', \App\Http\Middleware\UsageLimitMiddleware::class);
+        $router->aliasMiddleware('usage.limits', UsageLimitMiddleware::class);
     }
 
     private function registerCommands(): void
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \App\Console\Commands\UsageResetCommand::class,
-                \App\Console\Commands\UsageRecalculateCommand::class,
-                \App\Console\Commands\UsageTestAlertCommand::class,
-                \App\Console\Commands\UsageSyncCommand::class,
-                \App\Console\Commands\UsageBillingProcessCommand::class,
+                UsageResetCommand::class,
+                UsageRecalculateCommand::class,
+                UsageTestAlertCommand::class,
+                UsageSyncCommand::class,
+                UsageBillingProcessCommand::class,
             ]);
         }
     }
@@ -156,7 +167,7 @@ class UsageTrackingServiceProvider extends ServiceProvider
     {
         // Register usage banner component
         $this->loadViewComponentsAs('usage', [
-            'warning-banner' => \App\View\Components\UsageWarningBanner::class,
+            'warning-banner' => UsageWarningBanner::class,
         ]);
     }
 

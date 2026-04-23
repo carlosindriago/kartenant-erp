@@ -3,21 +3,22 @@
 namespace Database\Factories;
 
 use App\Models\PaymentProof;
+use App\Models\PaymentTransaction;
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
-use App\Models\PaymentTransaction;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PaymentProof>
+ * @extends Factory<PaymentProof>
  */
 class PaymentProofFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
-     * @var class-string<\Illuminate\Database\Eloquent\Model>
+     * @var class-string<Model>
      */
     protected $model = PaymentProof::class;
 
@@ -45,8 +46,8 @@ class PaymentProofFactory extends Factory
             'payer_name' => $this->faker->name(),
             'notes' => $this->faker->optional(0.3)->sentence(),
             'file_paths' => [
-                'payment_proofs/' . $this->faker->uuid() . '.jpg',
-                'payment_proofs/' . $this->faker->uuid() . '.pdf',
+                'payment_proofs/'.$this->faker->uuid().'.jpg',
+                'payment_proofs/'.$this->faker->uuid().'.pdf',
             ],
             'file_type' => $this->faker->randomElement(['image', 'pdf', 'mixed']),
             'total_file_size_mb' => $this->faker->randomFloat(2, 0.5, 10),
@@ -177,7 +178,7 @@ class PaymentProofFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'file_paths' => [
-                'payment_proofs/' . $this->faker->uuid() . '.jpg',
+                'payment_proofs/'.$this->faker->uuid().'.jpg',
             ],
             'file_type' => 'image',
             'total_file_size_mb' => $this->faker->randomFloat(2, 0.5, 5),
@@ -191,7 +192,7 @@ class PaymentProofFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'file_paths' => [
-                'payment_proofs/' . $this->faker->uuid() . '.pdf',
+                'payment_proofs/'.$this->faker->uuid().'.pdf',
             ],
             'file_type' => 'pdf',
             'total_file_size_mb' => $this->faker->randomFloat(2, 0.5, 3),

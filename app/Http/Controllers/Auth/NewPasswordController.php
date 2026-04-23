@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class NewPasswordController extends Controller
@@ -35,7 +36,7 @@ class NewPasswordController extends Controller
     /**
      * Handle an incoming new password request.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
     {

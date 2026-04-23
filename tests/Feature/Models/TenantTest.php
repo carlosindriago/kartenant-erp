@@ -79,7 +79,7 @@ test('canAccess es alias de isActive y retornan mismos resultados', function () 
     ];
 
     foreach ($statuses as $status) {
-        $tenant = match($status) {
+        $tenant = match ($status) {
             Tenant::STATUS_ACTIVE => Tenant::factory()->active()->create(),
             Tenant::STATUS_TRIAL => Tenant::factory()->trial(now()->addDays(30))->create(),
             Tenant::STATUS_SUSPENDED => Tenant::factory()->suspended()->create(),

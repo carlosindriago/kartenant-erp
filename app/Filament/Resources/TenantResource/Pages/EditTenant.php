@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -14,8 +14,8 @@ namespace App\Filament\Resources\TenantResource\Pages;
 use App\Filament\Resources\TenantResource;
 use Filament\Actions;
 use Filament\Actions\Action;
-use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Pages\ContentTabPosition;
+use Filament\Resources\Pages\EditRecord;
 
 class EditTenant extends EditRecord
 {
@@ -31,19 +31,19 @@ class EditTenant extends EditRecord
     protected function getFormActions(): array
     {
         return [
-            Actions\Action::make('cancel')
+            Action::make('cancel')
                 ->label('Cancelar')
                 ->url(fn ($record) => static::getResource()::getUrl('view', ['record' => $record]))
                 ->color('secondary')
                 ->icon('heroicon-o-x-mark'),
 
-            Actions\Action::make('save')
+            Action::make('save')
                 ->label('Guardar Cambios')
                 ->submit('save')
                 ->color('primary')
                 ->icon('heroicon-o-check'),
         ];
-      }
+    }
 
     /**
      * Enable combined tabs mode to move form with buttons after RelationManagers

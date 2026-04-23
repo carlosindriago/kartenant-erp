@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('cash_registers', 'forced_closure')) {
+        if (! Schema::hasColumn('cash_registers', 'forced_closure')) {
             Schema::table('cash_registers', function (Blueprint $table) {
                 $table->boolean('forced_closure')->default(false)->after('status');
                 $table->unsignedBigInteger('forced_by_user_id')->nullable()->after('forced_closure');

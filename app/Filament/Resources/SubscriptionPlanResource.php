@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -15,13 +15,12 @@ use App\Filament\Resources\SubscriptionPlanResource\Pages;
 use App\Models\SubscriptionPlan;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Support\Enums\FontWeight;
-use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class SubscriptionPlanResource extends Resource
 {
@@ -248,7 +247,7 @@ class SubscriptionPlanResource extends Resource
                                 $tolerance = (int) ($get('overage_tolerance') ?? 0);
                                 $limits = $get('limits') ?? [];
 
-                                if (empty($limits) || !is_array($limits)) {
+                                if (empty($limits) || ! is_array($limits)) {
                                     return 'Configura los límites para ver la vista previa';
                                 }
 
@@ -271,7 +270,7 @@ class SubscriptionPlanResource extends Resource
                                 return empty($previewLines) ? 'Configura al menos un límite' : implode("  \n", $previewLines);
                             })
                             ->columnSpanFull()
-                            ->visible(fn ($get) => !empty($get('limits'))),
+                            ->visible(fn ($get) => ! empty($get('limits'))),
                     ]),
 
                 Forms\Components\Section::make('Características Adicionales')
@@ -410,7 +409,7 @@ class SubscriptionPlanResource extends Resource
                     ->label('Precio Anual')
                     ->formatStateUsing(fn (SubscriptionPlan $record) => $record->getFormattedPrice('yearly'))
                     ->description(fn (SubscriptionPlan $record) => $record->getYearlySavingsPercentage() > 0
-                        ? 'Ahorro: ' . $record->getYearlySavingsPercentage() . '%'
+                        ? 'Ahorro: '.$record->getYearlySavingsPercentage().'%'
                         : null)
                     ->sortable()
                     ->alignCenter(),
@@ -430,7 +429,7 @@ class SubscriptionPlanResource extends Resource
                     ->boolean()
                     ->alignCenter()
                     ->tooltip(fn (SubscriptionPlan $record) => $record->has_trial
-                        ? $record->trial_days . ' días'
+                        ? $record->trial_days.' días'
                         : 'Sin trial'),
 
                 Tables\Columns\TextColumn::make('limits_summary')
@@ -443,9 +442,15 @@ class SubscriptionPlanResource extends Resource
                         $productsLimit = $record->getConfigurableLimit('products') ?: $record->max_products;
                         $salesLimit = $record->getConfigurableLimit('monthly_sales') ?: $record->max_sales_per_month;
 
-                        if ($usersLimit) $limits[] = $usersLimit . ' 👥';
-                        if ($productsLimit) $limits[] = $productsLimit . ' 📦';
-                        if ($salesLimit) $limits[] = $salesLimit . ' 💳';
+                        if ($usersLimit) {
+                            $limits[] = $usersLimit.' 👥';
+                        }
+                        if ($productsLimit) {
+                            $limits[] = $productsLimit.' 📦';
+                        }
+                        if ($salesLimit) {
+                            $limits[] = $salesLimit.' 💳';
+                        }
 
                         if (empty($limits)) {
                             return 'Ilimitado ∞';
@@ -465,7 +470,7 @@ class SubscriptionPlanResource extends Resource
                     ->wrap()
                     ->size('sm')
                     ->tooltip(function (SubscriptionPlan $record): string {
-                        if (!$record->hasConfigurableLimits() && !$record->max_users && !$record->max_products && !$record->max_sales_per_month) {
+                        if (! $record->hasConfigurableLimits() && ! $record->max_users && ! $record->max_products && ! $record->max_sales_per_month) {
                             return 'Este plan no tiene límites configurados';
                         }
 
@@ -475,9 +480,15 @@ class SubscriptionPlanResource extends Resource
                         $productsLimit = $record->getConfigurableLimit('products') ?: $record->max_products;
                         $salesLimit = $record->getConfigurableLimit('monthly_sales') ?: $record->max_sales_per_month;
 
-                        if ($usersLimit) $tooltip .= "• Usuarios: {$usersLimit}\n";
-                        if ($productsLimit) $tooltip .= "• Productos: {$productsLimit}\n";
-                        if ($salesLimit) $tooltip .= "• Ventas/mes: {$salesLimit}\n";
+                        if ($usersLimit) {
+                            $tooltip .= "• Usuarios: {$usersLimit}\n";
+                        }
+                        if ($productsLimit) {
+                            $tooltip .= "• Productos: {$productsLimit}\n";
+                        }
+                        if ($salesLimit) {
+                            $tooltip .= "• Ventas/mes: {$salesLimit}\n";
+                        }
 
                         if ($record->allowsOverage()) {
                             $tolerance = $record->overage_tolerance ?? $record->overage_percentage ?? 0;
@@ -510,9 +521,9 @@ class SubscriptionPlanResource extends Resource
                     ->alignCenter()
                     ->getStateUsing(function (SubscriptionPlan $record): bool {
                         return $record->subscriptions()->count() === 0
-                            && !$record->is_active
-                            && !$record->is_visible
-                            && !$record->is_featured;
+                            && ! $record->is_active
+                            && ! $record->is_visible
+                            && ! $record->is_featured;
                     })
                     ->trueIcon('heroicon-o-check-circle')
                     ->falseIcon('heroicon-o-x-circle')
@@ -525,20 +536,20 @@ class SubscriptionPlanResource extends Resource
                             $issues[] = "tiene {$record->subscriptions()->count()} suscripciones";
                         }
                         if ($record->is_active) {
-                            $issues[] = "está activo";
+                            $issues[] = 'está activo';
                         }
                         if ($record->is_visible) {
-                            $issues[] = "es visible";
+                            $issues[] = 'es visible';
                         }
                         if ($record->is_featured) {
-                            $issues[] = "está destacado";
+                            $issues[] = 'está destacado';
                         }
 
                         if (empty($issues)) {
                             return '✅ Este plan puede ser eliminado';
                         }
 
-                        return '❌ No se puede eliminar: ' . implode(', ', $issues);
+                        return '❌ No se puede eliminar: '.implode(', ', $issues);
                     }),
 
                 Tables\Columns\TextColumn::make('created_at')
@@ -587,9 +598,8 @@ class SubscriptionPlanResource extends Resource
                         ? '¿Estás seguro de que quieres desactivar este plan? No aceptará nuevas suscripciones pero las existentes continuarán activas.'
                         : '¿Estás seguro de que quieres activar este plan? Estará disponible para nuevas suscripciones.')
                     ->modalSubmitActionLabel(fn (SubscriptionPlan $record) => $record->is_active ? 'Sí, Desactivar' : 'Sí, Activar')
-                    ->action(fn (SubscriptionPlan $record) => $record->update(['is_active' => !$record->is_active]))
-                    ->successNotificationTitle(fn (SubscriptionPlan $record) =>
-                        'Plan ' . ($record->is_active ? 'activado' : 'desactivado') . ' correctamente'),
+                    ->action(fn (SubscriptionPlan $record) => $record->update(['is_active' => ! $record->is_active]))
+                    ->successNotificationTitle(fn (SubscriptionPlan $record) => 'Plan '.($record->is_active ? 'activado' : 'desactivado').' correctamente'),
 
                 Tables\Actions\DeleteAction::make()
                     ->before(function (SubscriptionPlan $record, Tables\Actions\DeleteAction $action) {
@@ -602,21 +612,21 @@ class SubscriptionPlanResource extends Resource
 
                         // Check if plan is active
                         if ($record->is_active) {
-                            $restrictions[] = "está activo";
+                            $restrictions[] = 'está activo';
                         }
 
                         // Check if plan is visible
                         if ($record->is_visible) {
-                            $restrictions[] = "es visible públicamente";
+                            $restrictions[] = 'es visible públicamente';
                         }
 
                         // Check if plan is featured
                         if ($record->is_featured) {
-                            $restrictions[] = "está destacado";
+                            $restrictions[] = 'está destacado';
                         }
 
                         // If any restriction exists, prevent deletion
-                        if (!empty($restrictions)) {
+                        if (! empty($restrictions)) {
                             $action->cancel();
                             $restrictionsText = implode(', ', $restrictions);
                             $planName = $record->name;
@@ -629,8 +639,8 @@ class SubscriptionPlanResource extends Resource
                     ->label('Duplicar')
                     ->excludeAttributes(['slug', 'stripe_product_id', 'stripe_price_monthly_id', 'stripe_price_yearly_id'])
                     ->beforeReplicaSaved(function (SubscriptionPlan $replica): void {
-                        $replica->name = $replica->name . ' (Copia)';
-                        $replica->slug = $replica->slug . '-copy-' . time();
+                        $replica->name = $replica->name.' (Copia)';
+                        $replica->slug = $replica->slug.'-copy-'.time();
                         $replica->is_active = false;
                     })
                     ->successNotificationTitle('Plan duplicado correctamente'),
@@ -651,32 +661,32 @@ class SubscriptionPlanResource extends Resource
 
                                 // Check if plan is active
                                 if ($record->is_active) {
-                                    $restrictions[] = "está activo";
+                                    $restrictions[] = 'está activo';
                                 }
 
                                 // Check if plan is visible
                                 if ($record->is_visible) {
-                                    $restrictions[] = "es visible";
+                                    $restrictions[] = 'es visible';
                                 }
 
                                 // Check if plan is featured
                                 if ($record->is_featured) {
-                                    $restrictions[] = "está destacado";
+                                    $restrictions[] = 'está destacado';
                                 }
 
                                 // If any restriction exists, add to blocked plans
-                                if (!empty($restrictions)) {
+                                if (! empty($restrictions)) {
                                     $restrictionsText = implode(', ', $restrictions);
                                     $blockedPlans[] = "{$record->name} ({$restrictionsText})";
                                 }
                             }
 
                             // If there are blocked plans, prevent deletion and show notification
-                            if (!empty($blockedPlans)) {
+                            if (! empty($blockedPlans)) {
                                 Notification::make()
                                     ->danger()
                                     ->title('No se pueden eliminar los planes seleccionados')
-                                    ->body('Bloqueados: ' . implode(' | ', $blockedPlans) . '. Solo pueden eliminarse planes inactivos, no visibles, no destacados y sin suscripciones activas.')
+                                    ->body('Bloqueados: '.implode(' | ', $blockedPlans).'. Solo pueden eliminarse planes inactivos, no visibles, no destacados y sin suscripciones activas.')
                                     ->send();
 
                                 $action->halt();

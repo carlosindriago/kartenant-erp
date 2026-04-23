@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,6 +13,7 @@ namespace App\Models\Tenancy\CashRegister;
 
 use App\Models\Traits\HasInternalVerification;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CashRegisterClosing extends Model
 {
-    use HasFactory, SoftDeletes, HasInternalVerification;
+    use HasFactory, HasInternalVerification, SoftDeletes;
 
     protected $fillable = [
         'closing_number',
@@ -88,7 +89,8 @@ class CashRegisterClosing extends Model
     {
         $date = now()->format('Ymd');
         $last = self::whereDate('created_at', today())->count() + 1;
-        return "CLOSE-{$date}-" . str_pad($last, 4, '0', STR_PAD_LEFT);
+
+        return "CLOSE-{$date}-".str_pad($last, 4, '0', STR_PAD_LEFT);
     }
 
     public function opening(): BelongsTo
@@ -134,6 +136,42 @@ class CashRegisterClosing extends Model
         return 'verify_cash_register_closing';
     }
 
+    /**
+     * Genera el PDF del cierre de caja
+     */
+    public function generatePdf(): \Barryvdh\DomPDF\PDF
+    {
+        $format = $this->pdf_format ?? 'thermal';
+
+        $viewName = $format === 'thermal'
+            ? 'pdf.cash-register.closing-thermal'
+            : 'pdf.cash-register.closing-a4';
+
+        $currentTenant = tenant();
+
+        $pdf = Pdf::loadView($viewName, [
+            'closing' => $this,
+            'opening' => $this->opening,
+            'tenant' => $currentTenant,
+            'qrCode' => $this->getInternalVerificationQRCode(),
+            'verificationUrl' => $this->getInternalVerificationRoute(),
+        ]);
+
+        if ($format === 'thermal') {
+            $pdf->setPaper([0, 0, 226.77, 708.66], 'portrait');
+        }
+
+        return $pdf;
+    }
+
+    /**
+     * Obtiene el nombre del documento para mostrar
+     */
+    public function getDocumentName(): string
+    {
+        return "Cierre de Caja #{$this->closing_number}";
+    }
+
     public function getPdfTitle(): string
     {
         return "Cierre de Caja #{$this->closing_number}";
@@ -142,14 +180,14 @@ class CashRegisterClosing extends Model
     public function downloadPdf()
     {
         $format = $this->pdf_format ?? 'thermal';
-        
-        $viewName = $format === 'thermal' 
-            ? 'pdf.cash-register.closing-thermal' 
+
+        $viewName = $format === 'thermal'
+            ? 'pdf.cash-register.closing-thermal'
             : 'pdf.cash-register.closing-a4';
 
         $currentTenant = tenant();
-        
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($viewName, [
+
+        $pdf = Pdf::loadView($viewName, [
             'closing' => $this,
             'opening' => $this->opening,
             'tenant' => $currentTenant,
@@ -160,21 +198,21 @@ class CashRegisterClosing extends Model
         if ($format === 'thermal') {
             $pdf->setPaper([0, 0, 226.77, 708.66], 'portrait');
         }
-        
+
         return $pdf->download("cierre-caja-{$this->closing_number}.pdf");
     }
 
     public function streamPdf()
     {
         $format = $this->pdf_format ?? 'thermal';
-        
-        $viewName = $format === 'thermal' 
-            ? 'pdf.cash-register.closing-thermal' 
+
+        $viewName = $format === 'thermal'
+            ? 'pdf.cash-register.closing-thermal'
             : 'pdf.cash-register.closing-a4';
 
         $currentTenant = tenant();
-        
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($viewName, [
+
+        $pdf = Pdf::loadView($viewName, [
             'closing' => $this,
             'opening' => $this->opening,
             'tenant' => $currentTenant,
@@ -185,7 +223,7 @@ class CashRegisterClosing extends Model
         if ($format === 'thermal') {
             $pdf->setPaper([0, 0, 226.77, 708.66], 'portrait');
         }
-        
+
         return $pdf->stream("cierre-caja-{$this->closing_number}.pdf");
     }
 }

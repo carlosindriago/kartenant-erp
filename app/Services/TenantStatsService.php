@@ -4,11 +4,11 @@ namespace App\Services;
 
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TenantStatsService
 {
@@ -29,7 +29,7 @@ class TenantStatsService
                 // Temporarily switch to tenant database
                 $originalConnection = DB::getDefaultConnection();
 
-                if (!$this->canConnectToTenant($tenant->database)) {
+                if (! $this->canConnectToTenant($tenant->database)) {
                     return $this->getEmptyStats();
                 }
 
@@ -76,7 +76,7 @@ class TenantStatsService
                 return $stats;
 
             } catch (Exception $e) {
-                Log::error("Error getting tenant stats for {$tenant->database}: " . $e->getMessage());
+                Log::error("Error getting tenant stats for {$tenant->database}: ".$e->getMessage());
 
                 // Restore original connection in case of error
                 DB::setDefaultConnection(config('database.default'));
@@ -123,10 +123,11 @@ class TenantStatsService
             ];
 
             // Check database connectivity
-            if (!$this->canConnectToTenant($tenant->database)) {
+            if (! $this->canConnectToTenant($tenant->database)) {
                 $health['status'] = 'critical';
                 $health['issues'][] = 'Database connection failed';
                 $health['score'] = 0;
+
                 return $health;
             }
 
@@ -137,7 +138,7 @@ class TenantStatsService
             }
 
             // Check recent activity
-            if (!$stats['last_activity'] || $stats['last_activity']->diffInDays() > 30) {
+            if (! $stats['last_activity'] || $stats['last_activity']->diffInDays() > 30) {
                 $health['issues'][] = 'No recent activity (30+ days)';
                 $health['score'] -= 15;
             }
@@ -160,7 +161,7 @@ class TenantStatsService
             return $health;
 
         } catch (Exception $e) {
-            Log::error("Error getting tenant health for {$tenant->database}: " . $e->getMessage());
+            Log::error("Error getting tenant health for {$tenant->database}: ".$e->getMessage());
 
             return [
                 'status' => 'error',
@@ -208,7 +209,8 @@ class TenantStatsService
     private function canConnectToTenant(string $database): bool
     {
         try {
-            DB::statement("SELECT 1");
+            DB::statement('SELECT 1');
+
             return true;
         } catch (Exception $e) {
             return false;
@@ -329,10 +331,10 @@ class TenantStatsService
     {
         try {
             $dbName = config('database.connections.tenant.database');
-            $size = DB::selectOne("
+            $size = DB::selectOne('
                 SELECT pg_size_pretty(pg_database_size(?)) as size,
                        pg_database_size(?) as size_bytes
-            ", [$dbName, $dbName]);
+            ', [$dbName, $dbName]);
 
             return round($size->size_bytes / 1024 / 1024, 2); // Convert to MB
         } catch (Exception $e) {
@@ -410,7 +412,7 @@ class TenantStatsService
                 $activities[] = new Carbon($lastLogin->last_login_at);
             }
 
-            return !empty($activities) ? max($activities) : null;
+            return ! empty($activities) ? max($activities) : null;
         } catch (Exception $e) {
             return null;
         }

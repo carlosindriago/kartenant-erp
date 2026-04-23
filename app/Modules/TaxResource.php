@@ -2,42 +2,39 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Modules;
 
-use App\Modules\TaxResource\Pages;
-use App\Modules\TaxResource\RelationManagers;
 use App\Models\Tax;
+use App\Modules\TaxResource\Pages;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TaxResource extends Resource
 {
     protected static ?string $model = Tax::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calculator';
-    
+
     protected static ?string $navigationLabel = 'Impuestos';
-    
+
     protected static ?string $modelLabel = 'Impuesto';
-    
+
     protected static ?string $pluralModelLabel = 'Impuestos';
-    
+
     protected static ?string $navigationGroup = 'Configuración';
-    
+
     protected static ?int $navigationSort = 3;
-    
+
     // Taxes are tenant-specific but don't have user ownership
     // Disable Filament's tenant scoping to avoid ownership relationship checks
     protected static bool $isScopedToTenant = false;

@@ -19,7 +19,9 @@ class TenantIsolationTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Tenant $tenant1;
+
     protected Tenant $tenant2;
 
     protected function setUp(): void

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         $tableNames = config('permission.table_names');
-        
+
         Schema::table($tableNames['roles'], function (Blueprint $table) {
             $table->string('description')->nullable()->after('guard_name');
         });
@@ -24,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         $tableNames = config('permission.table_names');
-        
+
         Schema::table($tableNames['roles'], function (Blueprint $table) {
             $table->dropColumn('description');
         });

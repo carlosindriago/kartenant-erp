@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -21,15 +21,15 @@ use Illuminate\Database\Eloquent\Model;
 class EditProduct extends EditRecord
 {
     protected static string $resource = ProductResource::class;
-    
+
     /**
      * Recordatorio de Contexto: Asegura que el tenant esté activo antes de cargar el registro
      */
-    public function mount(int | string $record): void
+    public function mount(int|string $record): void
     {
         // Recordatorio de contexto - asegura que el tenant esté activo antes de hidratar el modelo
         Filament::getTenant()?->makeCurrent();
-        
+
         parent::mount($record);
     }
 
@@ -43,9 +43,10 @@ class EditProduct extends EditRecord
                 ->color('success')
                 ->url(function () {
                     $tenant = Filament::getTenant();
+
                     return route('filament.app.resources.stock-movements.create-entry', [
                         'tenant' => $tenant,
-                        'product' => $this->record->id
+                        'product' => $this->record->id,
                     ]);
                 })
                 ->tooltip('Registrar entrada de mercadería para este producto'),
@@ -57,9 +58,10 @@ class EditProduct extends EditRecord
                 ->color('warning')
                 ->url(function () {
                     $tenant = Filament::getTenant();
+
                     return route('filament.app.resources.stock-movements.create-exit', [
                         'tenant' => $tenant,
-                        'product' => $this->record->id
+                        'product' => $this->record->id,
                     ]);
                 })
                 ->tooltip('Registrar salida de mercadería de este producto'),
@@ -78,7 +80,7 @@ class EditProduct extends EditRecord
                 ->action(function () {
                     Filament::getTenant()?->makeCurrent();
 
-                    $this->record->status = !$this->record->status;
+                    $this->record->status = ! $this->record->status;
                     $this->record->save();
 
                     Notification::make()
@@ -104,7 +106,7 @@ class EditProduct extends EditRecord
                 }),
         ];
     }
-    
+
     /**
      * Recordatorio de Contexto: Asegura que el tenant esté activo antes de actualizar
      */
@@ -112,12 +114,12 @@ class EditProduct extends EditRecord
     {
         // Recordatorio de contexto - asegura que el tenant esté activo
         Filament::getTenant()?->makeCurrent();
-        
+
         // Si no hay nueva imagen en $data, mantener la existente
-        if (!isset($data['image']) && $record->image) {
+        if (! isset($data['image']) && $record->image) {
             $data['image'] = $record->image;
         }
-        
+
         return parent::handleRecordUpdate($record, $data);
     }
 }

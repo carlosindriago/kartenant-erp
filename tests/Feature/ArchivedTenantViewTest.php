@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Tenant;
 use Tests\TestCase;
 
 /*
@@ -13,11 +14,11 @@ use Tests\TestCase;
 
 test('archived tenant view loads correctly', function () {
     // Create an archived tenant for testing
-    $tenant = \App\Models\Tenant::factory()->create([
+    $tenant = Tenant::factory()->create([
         'name' => 'Test Archived Tenant',
         'domain' => 'test-archived',
         'database' => 'test_archived_db',
-        'status' => \App\Models\Tenant::STATUS_ARCHIVED,
+        'status' => Tenant::STATUS_ARCHIVED,
         'deleted_at' => now()->subDays(30),
     ]);
 

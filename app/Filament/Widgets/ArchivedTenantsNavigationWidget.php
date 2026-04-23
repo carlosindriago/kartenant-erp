@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\ArchivedTenantResource;
 use App\Models\Tenant;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Cache;
@@ -12,7 +13,7 @@ class ArchivedTenantsNavigationWidget extends Widget
 
     protected static ?int $sort = 2;
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     public function getViewData(): array
     {
@@ -41,7 +42,7 @@ class ArchivedTenantsNavigationWidget extends Widget
                 'archived_count' => $archivedCount,
                 'recently_archived' => $recentlyArchived,
                 'archive_with_issues' => $archiveWithIssues,
-                'navigation_url' => \App\Filament\Resources\ArchivedTenantResource::getUrl('index'),
+                'navigation_url' => ArchivedTenantResource::getUrl('index'),
             ];
         } catch (\Exception $e) {
             return [

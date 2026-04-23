@@ -3,6 +3,9 @@
 namespace App\Observers;
 
 use App\Models\Tenant;
+use App\Models\User;
+use App\Modules\Inventory\Models\Product;
+use App\Modules\POS\Models\Sale;
 use App\Services\TenantUsageService;
 use Illuminate\Database\Eloquent\Model;
 
@@ -42,17 +45,17 @@ class UsageTrackingObserver
      */
     private function trackUsage(Model $model, string $action): void
     {
-        if (!$this->shouldTrackModel($model)) {
+        if (! $this->shouldTrackModel($model)) {
             return;
         }
 
         $tenantId = $this->getTenantId($model);
-        if (!$tenantId) {
+        if (! $tenantId) {
             return;
         }
 
         $mapping = $this->getUsageMapping($model, $action);
-        if (!$mapping) {
+        if (! $mapping) {
             return;
         }
 
@@ -74,9 +77,9 @@ class UsageTrackingObserver
     private function shouldTrackModel(Model $model): bool
     {
         $trackedModels = [
-            \App\Modules\Inventory\Models\Product::class,
-            \App\Models\User::class,
-            \App\Modules\POS\Models\Sale::class,
+            Product::class,
+            User::class,
+            Sale::class,
         ];
 
         return in_array(get_class($model), $trackedModels);
@@ -94,6 +97,7 @@ class UsageTrackingObserver
 
         // Get tenant from current context
         $tenant = tenant();
+
         return $tenant?->id;
     }
 
@@ -104,10 +108,10 @@ class UsageTrackingObserver
     {
         $modelClass = get_class($model);
 
-        return match($modelClass) {
-            \App\Modules\Inventory\Models\Product::class => $this->getProductMapping($model, $action),
-            \App\Models\User::class => $this->getUserMapping($model, $action),
-            \App\Modules\POS\Models\Sale::class => $this->getSaleMapping($model, $action),
+        return match ($modelClass) {
+            Product::class => $this->getProductMapping($model, $action),
+            User::class => $this->getUserMapping($model, $action),
+            Sale::class => $this->getSaleMapping($model, $action),
             default => null,
         };
     }
@@ -117,7 +121,7 @@ class UsageTrackingObserver
      */
     private function getProductMapping($product, string $action): ?array
     {
-        return match($action) {
+        return match ($action) {
             'created' => [
                 'metric_type' => 'products',
                 'value' => 1,
@@ -149,11 +153,11 @@ class UsageTrackingObserver
         }
 
         // Only track active users
-        if (isset($user->is_active) && !$user->is_active) {
+        if (isset($user->is_active) && ! $user->is_active) {
             return null;
         }
 
-        return match($action) {
+        return match ($action) {
             'created' => [
                 'metric_type' => 'users',
                 'value' => 1,
@@ -185,7 +189,7 @@ class UsageTrackingObserver
             $wasActive = $user->getOriginal('is_active');
             $isActive = $user->is_active;
 
-            if ($wasActive && !$isActive) {
+            if ($wasActive && ! $isActive) {
                 return [
                     'metric_type' => 'users',
                     'value' => -1, // Decrement on deactivation
@@ -194,7 +198,7 @@ class UsageTrackingObserver
                         'action' => 'deactivated',
                     ],
                 ];
-            } elseif (!$wasActive && $isActive) {
+            } elseif (! $wasActive && $isActive) {
                 return [
                     'metric_type' => 'users',
                     'value' => 1, // Increment on reactivation
@@ -219,7 +223,7 @@ class UsageTrackingObserver
             return null;
         }
 
-        return match($action) {
+        return match ($action) {
             'created' => [
                 'metric_type' => 'sale_created',
                 'value' => 1,
@@ -252,7 +256,7 @@ class UsageTrackingObserver
             $wasCompleted = $sale->getOriginal('status') === 'completed';
             $isCompleted = $sale->status === 'completed';
 
-            if (!$wasCompleted && $isCompleted) {
+            if (! $wasCompleted && $isCompleted) {
                 return [
                     'metric_type' => 'sale_created',
                     'value' => 1, // Increment when completed
@@ -262,7 +266,7 @@ class UsageTrackingObserver
                         'action' => 'completed',
                     ],
                 ];
-            } elseif ($wasCompleted && !$isCompleted) {
+            } elseif ($wasCompleted && ! $isCompleted) {
                 return [
                     'metric_type' => 'sale_created',
                     'value' => -1, // Decrement when uncompleted

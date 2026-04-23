@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,21 +12,27 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\Login;
-use App\Filament\Pages\Auth\TwoFactorChallenge;
-use App\Models\User;
+use App\Filament\Widgets\AnalyticsOverviewWidget;
+use App\Filament\Widgets\BackupMonitorWidget;
+use App\Filament\Widgets\MostUsedFeaturesWidget;
+use App\Filament\Widgets\SubscriptionAlertsWidget;
+use App\Filament\Widgets\SubscriptionStatsWidget;
+use App\Filament\Widgets\SystemHealthWidget;
+use App\Filament\Widgets\TrialVsPaidWidget;
 use App\Http\Middleware\UseLandlordPermissionRegistrar;
+use App\Models\User;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
+// ... otros imports
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Illuminate\Database\Eloquent\Model;
-// ... otros imports
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
@@ -52,13 +58,13 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                \App\Filament\Widgets\SubscriptionAlertsWidget::class,
-                \App\Filament\Widgets\SubscriptionStatsWidget::class,
-                \App\Filament\Widgets\SystemHealthWidget::class,
-                \App\Filament\Widgets\BackupMonitorWidget::class,
-                \App\Filament\Widgets\AnalyticsOverviewWidget::class,
-                \App\Filament\Widgets\MostUsedFeaturesWidget::class,
-                \App\Filament\Widgets\TrialVsPaidWidget::class,
+                SubscriptionAlertsWidget::class,
+                SubscriptionStatsWidget::class,
+                SystemHealthWidget::class,
+                BackupMonitorWidget::class,
+                AnalyticsOverviewWidget::class,
+                MostUsedFeaturesWidget::class,
+                TrialVsPaidWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -82,9 +88,8 @@ class AdminPanelProvider extends PanelProvider
                     ->forceRenewPassword(forceRenewColumn: 'force_renew_password') // Activar forzado
                     ->timestampColumn('last_password_change_at')
                     ->routeUri('cambiar-contrasena') // Ruta en español
-            )
-            // ... resto de la configuración
-            ;
+            );
+        // ... resto de la configuración
     }
 
     public function canAccessPanel(Model $user): bool

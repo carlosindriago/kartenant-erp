@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use App\Models\Tenant;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -23,10 +24,6 @@ final class EnsureTenantContext
 {
     /**
      * Handle an incoming request.
-     *
-     * @param Request $request
-     * @param \Closure $next
-     * @return Response
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -49,13 +46,13 @@ final class EnsureTenantContext
         $tenant = Tenant::query()->where('domain', $host)->first();
 
         // Fallback: try resolving by subdomain slug
-        if (!$tenant) {
+        if (! $tenant) {
             $slug = $parts[0];
             $tenant = Tenant::query()->where('domain', $slug)->first();
         }
 
         // If tenant not found, redirect to apex with error
-        if (!$tenant) {
+        if (! $tenant) {
             return $this->tenantNotFoundError($request, $host, $parts[0] ?? '');
         }
 
@@ -68,11 +65,11 @@ final class EnsureTenantContext
         $containerKey = config('multitenancy.current_tenant_container_key', 'currentTenant');
 
         // If no tenant is current, make this tenant current
-        if (!app()->bound($containerKey) || !app($containerKey)) {
+        if (! app()->bound($containerKey) || ! app($containerKey)) {
             $tenant->makeCurrent();
 
             // Force purge tenant connection to ensure fresh connection
-            \Illuminate\Support\Facades\DB::purge('tenant');
+            DB::purge('tenant');
         }
 
         // Verify the current tenant matches the request subdomain
@@ -89,7 +86,7 @@ final class EnsureTenantContext
 
             // Make the correct tenant current
             $tenant->makeCurrent();
-            \Illuminate\Support\Facades\DB::purge('tenant');
+            DB::purge('tenant');
         }
 
         // Add tenant context to request for downstream use

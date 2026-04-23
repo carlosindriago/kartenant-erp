@@ -2,57 +2,53 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Modules;
 
-use App\Modules\UserResource\Pages;
-use App\Modules\UserResource\RelationManagers;
 use App\Models\User;
-use App\Models\UserStatusChange;
+use App\Modules\UserResource\Pages;
 use App\Services\EmployeeEventService;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
-    
+
     protected static ?string $navigationLabel = 'Empleados';
-    
+
     protected static ?string $modelLabel = 'Empleado';
-    
+
     protected static ?string $pluralModelLabel = 'Empleados';
-    
+
     protected static ?string $navigationGroup = 'Administración';
-    
+
     protected static ?int $navigationSort = 2;
-    
+
     // Disable Filament's tenant scoping since we manage this manually
     protected static bool $isScopedToTenant = false;
-    
+
     public static function getEloquentQuery(): Builder
     {
         // Only show users that belong to the current tenant
         // Users are in landlord DB, but we filter by tenant relationship
         return parent::getEloquentQuery()
             ->whereHas('tenants', function ($query) {
-                $query->where('tenants.id', \Filament\Facades\Filament::getTenant()->id);
+                $query->where('tenants.id', Filament::getTenant()->id);
             })
             ->where('is_super_admin', false); // Don't show superadmins
     }
@@ -69,7 +65,7 @@ class UserResource extends Resource
                             ->maxLength(255)
                             ->placeholder('Juan Pérez')
                             ->helperText('Nombre completo del empleado'),
-                        
+
                         Forms\Components\TextInput::make('email')
                             ->label('Correo Electrónico')
                             ->email()
@@ -79,7 +75,7 @@ class UserResource extends Resource
                             ->placeholder('juan@empresa.com')
                             ->helperText('Este será el usuario para iniciar sesión'),
                     ]),
-                
+
                 Forms\Components\Section::make('Credenciales de Acceso')
                     ->schema([
                         Forms\Components\TextInput::make('password')
@@ -91,7 +87,7 @@ class UserResource extends Resource
                             ->maxLength(255)
                             ->placeholder('Mínimo 8 caracteres')
                             ->helperText('La contraseña debe tener al menos 8 caracteres'),
-                        
+
                         Forms\Components\TextInput::make('password_confirmation')
                             ->label('Confirmar Contraseña')
                             ->password()
@@ -100,7 +96,7 @@ class UserResource extends Resource
                             ->same('password')
                             ->placeholder('Repite la contraseña')
                             ->helperText('Debe coincidir con la contraseña'),
-                        
+
                         Forms\Components\Toggle::make('must_change_password')
                             ->label('Forzar cambio de contraseña en el próximo inicio de sesión')
                             ->default(true)
@@ -108,7 +104,7 @@ class UserResource extends Resource
                     ])
                     ->collapsible()
                     ->collapsed(fn ($context) => $context === 'edit'),
-                
+
                 Forms\Components\Section::make('Roles y Permisos')
                     ->schema([
                         Forms\Components\Select::make('roles')
@@ -137,21 +133,21 @@ class UserResource extends Resource
                     ->sortable()
                     ->weight('bold')
                     ->icon('heroicon-o-user'),
-                
+
                 Tables\Columns\TextColumn::make('email')
                     ->label('Correo Electrónico')
                     ->searchable()
                     ->sortable()
                     ->icon('heroicon-o-envelope')
                     ->copyable(),
-                
+
                 Tables\Columns\TextColumn::make('roles.name')
                     ->label('Roles')
                     ->badge()
                     ->separator(',')
                     ->color('success')
                     ->placeholder('Sin rol'),
-                
+
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Estado')
                     ->boolean()
@@ -161,7 +157,7 @@ class UserResource extends Resource
                     ->falseColor('danger')
                     ->default(true)
                     ->sortable(),
-                
+
                 Tables\Columns\IconColumn::make('email_verified_at')
                     ->label('Verificado')
                     ->boolean()
@@ -170,12 +166,12 @@ class UserResource extends Resource
                     ->trueColor('success')
                     ->falseColor('danger')
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 Tables\Columns\IconColumn::make('must_change_password')
                     ->label('Debe Cambiar Contraseña')
                     ->boolean()
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Fecha de Registro')
                     ->dateTime('d/m/Y H:i')
@@ -189,14 +185,14 @@ class UserResource extends Resource
                     ->placeholder('Todos')
                     ->trueLabel('Activos')
                     ->falseLabel('Desactivados'),
-                
+
                 Tables\Filters\SelectFilter::make('roles')
                     ->label('Por Rol')
                     ->relationship('roles', 'name', function ($query) {
                         return $query->where('guard_name', 'web');
                     })
                     ->preload(),
-                
+
                 Tables\Filters\TernaryFilter::make('email_verified_at')
                     ->label('Email Verificado')
                     ->nullable()
@@ -207,7 +203,7 @@ class UserResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                
+
                 // ===== ACCIONES DE GESTIÓN DE EMPLEADOS CON COMPROBANTES =====
                 Tables\Actions\ActionGroup::make([
                     // Descargar comprobante de alta
@@ -222,20 +218,22 @@ class UserResource extends Resource
                                 ->where('action', 'registered')
                                 ->latest()
                                 ->first();
-                            
-                            if (!$registrationEvent) {
+
+                            if (! $registrationEvent) {
                                 Notification::make()
                                     ->warning()
                                     ->title('No hay comprobante de alta')
                                     ->body('Este empleado no tiene un comprobante de alta registrado.')
                                     ->send();
+
                                 return;
                             }
-                            
+
                             $service = app(EmployeeEventService::class);
+
                             return $service->downloadEventPdf($registrationEvent);
                         }),
-                    
+
                     // Desactivar empleado con comprobante
                     Tables\Actions\Action::make('deactivate')
                         ->label('Desactivar Empleado')
@@ -253,7 +251,7 @@ class UserResource extends Resource
                                 ->rows(3)
                                 ->placeholder('Especifica el motivo de la desactivación...')
                                 ->helperText('Este motivo aparecerá en el comprobante oficial'),
-                            
+
                             Forms\Components\Textarea::make('notes')
                                 ->label('Observaciones Adicionales (Opcional)')
                                 ->rows(2)
@@ -268,23 +266,23 @@ class UserResource extends Resource
                                 $data['reason'],
                                 $data['notes'] ?? null
                             );
-                            
+
                             Notification::make()
                                 ->success()
                                 ->title('Empleado Desactivado')
                                 ->body("Comprobante N° {$event->document_number} generado exitosamente.")
                                 ->send();
-                            
+
                             // Descargar automáticamente el comprobante
                             return $service->downloadEventPdf($event);
                         }),
-                    
+
                     // Reactivar empleado con comprobante
                     Tables\Actions\Action::make('reactivate')
                         ->label('Reactivar Empleado')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
-                        ->visible(fn (User $record) => !$record->is_active && auth()->user()->can('reactivate_employee'))
+                        ->visible(fn (User $record) => ! $record->is_active && auth()->user()->can('reactivate_employee'))
                         ->requiresConfirmation()
                         ->modalHeading('Reactivar Empleado')
                         ->modalDescription('Esta acción generará un comprobante verificable de reactivación.')
@@ -296,7 +294,7 @@ class UserResource extends Resource
                                 ->rows(3)
                                 ->placeholder('Especifica el motivo de la reactivación...')
                                 ->helperText('Este motivo aparecerá en el comprobante oficial'),
-                            
+
                             Forms\Components\Textarea::make('notes')
                                 ->label('Observaciones Adicionales (Opcional)')
                                 ->rows(2)
@@ -311,17 +309,17 @@ class UserResource extends Resource
                                 $data['reason'],
                                 $data['notes'] ?? null
                             );
-                            
+
                             Notification::make()
                                 ->success()
                                 ->title('Empleado Reactivado')
                                 ->body("Comprobante N° {$event->document_number} generado exitosamente.")
                                 ->send();
-                            
+
                             // Descargar automáticamente el comprobante
                             return $service->downloadEventPdf($event);
                         }),
-                    
+
                     // Ver historial de eventos
                     Tables\Actions\Action::make('view_history')
                         ->label('Ver Historial')
@@ -330,9 +328,9 @@ class UserResource extends Resource
                         ->visible(fn () => auth()->user()->can('view_employee_history'))
                         ->url(fn (User $record): string => static::getUrl('view', ['record' => $record])),
                 ])
-                ->label('Gestión de Empleado')
-                ->icon('heroicon-o-cog')
-                ->button(),
+                    ->label('Gestión de Empleado')
+                    ->icon('heroicon-o-cog')
+                    ->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Resources;
 
-use App\Models\User;
+use App\Filament\Resources\TenantResource;
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class TenantResourceFixValidationTest extends TestCase
@@ -14,6 +14,7 @@ class TenantResourceFixValidationTest extends TestCase
     use RefreshDatabase;
 
     protected User $regularUser;
+
     protected Tenant $tenant;
 
     protected function setUp(): void
@@ -47,9 +48,9 @@ class TenantResourceFixValidationTest extends TestCase
     /** @test */
     public function tenant_resource_instantiation_works()
     {
-        $resource = new \App\Filament\Resources\TenantResource();
+        $resource = new TenantResource;
 
-        $this->assertInstanceOf(\App\Filament\Resources\TenantResource::class, $resource);
+        $this->assertInstanceOf(TenantResource::class, $resource);
         $this->assertEquals(Tenant::class, $resource::getModel());
     }
 
@@ -57,7 +58,7 @@ class TenantResourceFixValidationTest extends TestCase
     public function closure_context_fix_works_for_badge_functionality()
     {
         // Set up a locked user scenario
-        Cache::put('2fa_lockout:' . $this->regularUser->id, true, 3600);
+        Cache::put('2fa_lockout:'.$this->regularUser->id, true, 3600);
 
         // Create a closure that mimics Filament's badge closure
         // This is the pattern that was causing "Using $this when not in object context"
@@ -68,11 +69,12 @@ class TenantResourceFixValidationTest extends TestCase
             $tenant = $record;
             $lockedCount = 0;
             foreach ($tenant->users as $user) {
-                $lockoutKey = '2fa_lockout:' . $user->id;
+                $lockoutKey = '2fa_lockout:'.$user->id;
                 if (Cache::has($lockoutKey)) {
                     $lockedCount++;
                 }
             }
+
             return $lockedCount;
         };
 
@@ -91,8 +93,8 @@ class TenantResourceFixValidationTest extends TestCase
     public function closure_context_fix_works_for_action_functionality()
     {
         // Set up a locked user scenario
-        Cache::put('2fa_lockout:' . $this->regularUser->id, true, 3600);
-        Cache::put('2fa_attempts:' . $this->regularUser->id, 3, 3600);
+        Cache::put('2fa_lockout:'.$this->regularUser->id, true, 3600);
+        Cache::put('2fa_attempts:'.$this->regularUser->id, 3, 3600);
 
         // Create a closure that mimics Filament's action closure
         $actionClosure = function ($record) {
@@ -102,8 +104,8 @@ class TenantResourceFixValidationTest extends TestCase
             $tenant = $record;
             $unlockedCount = 0;
             foreach ($tenant->users as $user) {
-                $lockoutKey = '2fa_lockout:' . $user->id;
-                $attemptKey = '2fa_attempts:' . $user->id;
+                $lockoutKey = '2fa_lockout:'.$user->id;
+                $attemptKey = '2fa_attempts:'.$user->id;
 
                 if (Cache::has($lockoutKey)) {
                     Cache::forget($lockoutKey);
@@ -114,6 +116,7 @@ class TenantResourceFixValidationTest extends TestCase
                     Cache::forget($attemptKey);
                 }
             }
+
             return $unlockedCount;
         };
 
@@ -128,15 +131,15 @@ class TenantResourceFixValidationTest extends TestCase
         $this->assertIsInt($result);
 
         // Verify locks were actually cleared
-        $this->assertFalse(Cache::has('2fa_lockout:' . $this->regularUser->id));
-        $this->assertFalse(Cache::has('2fa_attempts:' . $this->regularUser->id));
+        $this->assertFalse(Cache::has('2fa_lockout:'.$this->regularUser->id));
+        $this->assertFalse(Cache::has('2fa_attempts:'.$this->regularUser->id));
     }
 
     /** @test */
     public function closure_context_fix_works_for_color_functionality()
     {
         // Set up a locked user scenario
-        Cache::put('2fa_lockout:' . $this->regularUser->id, true, 3600);
+        Cache::put('2fa_lockout:'.$this->regularUser->id, true, 3600);
 
         // Create a closure that mimics Filament's color determination closure
         $colorClosure = function ($record) {
@@ -146,11 +149,12 @@ class TenantResourceFixValidationTest extends TestCase
             $tenant = $record;
             $lockedCount = 0;
             foreach ($tenant->users as $user) {
-                $lockoutKey = '2fa_lockout:' . $user->id;
+                $lockoutKey = '2fa_lockout:'.$user->id;
                 if (Cache::has($lockoutKey)) {
                     $lockedCount++;
                 }
             }
+
             return $lockedCount > 0 ? 'danger' : 'gray';
         };
 
@@ -165,7 +169,7 @@ class TenantResourceFixValidationTest extends TestCase
         $this->assertIsString($result);
 
         // Now test with no locks
-        Cache::forget('2fa_lockout:' . $this->regularUser->id);
+        Cache::forget('2fa_lockout:'.$this->regularUser->id);
         $result = $boundClosure->call($mockContext, $this->tenant);
         $this->assertEquals('gray', $result);
     }
@@ -173,7 +177,7 @@ class TenantResourceFixValidationTest extends TestCase
     /** @test */
     public function tenant_resource_permissions_work()
     {
-        $resource = new \App\Filament\Resources\TenantResource();
+        $resource = new TenantResource;
 
         // Test default permissions (should work without closure issues)
         $canViewAny = $resource::canViewAny();
@@ -191,7 +195,7 @@ class TenantResourceFixValidationTest extends TestCase
     /** @test */
     public function tenant_resource_navigation_registration_works()
     {
-        $resource = new \App\Filament\Resources\TenantResource();
+        $resource = new TenantResource;
 
         // This method contains logic that might use closures
         $shouldRegister = $resource::shouldRegisterNavigation();
@@ -209,7 +213,7 @@ class TenantResourceFixValidationTest extends TestCase
             'deleted_at' => now(),
         ]);
 
-        $resource = new \App\Filament\Resources\TenantResource();
+        $resource = new TenantResource;
         $query = $resource::getEloquentQuery();
 
         $results = $query->pluck('id')->toArray();
@@ -230,19 +234,20 @@ class TenantResourceFixValidationTest extends TestCase
         $this->tenant->users()->attach([$user2->id, $user3->id]);
 
         // Lock only some users
-        Cache::put('2fa_lockout:' . $this->regularUser->id, true, 3600);
-        Cache::put('2fa_lockout:' . $user3->id, true, 3600);
+        Cache::put('2fa_lockout:'.$this->regularUser->id, true, 3600);
+        Cache::put('2fa_lockout:'.$user3->id, true, 3600);
 
         // Test badge closure
         $badgeClosure = function ($record) {
             $tenant = $record;
             $lockedCount = 0;
             foreach ($tenant->users as $user) {
-                $lockoutKey = '2fa_lockout:' . $user->id;
+                $lockoutKey = '2fa_lockout:'.$user->id;
                 if (Cache::has($lockoutKey)) {
                     $lockedCount++;
                 }
             }
+
             return $lockedCount;
         };
 
@@ -251,12 +256,13 @@ class TenantResourceFixValidationTest extends TestCase
             $tenant = $record;
             $unlockedCount = 0;
             foreach ($tenant->users as $user) {
-                $lockoutKey = '2fa_lockout:' . $user->id;
+                $lockoutKey = '2fa_lockout:'.$user->id;
                 if (Cache::has($lockoutKey)) {
                     Cache::forget($lockoutKey);
                     $unlockedCount++;
                 }
             }
+
             return $unlockedCount;
         };
 
@@ -265,11 +271,12 @@ class TenantResourceFixValidationTest extends TestCase
             $tenant = $record;
             $lockedCount = 0;
             foreach ($tenant->users as $user) {
-                $lockoutKey = '2fa_lockout:' . $user->id;
+                $lockoutKey = '2fa_lockout:'.$user->id;
                 if (Cache::has($lockoutKey)) {
                     $lockedCount++;
                 }
             }
+
             return $lockedCount > 0 ? 'danger' : 'gray';
         };
 
@@ -296,8 +303,8 @@ class TenantResourceFixValidationTest extends TestCase
         $this->assertEquals('gray', $colorResultAfter);
 
         // Verify all locks cleared
-        $this->assertFalse(Cache::has('2fa_lockout:' . $this->regularUser->id));
-        $this->assertFalse(Cache::has('2fa_lockout:' . $user2->id));
-        $this->assertFalse(Cache::has('2fa_lockout:' . $user3->id));
+        $this->assertFalse(Cache::has('2fa_lockout:'.$this->regularUser->id));
+        $this->assertFalse(Cache::has('2fa_lockout:'.$user2->id));
+        $this->assertFalse(Cache::has('2fa_lockout:'.$user3->id));
     }
 }

@@ -3,25 +3,19 @@
 namespace App\Modules\Reporting\Exports;
 
 use App\Modules\Reporting\Services\InventoryReportService;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use Illuminate\Support\Collection;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class InventoryValueExport implements
-    FromCollection,
-    WithHeadings,
-    WithStyles,
-    WithTitle,
-    ShouldAutoSize
+class InventoryValueExport implements FromCollection, ShouldAutoSize, WithHeadings, WithStyles, WithTitle
 {
     protected InventoryReportService $service;
+
     protected array $summary;
 
     public function __construct()
@@ -51,11 +45,11 @@ class InventoryValueExport implements
 
         $rows->push([
             'Valor Total del Inventario',
-            '$' . number_format($this->summary['total_value'], 2),
+            '$'.number_format($this->summary['total_value'], 2),
             'Costo Total',
-            '$' . number_format($this->summary['total_cost'], 2),
+            '$'.number_format($this->summary['total_cost'], 2),
             'Ganancia Potencial',
-            '$' . number_format($this->summary['potential_profit'], 2),
+            '$'.number_format($this->summary['potential_profit'], 2),
         ]);
 
         $rows->push([
@@ -64,7 +58,7 @@ class InventoryValueExport implements
             'Total Productos',
             number_format($this->summary['product_count']),
             'Margen Promedio',
-            number_format($this->summary['profit_margin'], 2) . '%',
+            number_format($this->summary['profit_margin'], 2).'%',
         ]);
 
         $rows->push([
@@ -73,7 +67,7 @@ class InventoryValueExport implements
             'Productos Inactivos',
             number_format($this->summary['inactive_products']),
             'Tendencia 7 días',
-            number_format($this->summary['trend_7_days'], 2) . '%',
+            number_format($this->summary['trend_7_days'], 2).'%',
         ]);
 
         // Empty row
@@ -98,16 +92,16 @@ class InventoryValueExport implements
                 $category->category_name,
                 number_format($category->product_count),
                 number_format($category->total_units),
-                '$' . number_format($category->total_value, 2),
-                '$' . number_format($category->total_cost, 2),
-                number_format($category->profit_margin, 2) . '%',
+                '$'.number_format($category->total_value, 2),
+                '$'.number_format($category->total_cost, 2),
+                number_format($category->profit_margin, 2).'%',
             ]);
         }
 
         // Footer
         $rows->push(['', '', '', '', '', '']);
         $rows->push([
-            'Reporte generado el: ' . now()->format('d/m/Y H:i'),
+            'Reporte generado el: '.now()->format('d/m/Y H:i'),
             '',
             '',
             '',

@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\Tenant;
 use App\Models\Module;
 use App\Models\SubscriptionPlan;
+use App\Models\Tenant;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 
 class FeatureFlagService
@@ -43,7 +44,7 @@ class FeatureFlagService
     public function hasAllFeatureAccess(Tenant $tenant, array $features): bool
     {
         foreach ($features as $feature) {
-            if (!$this->hasFeatureAccess($tenant, $feature)) {
+            if (! $this->hasFeatureAccess($tenant, $feature)) {
                 return false;
             }
         }
@@ -274,7 +275,7 @@ class FeatureFlagService
     /**
      * Get modules that provide a specific feature
      */
-    public function getModulesWithFeature(string $feature): \Illuminate\Database\Eloquent\Collection
+    public function getModulesWithFeature(string $feature): Collection
     {
         return Module::active()
             ->visible()
@@ -286,13 +287,13 @@ class FeatureFlagService
     /**
      * Get subscription plans that provide a specific feature
      */
-    public function getPlansWithFeature(string $feature): \Illuminate\Database\Eloquent\Collection
+    public function getPlansWithFeature(string $feature): Collection
     {
         return SubscriptionPlan::active()
             ->visible()
             ->where(function ($query) use ($feature) {
                 $query->whereJsonContains('features', $feature)
-                      ->orWhere('features->' . $feature, true);
+                    ->orWhere('features->'.$feature, true);
             })
             ->ordered()
             ->get();
@@ -306,7 +307,7 @@ class FeatureFlagService
         return SubscriptionPlan::active()
             ->where(function ($query) use ($feature) {
                 $query->whereJsonContains('features', $feature)
-                      ->orWhere('features->' . $feature, true);
+                    ->orWhere('features->'.$feature, true);
             })
             ->exists();
     }
@@ -341,13 +342,13 @@ class FeatureFlagService
                 'feature' => $feature,
                 'name' => $this->getFeatureDisplayName($feature),
                 'description' => $this->getFeatureDescription($feature),
-                'modules' => $modules->map(fn($m) => [
+                'modules' => $modules->map(fn ($m) => [
                     'id' => $m->id,
                     'name' => $m->name,
                     'price' => $m->getFormattedPrice(),
                     'category' => $m->getDisplayCategory(),
                 ])->toArray(),
-                'plans' => $plans->map(fn($p) => [
+                'plans' => $plans->map(fn ($p) => [
                     'id' => $p->id,
                     'name' => $p->name,
                     'price' => $p->getFormattedPrice(),

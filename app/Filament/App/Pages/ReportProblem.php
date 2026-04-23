@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,11 +12,12 @@
 namespace App\Filament\App\Pages;
 
 use App\Services\BugReportService;
+use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
@@ -30,19 +31,19 @@ class ReportProblem extends Page implements HasForms
     use WithFileUploads;
 
     protected static ?string $navigationIcon = 'heroicon-o-exclamation-triangle';
-    
+
     protected static ?string $navigationLabel = 'Reportar Problema';
-    
+
     protected static ?string $title = 'Reportar un Problema';
-    
+
     protected static ?string $slug = 'report-problem';
-    
+
     protected static ?string $navigationGroup = null; // Sin grupo, aparece al final
-    
+
     protected static ?int $navigationSort = 999; // Al final del menú
-    
+
     protected static string $view = 'filament.app.pages.report-problem';
-    
+
     // No aparecer en navegación (solo accesible desde el botón del sidebar)
     protected static bool $shouldRegisterNavigation = false;
 
@@ -149,7 +150,7 @@ class ReportProblem extends Page implements HasForms
     protected function getFormActions(): array
     {
         return [
-            \Filament\Actions\Action::make('submit')
+            Action::make('submit')
                 ->label('Enviar Reporte')
                 ->icon('heroicon-o-paper-airplane')
                 ->color('danger')
@@ -158,4 +159,3 @@ class ReportProblem extends Page implements HasForms
         ];
     }
 }
-

@@ -2,42 +2,40 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Models;
 
-use App\Models\BackupLog;
-use App\Models\Invoice;
-use App\Models\Module;
-use App\Models\PaymentMethod;
-use App\Models\TenantActivity;
-use App\Models\TenantModule;
-use App\Models\TenantSubscription;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Illuminate\Support\Facades\DB;
 use Spatie\Multitenancy\Models\Tenant as BaseTenant;
 
 class Tenant extends BaseTenant
 {
     use SoftDeletes;
+
     /**
      * Tenant statuses
      */
     const STATUS_ACTIVE = 'active';
+
     const STATUS_TRIAL = 'trial';
+
     const STATUS_SUSPENDED = 'suspended';
+
     const STATUS_EXPIRED = 'expired';
+
     const STATUS_ARCHIVED = 'archived';
+
     const STATUS_INACTIVE = 'inactive';
 
     /**
@@ -186,7 +184,7 @@ class Tenant extends BaseTenant
     public function getLogoUrlAttribute(): ?string
     {
         if ($this->logo_type === 'image' && $this->logo_path) {
-            return asset('storage/' . $this->logo_path);
+            return asset('storage/'.$this->logo_path);
         }
 
         return null;
@@ -197,7 +195,7 @@ class Tenant extends BaseTenant
      */
     public function usesTextLogo(): bool
     {
-        return $this->logo_type === 'text' || !$this->logo_path;
+        return $this->logo_type === 'text' || ! $this->logo_path;
     }
 
     /**
@@ -205,7 +203,7 @@ class Tenant extends BaseTenant
      */
     public function usesImageLogo(): bool
     {
-        return $this->logo_type === 'image' && !empty($this->logo_path);
+        return $this->logo_type === 'image' && ! empty($this->logo_path);
     }
 
     /**
@@ -213,7 +211,7 @@ class Tenant extends BaseTenant
      */
     public function getStatusColorAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_ACTIVE => 'success',
             self::STATUS_TRIAL => 'info',
             self::STATUS_SUSPENDED => 'warning',
@@ -287,6 +285,7 @@ class Tenant extends BaseTenant
     {
         try {
             $this->update(['status' => self::STATUS_INACTIVE]);
+
             return true;
         } catch (\Exception $e) {
             return false;
@@ -301,6 +300,7 @@ class Tenant extends BaseTenant
         try {
             $this->update(['status' => self::STATUS_ARCHIVED]);
             $this->delete(); // Soft delete
+
             return true;
         } catch (\Exception $e) {
             return false;
@@ -325,7 +325,7 @@ class Tenant extends BaseTenant
             : 'N/A';
 
         // Original status (change archived to a readable format)
-        $stats['original_status'] = match($this->status) {
+        $stats['original_status'] = match ($this->status) {
             'archived' => 'Activo',
             default => ucfirst($this->status),
         };
@@ -335,13 +335,13 @@ class Tenant extends BaseTenant
 
         // Database size (get approximate MB)
         try {
-            $result = \Illuminate\Support\Facades\DB::select("
+            $result = DB::select('
                 SELECT pg_database_size(?) as size_bytes
                 FROM pg_database WHERE datname = ?
-            ", [$this->database, $this->database]);
+            ', [$this->database, $this->database]);
             $sizeBytes = $result[0]->size_bytes ?? 0;
             $stats['data_size_mb'] = round($sizeBytes / 1024 / 1024, 2);
-            $stats['storage_size'] = round($sizeBytes / 1024 / 1024, 2) . ' MB';
+            $stats['storage_size'] = round($sizeBytes / 1024 / 1024, 2).' MB';
         } catch (\Exception $e) {
             $stats['data_size_mb'] = 0;
             $stats['storage_size'] = '0 MB';
@@ -349,8 +349,8 @@ class Tenant extends BaseTenant
 
         // Backup count and last backup date
         try {
-            $backupCount = \App\Models\BackupLog::where('tenant_id', $this->id)->count();
-            $lastBackup = \App\Models\BackupLog::where('tenant_id', $this->id)
+            $backupCount = BackupLog::where('tenant_id', $this->id)->count();
+            $lastBackup = BackupLog::where('tenant_id', $this->id)
                 ->latest('created_at')
                 ->first();
 
@@ -409,7 +409,7 @@ class Tenant extends BaseTenant
     public function getTenantModule(string $moduleSlug): ?TenantModule
     {
         return $this->activeTenantModules()
-            ->whereHas('module', fn($q) => $q->where('slug', $moduleSlug))
+            ->whereHas('module', fn ($q) => $q->where('slug', $moduleSlug))
             ->first();
     }
 
@@ -476,7 +476,7 @@ class Tenant extends BaseTenant
     public function removeModule(Module $module, string $reason = ''): bool
     {
         $tenantModule = $this->getTenantModule($module->slug);
-        if (!$tenantModule) {
+        if (! $tenantModule) {
             return false;
         }
 
@@ -525,7 +525,7 @@ class Tenant extends BaseTenant
     {
         return $this->activeTenantModules()
             ->get()
-            ->sum(fn($tm) => $tm->getMonthlyCost());
+            ->sum(fn ($tm) => $tm->getMonthlyCost());
     }
 
     /**
@@ -535,7 +535,7 @@ class Tenant extends BaseTenant
     {
         return $this->activeTenantModules()
             ->get()
-            ->sum(fn($tm) => $tm->getYearlyCost());
+            ->sum(fn ($tm) => $tm->getYearlyCost());
     }
 
     /**
@@ -566,7 +566,7 @@ class Tenant extends BaseTenant
     /**
      * Get modules that are expiring soon
      */
-    public function getModulesExpiringSoon(int $days = 7): \Illuminate\Database\Eloquent\Collection
+    public function getModulesExpiringSoon(int $days = 7): Collection
     {
         return $this->activeTenantModules()
             ->whereNotNull('expires_at')
@@ -577,7 +577,7 @@ class Tenant extends BaseTenant
     /**
      * Get modules by category
      */
-    public function getModulesByCategory(string $category): \Illuminate\Database\Eloquent\Collection
+    public function getModulesByCategory(string $category): Collection
     {
         return $this->activeModules()
             ->where('category', $category)

@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+
 return [
 
     /*
@@ -78,14 +80,14 @@ return [
         // El proveedor de usuarios estándar
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model' => User::class,
         ],
 
         // Nuestro nuevo proveedor que FUERZA la búsqueda de usuarios
         // únicamente en la base de datos 'landlord'.
         'superadmins' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model' => User::class,
             'connection' => 'landlord', // <-- La clave: forzamos la conexión
         ],
     ],

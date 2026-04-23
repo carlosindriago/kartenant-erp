@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Only add the column if it doesn't exist (prevents duplicate column error)
-        if (!Schema::hasColumn('sales', 'cash_register_id')) {
+        if (! Schema::hasColumn('sales', 'cash_register_id')) {
             Schema::table('sales', function (Blueprint $table) {
                 // Agregar cash_register_id para asociar cada venta a una caja específica
                 $table->foreignId('cash_register_id')

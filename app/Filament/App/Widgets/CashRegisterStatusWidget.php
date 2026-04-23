@@ -2,23 +2,23 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Filament\App\Widgets;
 
-use Filament\Widgets\Widget;
 use App\Modules\POS\Models\CashRegister;
 use App\Modules\POS\Models\Sale;
+use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Cache;
 
 /**
  * CashRegisterStatusWidget: Estado de Caja Actual
- * 
+ *
  * Muestra el estado actual de la(s) caja(s):
  * - Si hay caja abierta: monto inicial, ventas, esperado
  * - Si está cerrada: cuándo fue el último cierre
@@ -29,14 +29,14 @@ class CashRegisterStatusWidget extends Widget
 {
     protected static string $view = 'filament.app.widgets.cash-register-status';
 
-    protected int | string | array $columnSpan = [
+    protected int|string|array $columnSpan = [
         'default' => 1,
         'md' => 2,
         'lg' => 4,  // Full width in desktop
     ];
 
     protected static ?int $sort = 3;
-    
+
     /**
      * Obtener estado actual de las cajas con información completa
      */
@@ -51,36 +51,36 @@ class CashRegisterStatusWidget extends Widget
                     // Ventas completadas desde la apertura
                     $completedSales = Sale::where('created_at', '>=', $register->opened_at)
                         ->where('status', 'completed');
-                    
+
                     // Ventas por método de pago
                     $cashSales = (clone $completedSales)->where('payment_method', 'cash')->sum('total');
                     $cardSales = (clone $completedSales)->where('payment_method', 'card')->sum('total');
                     $transferSales = (clone $completedSales)->where('payment_method', 'transfer')->sum('total');
                     $otherSales = (clone $completedSales)->whereNotIn('payment_method', ['cash', 'card', 'transfer'])->sum('total');
-                    
+
                     $totalSales = $cashSales + $cardSales + $transferSales + $otherSales;
                     $transactionCount = $completedSales->count();
-                    
+
                     // Devoluciones (ventas canceladas)
                     $returns = Sale::where('created_at', '>=', $register->opened_at)
                         ->where('status', 'cancelled')
                         ->where('payment_method', 'cash')
                         ->sum('total');
-                    
+
                     $returnsCount = Sale::where('created_at', '>=', $register->opened_at)
                         ->where('status', 'cancelled')
                         ->count();
-                    
+
                     // Cálculo del efectivo esperado en caja
                     $expectedCash = $register->initial_amount + $cashSales - $returns;
-                    
+
                     // Formatear tiempo abierto
                     $hoursOpen = $register->opened_at->diffInHours(now());
                     $minutesOpen = $register->opened_at->diffInMinutes(now()) % 60;
-                    $timeOpen = $hoursOpen > 0 
-                        ? "{$hoursOpen}h " . ($minutesOpen > 0 ? "{$minutesOpen}m" : '')
+                    $timeOpen = $hoursOpen > 0
+                        ? "{$hoursOpen}h ".($minutesOpen > 0 ? "{$minutesOpen}m" : '')
                         : "{$minutesOpen}m";
-                    
+
                     return [
                         'id' => $register->id,
                         'register_number' => $register->register_number,
@@ -88,10 +88,10 @@ class CashRegisterStatusWidget extends Widget
                         'opened_at' => $register->opened_at,
                         'time_open' => trim($timeOpen),
                         'hours_open' => $hoursOpen,
-                        
+
                         // Montos iniciales
                         'initial_amount' => $register->initial_amount,
-                        
+
                         // Ventas por método
                         'cash_sales' => $cashSales,
                         'card_sales' => $cardSales,
@@ -99,14 +99,14 @@ class CashRegisterStatusWidget extends Widget
                         'other_sales' => $otherSales,
                         'total_sales' => $totalSales,
                         'transaction_count' => $transactionCount,
-                        
+
                         // Devoluciones
                         'returns' => $returns,
                         'returns_count' => $returnsCount,
-                        
+
                         // Efectivo esperado en caja
                         'expected_cash' => $expectedCash,
-                        
+
                         // Ticket promedio
                         'average_ticket' => $transactionCount > 0 ? $totalSales / $transactionCount : 0,
                     ];
@@ -114,7 +114,7 @@ class CashRegisterStatusWidget extends Widget
                 ->toArray();
         });
     }
-    
+
     /**
      * Obtener último cierre si no hay cajas abiertas
      */
@@ -123,18 +123,18 @@ class CashRegisterStatusWidget extends Widget
         if (count($this->getCurrentRegisters()) > 0) {
             return null;
         }
-        
+
         return Cache::remember('widget.cash_registers.last_closing', 60, function () {
             $lastRegister = CashRegister::where('status', 'closed')
                 ->orderBy('closed_at', 'desc')
                 ->first();
-            
-            if (!$lastRegister) {
+
+            if (! $lastRegister) {
                 return null;
             }
-            
+
             $discrepancy = $lastRegister->actual_amount - $lastRegister->expected_amount;
-            
+
             return [
                 'closed_at' => $lastRegister->closed_at,
                 'hours_ago' => $lastRegister->closed_at->diffInHours(now()),
@@ -144,7 +144,7 @@ class CashRegisterStatusWidget extends Widget
             ];
         });
     }
-    
+
     /**
      * Obtener historial de últimos arqueos con diferencias
      */
@@ -159,7 +159,7 @@ class CashRegisterStatusWidget extends Widget
                 ->get()
                 ->map(function ($register) {
                     $discrepancy = $register->actual_amount - $register->expected_amount;
-                    
+
                     return [
                         'date' => $register->closed_at,
                         'expected' => $register->expected_amount,
@@ -172,7 +172,7 @@ class CashRegisterStatusWidget extends Widget
                 ->toArray();
         });
     }
-    
+
     /**
      * Calcular total de diferencias acumuladas (últimos 30 días)
      */
@@ -187,9 +187,9 @@ class CashRegisterStatusWidget extends Widget
                     COUNT(*) as total_closings
                 ')
                 ->first();
-            
+
             $netDiscrepancy = ($registers->total_surplus ?? 0) - ($registers->total_shortage ?? 0);
-            
+
             return [
                 'total_surplus' => $registers->total_surplus ?? 0,
                 'total_shortage' => $registers->total_shortage ?? 0,
@@ -198,14 +198,14 @@ class CashRegisterStatusWidget extends Widget
             ];
         });
     }
-    
+
     /**
      * Calcular totales generales de todas las cajas abiertas
      */
     public function getTotals(): array
     {
         $registers = $this->getCurrentRegisters();
-        
+
         if (empty($registers)) {
             return [
                 'initial_amount' => 0,
@@ -221,7 +221,7 @@ class CashRegisterStatusWidget extends Widget
                 'average_ticket' => 0,
             ];
         }
-        
+
         $totals = [
             'initial_amount' => array_sum(array_column($registers, 'initial_amount')),
             'cash_sales' => array_sum(array_column($registers, 'cash_sales')),
@@ -234,12 +234,12 @@ class CashRegisterStatusWidget extends Widget
             'returns_count' => array_sum(array_column($registers, 'returns_count')),
             'expected_cash' => array_sum(array_column($registers, 'expected_cash')),
         ];
-        
+
         // Calcular ticket promedio global
-        $totals['average_ticket'] = $totals['transaction_count'] > 0 
-            ? $totals['total_sales'] / $totals['transaction_count'] 
+        $totals['average_ticket'] = $totals['transaction_count'] > 0
+            ? $totals['total_sales'] / $totals['transaction_count']
             : 0;
-        
+
         return $totals;
     }
 }

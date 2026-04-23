@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Builder;
 
 class Module extends Model
 {
     use SoftDeletes;
 
     protected $connection = 'landlord';
+
     protected $table = 'modules';
 
     protected $fillable = [
@@ -158,7 +160,7 @@ class Module extends Model
     // Pricing Methods
     public function getPrice(string $billingCycle = 'monthly'): float
     {
-        return match($billingCycle) {
+        return match ($billingCycle) {
             'yearly' => (float) $this->base_price_yearly,
             'monthly' => (float) $this->base_price_monthly,
             default => (float) $this->base_price_monthly,
@@ -168,7 +170,8 @@ class Module extends Model
     public function getFormattedPrice(string $billingCycle = 'monthly'): string
     {
         $price = $this->getPrice($billingCycle);
-        return $this->currency . ' ' . number_format($price, 2);
+
+        return $this->currency.' '.number_format($price, 2);
     }
 
     public function hasSetupFee(): bool
@@ -179,7 +182,7 @@ class Module extends Model
     public function getFormattedSetupFee(): string
     {
         return $this->hasSetupFee()
-            ? $this->currency . ' ' . number_format((float) $this->setup_fee, 2)
+            ? $this->currency.' '.number_format((float) $this->setup_fee, 2)
             : 'Gratis';
     }
 
@@ -187,6 +190,7 @@ class Module extends Model
     {
         $monthlyTotal = (float) $this->base_price_monthly * 12;
         $yearlyTotal = (float) $this->base_price_yearly;
+
         return $monthlyTotal - $yearlyTotal;
     }
 
@@ -197,6 +201,7 @@ class Module extends Model
             return 0;
         }
         $savings = $this->getYearlySavings();
+
         return (int) round(($savings / $monthlyTotal) * 100);
     }
 
@@ -284,7 +289,7 @@ class Module extends Model
 
         // Check dependencies
         foreach ($this->dependencies ?? [] as $requiredModuleSlug) {
-            if (!$tenant->hasModule($requiredModuleSlug)) {
+            if (! $tenant->hasModule($requiredModuleSlug)) {
                 $issues[] = "Requiere el módulo: {$requiredModuleSlug}";
             }
         }
@@ -305,7 +310,7 @@ class Module extends Model
 
         // Check if other modules depend on this one
         $dependentModules = Module::active()
-            ->where('dependencies', 'like', '%"' . $this->slug . '"%')
+            ->where('dependencies', 'like', '%"'.$this->slug.'"%')
             ->get();
 
         foreach ($dependentModules as $module) {
@@ -338,6 +343,7 @@ class Module extends Model
                 $total += $value;
             }
         }
+
         return $total;
     }
 
@@ -365,25 +371,25 @@ class Module extends Model
     // Helper Methods
     public function getIconWithPrefix(): ?string
     {
-        if (!$this->icon) {
+        if (! $this->icon) {
             return null;
         }
 
         // Ensure icon has proper heroicon prefix
-        if (!str_starts_with($this->icon, 'heroicon-')) {
+        if (! str_starts_with($this->icon, 'heroicon-')) {
             // Try to guess the prefix based on common patterns
             if (str_contains($this->icon, '-o-')) {
-                return 'heroicon-o-' . str_replace('-o-', '', $this->icon);
+                return 'heroicon-o-'.str_replace('-o-', '', $this->icon);
             }
             if (str_contains($this->icon, '-s-')) {
-                return 'heroicon-s-' . str_replace('-s-', '', $this->icon);
+                return 'heroicon-s-'.str_replace('-s-', '', $this->icon);
             }
             if (str_contains($this->icon, '-m-')) {
-                return 'heroicon-m-' . str_replace('-m-', '', $this->icon);
+                return 'heroicon-m-'.str_replace('-m-', '', $this->icon);
             }
 
             // Default to outline
-            return 'heroicon-o-' . $this->icon;
+            return 'heroicon-o-'.$this->icon;
         }
 
         return $this->icon;
@@ -391,7 +397,7 @@ class Module extends Model
 
     public function getDisplayCategory(): string
     {
-        return match($this->category) {
+        return match ($this->category) {
             'inventory' => 'Gestión de Inventario',
             'pos' => 'Punto de Venta',
             'analytics' => 'Análisis y Reportes',
@@ -406,7 +412,7 @@ class Module extends Model
 
     public function getDisplayBillingCycle(): string
     {
-        return match($this->billing_cycle) {
+        return match ($this->billing_cycle) {
             'monthly' => 'Mensual',
             'yearly' => 'Anual',
             'once' => 'Una vez',
@@ -421,11 +427,11 @@ class Module extends Model
 
     public function getTrialPeriodDisplay(): string
     {
-        if (!$this->isAvailableForTrial()) {
+        if (! $this->isAvailableForTrial()) {
             return 'Sin prueba gratuita';
         }
 
-        return $this->trial_days . ' ' . ($this->trial_days == 1 ? 'día' : 'días');
+        return $this->trial_days.' '.($this->trial_days == 1 ? 'día' : 'días');
     }
 
     // Static Methods
@@ -468,23 +474,23 @@ class Module extends Model
         return static::where('slug', $slug)->first();
     }
 
-    public static function getFeatured(): \Illuminate\Database\Eloquent\Collection
+    public static function getFeatured(): Collection
     {
         return static::active()->visible()->featured()->ordered()->get();
     }
 
-    public static function getByCategory(string $category): \Illuminate\Database\Eloquent\Collection
+    public static function getByCategory(string $category): Collection
     {
         return static::active()->visible()->byCategory($category)->ordered()->get();
     }
 
-    public static function search(string $query): \Illuminate\Database\Eloquent\Collection
+    public static function search(string $query): Collection
     {
         return static::active()->visible()
             ->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
-                  ->orWhere('description', 'like', "%{$query}%")
-                  ->orWhere('category', 'like', "%{$query}%");
+                    ->orWhere('description', 'like', "%{$query}%")
+                    ->orWhere('category', 'like', "%{$query}%");
             })
             ->ordered()
             ->get();

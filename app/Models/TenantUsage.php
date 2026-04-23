@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 // Temporarily disabled for testing - use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Carbon\Carbon;
 
 class TenantUsage extends Model
 {
@@ -115,8 +115,9 @@ class TenantUsage extends Model
     public function isWarningZone(string $metric): bool
     {
         $tenant = $this->tenant;
-        if (!$tenant) {
+        if (! $tenant) {
             $percentage = $this->getPercentage($metric);
+
             return $percentage >= 80 && $percentage <= 100;
         }
 
@@ -132,11 +133,12 @@ class TenantUsage extends Model
                 return false; // Unlimited
             }
 
-            return $current > $baseLimit && !$this->isCriticalZone($metric);
+            return $current > $baseLimit && ! $this->isCriticalZone($metric);
         }
 
         // Fallback to hardcoded percentages for legacy compatibility
         $percentage = $this->getPercentage($metric);
+
         return $percentage >= 80 && $percentage <= 100;
     }
 
@@ -148,7 +150,7 @@ class TenantUsage extends Model
     public function isCriticalZone(string $metric): bool
     {
         $tenant = $this->tenant;
-        if (!$tenant) {
+        if (! $tenant) {
             return $this->getPercentage($metric) > 120;
         }
 
@@ -185,7 +187,7 @@ class TenantUsage extends Model
 
     public function getLimit(string $metric): ?int
     {
-        return match($metric) {
+        return match ($metric) {
             'sales' => $this->max_sales_per_month,
             'products' => $this->max_products,
             'users' => $this->max_users,
@@ -200,17 +202,17 @@ class TenantUsage extends Model
     public function getOverageLimit(string $metric): ?int
     {
         $tenant = $this->tenant;
-        if (!$tenant) {
+        if (! $tenant) {
             return $this->getLimit($metric);
         }
 
         $subscription = $tenant->subscription;
-        if (!$subscription) {
+        if (! $subscription) {
             return $this->getLimit($metric);
         }
 
         $plan = $subscription->plan;
-        if (!$plan || !$plan->hasConfigurableLimits()) {
+        if (! $plan || ! $plan->hasConfigurableLimits()) {
             return $this->getLimit($metric);
         }
 
@@ -223,12 +225,13 @@ class TenantUsage extends Model
         ];
 
         $planMetric = $metricMap[$metric] ?? $metric;
+
         return $plan->getOverageLimit($planMetric);
     }
 
     public function getCurrent(string $metric): int
     {
-        return match($metric) {
+        return match ($metric) {
             'sales' => $this->sales_count,
             'products' => $this->products_count,
             'users' => $this->users_count,
@@ -257,7 +260,7 @@ class TenantUsage extends Model
         }
 
         // Block only in critical zone (>120%)
-        return !$this->isCriticalZone('products');
+        return ! $this->isCriticalZone('products');
     }
 
     public function canCreateUser(): bool
@@ -268,7 +271,7 @@ class TenantUsage extends Model
         }
 
         // Block only in critical zone (>120%)
-        return !$this->isCriticalZone('users');
+        return ! $this->isCriticalZone('users');
     }
 
     public function canMakeSale(): bool
@@ -280,12 +283,19 @@ class TenantUsage extends Model
     public function getZoneForMetric(string $metric): string
     {
         $tenant = $this->tenant;
-        if (!$tenant) {
+        if (! $tenant) {
             // Fallback to percentage-based zones for testing/safety
             $percentage = $this->getPercentage($metric);
-            if ($percentage > 120) return 'critical';
-            if ($percentage > 100) return 'overdraft';
-            if ($percentage >= 80) return 'warning';
+            if ($percentage > 120) {
+                return 'critical';
+            }
+            if ($percentage > 100) {
+                return 'overdraft';
+            }
+            if ($percentage >= 80) {
+                return 'warning';
+            }
+
             return 'normal';
         }
 
@@ -294,16 +304,28 @@ class TenantUsage extends Model
 
         if ($plan && $plan->hasConfigurableLimits()) {
             // Use configurable limit zones
-            if ($this->isCriticalZone($metric)) return 'critical';
-            if ($this->isWarningZone($metric)) return 'warning';
+            if ($this->isCriticalZone($metric)) {
+                return 'critical';
+            }
+            if ($this->isWarningZone($metric)) {
+                return 'warning';
+            }
+
             return 'normal';
         }
 
         // Fallback to percentage-based zones for legacy compatibility
         $percentage = $this->getPercentage($metric);
-        if ($percentage > 120) return 'critical';
-        if ($percentage > 100) return 'overdraft';
-        if ($percentage >= 80) return 'warning';
+        if ($percentage > 120) {
+            return 'critical';
+        }
+        if ($percentage > 100) {
+            return 'overdraft';
+        }
+        if ($percentage >= 80) {
+            return 'warning';
+        }
+
         return 'normal';
     }
 
@@ -354,7 +376,7 @@ class TenantUsage extends Model
 
     public function incrementUsage(string $metric, int $amount = 1): void
     {
-        $field = match($metric) {
+        $field = match ($metric) {
             'sales' => 'sales_count',
             'products' => 'products_count',
             'users' => 'users_count',
@@ -370,7 +392,7 @@ class TenantUsage extends Model
 
     public function decrementUsage(string $metric, int $amount = 1): void
     {
-        $field = match($metric) {
+        $field = match ($metric) {
             'sales' => 'sales_count',
             'products' => 'products_count',
             'users' => 'users_count',
@@ -395,7 +417,7 @@ class TenantUsage extends Model
     {
         $usage = static::getCurrentUsage($tenantId);
 
-        if (!$usage) {
+        if (! $usage) {
             $tenant = Tenant::findOrFail($tenantId);
             $subscription = $tenant->subscription;
             $plan = $subscription->plan ?? null;
@@ -435,15 +457,15 @@ class TenantUsage extends Model
     // Methods for alert management
     public function hasPendingAlerts(): bool
     {
-        if ($this->status === 'warning' && !$this->warning_sent) {
+        if ($this->status === 'warning' && ! $this->warning_sent) {
             return true;
         }
 
-        if ($this->status === 'overdraft' && !$this->overdraft_sent) {
+        if ($this->status === 'overdraft' && ! $this->overdraft_sent) {
             return true;
         }
 
-        if ($this->status === 'critical' && !$this->critical_sent) {
+        if ($this->status === 'critical' && ! $this->critical_sent) {
             return true;
         }
 
@@ -454,15 +476,15 @@ class TenantUsage extends Model
     {
         $alerts = [];
 
-        if ($this->status === 'warning' && !$this->warning_sent) {
+        if ($this->status === 'warning' && ! $this->warning_sent) {
             $alerts[] = 'warning';
         }
 
-        if ($this->status === 'overdraft' && !$this->overdraft_sent) {
+        if ($this->status === 'overdraft' && ! $this->overdraft_sent) {
             $alerts[] = 'overdraft';
         }
 
-        if ($this->status === 'critical' && !$this->critical_sent) {
+        if ($this->status === 'critical' && ! $this->critical_sent) {
             $alerts[] = 'critical';
         }
 
@@ -471,7 +493,7 @@ class TenantUsage extends Model
 
     public function markAlertSent(string $alertType): void
     {
-        $field = match($alertType) {
+        $field = match ($alertType) {
             'warning' => 'warning_sent',
             'overdraft' => 'overdraft_sent',
             'critical' => 'critical_sent',
@@ -489,6 +511,7 @@ class TenantUsage extends Model
     public function getPeriodLabel(): string
     {
         $monthName = Carbon::createFromDate($this->year, $this->month, 1)->format('F');
+
         return "{$monthName} {$this->year}";
     }
 

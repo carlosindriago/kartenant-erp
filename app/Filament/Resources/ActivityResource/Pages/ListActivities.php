@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -75,15 +75,15 @@ class ListActivities extends ListRecords
                         ->when($data['until'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '<=', $date))
                         ->orderBy('created_at', 'desc');
 
-                    $fileName = 'auditoria_' . now()->format('Ymd_His') . '.csv';
+                    $fileName = 'auditoria_'.now()->format('Ymd_His').'.csv';
 
                     return response()->streamDownload(function () use ($query) {
                         $handle = fopen('php://output', 'w');
                         // UTF-8 BOM para Excel
-                        fwrite($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+                        fwrite($handle, chr(0xEF).chr(0xBB).chr(0xBF));
                         $delimiter = ';';
                         fputcsv($handle, [
-                            'Fecha', 'Evento', 'Descripción', 'Usuario', 'Guard', 'IP', 'Ruta', 'Método', 'Tenant', 'URL'
+                            'Fecha', 'Evento', 'Descripción', 'Usuario', 'Guard', 'IP', 'Ruta', 'Método', 'Tenant', 'URL',
                         ], $delimiter);
 
                         foreach ($query->cursor() as $row) {

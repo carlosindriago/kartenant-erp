@@ -1,14 +1,11 @@
 <?php
 
 use App\Models\PaymentProof;
-use App\Models\Tenant;
-use App\Models\TenantSubscription;
 use App\Models\PaymentTransaction;
-use App\Models\User;
-use App\Models\SubscriptionPlan;
+use App\Models\TenantSubscription;
 
 test('tenant subscription model can be instantiated', function () {
-    $subscription = new TenantSubscription();
+    $subscription = new TenantSubscription;
 
     expect($subscription)->toBeInstanceOf(TenantSubscription::class);
     expect($subscription->getConnectionName())->toBe('landlord');
@@ -16,7 +13,7 @@ test('tenant subscription model can be instantiated', function () {
 });
 
 test('tenant subscription has correct fillable attributes', function () {
-    $subscription = new TenantSubscription();
+    $subscription = new TenantSubscription;
     $fillable = $subscription->getFillable();
 
     $expectedFillable = [
@@ -43,7 +40,7 @@ test('tenant subscription has correct fillable attributes', function () {
 });
 
 test('tenant subscription has correct casts', function () {
-    $subscription = new TenantSubscription();
+    $subscription = new TenantSubscription;
     $casts = $subscription->getCasts();
 
     expect($casts)->toHaveKey('price');
@@ -63,7 +60,7 @@ test('tenant subscription has correct casts', function () {
 });
 
 test('payment transaction model can be instantiated', function () {
-    $transaction = new PaymentTransaction();
+    $transaction = new PaymentTransaction;
 
     expect($transaction)->toBeInstanceOf(PaymentTransaction::class);
     expect($transaction->getConnectionName())->toBe('landlord');
@@ -79,7 +76,7 @@ test('payment transaction has correct constants', function () {
 });
 
 test('payment transaction has correct fillable attributes', function () {
-    $transaction = new PaymentTransaction();
+    $transaction = new PaymentTransaction;
     $fillable = $transaction->getFillable();
 
     $expectedFillable = [
@@ -100,7 +97,7 @@ test('payment transaction has correct fillable attributes', function () {
 });
 
 test('payment transaction has correct casts', function () {
-    $transaction = new PaymentTransaction();
+    $transaction = new PaymentTransaction;
     $casts = $transaction->getCasts();
 
     expect($casts)->toHaveKey('amount');
@@ -113,9 +110,9 @@ test('payment transaction has correct casts', function () {
 });
 
 test('all billing models use landlord connection', function () {
-    $paymentProof = new PaymentProof();
-    $subscription = new TenantSubscription();
-    $transaction = new PaymentTransaction();
+    $paymentProof = new PaymentProof;
+    $subscription = new TenantSubscription;
+    $transaction = new PaymentTransaction;
 
     expect($paymentProof->getConnectionName())->toBe('landlord');
     expect($subscription->getConnectionName())->toBe('landlord');
@@ -123,7 +120,7 @@ test('all billing models use landlord connection', function () {
 });
 
 test('payment proof relationship methods exist', function () {
-    $paymentProof = new PaymentProof();
+    $paymentProof = new PaymentProof;
 
     expect(method_exists($paymentProof, 'tenant'))->toBeTrue();
     expect(method_exists($paymentProof, 'subscription'))->toBeTrue();
@@ -132,20 +129,20 @@ test('payment proof relationship methods exist', function () {
 });
 
 test('tenant subscription relationship methods exist', function () {
-    $subscription = new TenantSubscription();
+    $subscription = new TenantSubscription;
 
     expect(method_exists($subscription, 'tenant'))->toBeTrue();
 });
 
 test('payment transaction relationship methods exist', function () {
-    $transaction = new PaymentTransaction();
+    $transaction = new PaymentTransaction;
 
     expect(method_exists($transaction, 'tenant'))->toBeTrue();
     expect(method_exists($transaction, 'subscription'))->toBeTrue();
 });
 
 test('payment proof scopes exist', function () {
-    $paymentProof = new PaymentProof();
+    $paymentProof = new PaymentProof;
 
     expect(method_exists($paymentProof, 'scopePending'))->toBeTrue();
     expect(method_exists($paymentProof, 'scopeUnderReview'))->toBeTrue();
@@ -156,9 +153,9 @@ test('payment proof scopes exist', function () {
 });
 
 test('billing models use soft deletes where appropriate', function () {
-    $paymentProof = new PaymentProof();
-    $subscription = new TenantSubscription();
-    $transaction = new PaymentTransaction();
+    $paymentProof = new PaymentProof;
+    $subscription = new TenantSubscription;
+    $transaction = new PaymentTransaction;
 
     $paymentProofTraits = class_uses($paymentProof);
     $subscriptionTraits = class_uses($subscription);
@@ -183,9 +180,9 @@ test('payment proof validation constants are complete', function () {
 });
 
 test('billing models have proper table names', function () {
-    $paymentProof = new PaymentProof();
-    $subscription = new TenantSubscription();
-    $transaction = new PaymentTransaction();
+    $paymentProof = new PaymentProof;
+    $subscription = new TenantSubscription;
+    $transaction = new PaymentTransaction;
 
     expect($paymentProof->getTable())->toBe('payment_proofs');
     expect($subscription->getTable())->toBe('tenant_subscriptions');

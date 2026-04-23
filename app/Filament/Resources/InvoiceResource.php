@@ -3,8 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\InvoiceResource\Pages;
+use App\Mail\InvoiceEmail;
+use App\Mail\OverdueInvoiceReminder;
 use App\Models\Invoice;
+use App\Models\PaymentSettings;
 use App\Models\Tenant;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,8 +17,6 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Carbon;
 
 class InvoiceResource extends Resource
 {
@@ -265,7 +267,7 @@ class InvoiceResource extends Resource
                         'danger' => 'cancelled',
                         'info' => 'refunded',
                     ])
-                    ->formatStateUsing(fn ($state) => match($state) {
+                    ->formatStateUsing(fn ($state) => match ($state) {
                         'draft' => 'Borrador',
                         'sent' => 'Enviada',
                         'paid' => 'Pagada',
@@ -292,7 +294,7 @@ class InvoiceResource extends Resource
 
                 Tables\Columns\TextColumn::make('billing_cycle')
                     ->label('Ciclo')
-                    ->formatStateUsing(fn ($state) => match($state) {
+                    ->formatStateUsing(fn ($state) => match ($state) {
                         'monthly' => 'Mensual',
                         'yearly' => 'Anual',
                         default => $state,
@@ -462,14 +464,14 @@ class InvoiceResource extends Resource
         $pdf = Pdf::loadView('pdf.invoices.invoice', [
             'invoice' => $invoice,
             'tenant' => $invoice->tenant,
-            'settings' => \App\Models\PaymentSettings::getDefault(),
+            'settings' => PaymentSettings::getDefault(),
         ]);
 
         $filename = "invoices/{$invoice->invoice_number}.pdf";
 
         // Ensure directory exists
         $directory = dirname($filename);
-        if (!Storage::disk('public')->exists($directory)) {
+        if (! Storage::disk('public')->exists($directory)) {
             Storage::disk('public')->makeDirectory($directory);
         }
 
@@ -486,7 +488,7 @@ class InvoiceResource extends Resource
         try {
             $tenant = $invoice->tenant;
 
-            if (!$tenant->owner_email) {
+            if (! $tenant->owner_email) {
                 return false;
             }
 
@@ -495,7 +497,7 @@ class InvoiceResource extends Resource
 
             // Send email
             \Mail::to($tenant->owner_email)
-                ->send(new \App\Mail\InvoiceEmail($invoice, $pdfPath));
+                ->send(new InvoiceEmail($invoice, $pdfPath));
 
             // Mark as sent
             $invoice->update([
@@ -573,7 +575,7 @@ class InvoiceResource extends Resource
             'tax_amount' => $penaltyAmount * 0.16,
             'total_amount' => $penaltyAmount * 1.16,
             'currency' => $invoice->currency,
-            'plan_name' => 'Penalización - Factura ' . $invoice->invoice_number,
+            'plan_name' => 'Penalización - Factura '.$invoice->invoice_number,
             'billing_cycle' => 'once',
             'plan_price' => $penaltyAmount,
             'customer_data' => $invoice->customer_data,
@@ -599,7 +601,7 @@ class InvoiceResource extends Resource
 
             if ($tenant->owner_email) {
                 \Mail::to($tenant->owner_email)
-                    ->send(new \App\Mail\OverdueInvoiceReminder($invoice));
+                    ->send(new OverdueInvoiceReminder($invoice));
             }
         } catch (\Exception $e) {
             \Log::error('Error sending overdue reminder', [

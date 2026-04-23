@@ -1,5 +1,6 @@
 includes:
     - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
 
 parameters:
 
@@ -13,10 +14,5 @@ parameters:
     # Level 9 is the highest level
     level: 8
 
-    ignoreErrors:
-        - '#Unsafe usage of new static#'
-
     excludePaths:
         - ./*/*/FileToBeExcluded.php
-
-    checkMissingIterableValueType: false

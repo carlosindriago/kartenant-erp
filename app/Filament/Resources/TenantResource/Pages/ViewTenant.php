@@ -3,22 +3,18 @@
 namespace App\Filament\Resources\TenantResource\Pages;
 
 use App\Filament\Resources\TenantResource;
-use Filament\Resources\Pages\ViewRecord;
-use Filament\Infolists\Infolist;
-use Filament\Infolists\Components;
+use App\Models\User;
+use App\Services\TenantBackupService;
 use Filament\Actions;
-use Illuminate\Support\Facades\DB;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components;
+use Filament\Infolists\Infolist;
+use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Contracts\Mail\Mailer;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification as FilamentNotification;
-use App\Mail\WelcomeNewTenant;
-use App\Models\User;
-use App\Models\TenantActivity;
-use App\Models\BackupLog;
-use App\Services\TenantStatsService;
-use App\Services\TenantBackupService;
-use App\Services\TenantActivityService;
 
 class ViewTenant extends ViewRecord
 {
@@ -47,12 +43,12 @@ class ViewTenant extends ViewRecord
                                     ->size(80)
                                     ->circular()
                                     ->defaultImageUrl(fn ($record) => $record->logo_type === 'text'
-                                        ? 'data:image/svg+xml;base64,' . base64_encode(
+                                        ? 'data:image/svg+xml;base64,'.base64_encode(
                                             '<svg width="80" height="80" xmlns="http://www.w3.org/2000/svg">
-                                                <rect width="80" height="80" fill="' . ($record->logo_background_color ?? '#3B82F6') . '"/>
+                                                <rect width="80" height="80" fill="'.($record->logo_background_color ?? '#3B82F6').'"/>
                                                 <text x="40" y="45" font-family="Arial" font-size="24" font-weight="bold"
-                                                      text-anchor="middle" fill="' . ($record->logo_text_color ?? '#FFFFFF') . '">
-                                                    ' . strtoupper(substr($record->name, 0, 2)) . '
+                                                      text-anchor="middle" fill="'.($record->logo_text_color ?? '#FFFFFF').'">
+                                                    '.strtoupper(substr($record->name, 0, 2)).'
                                                 </text>
                                             </svg>'
                                         )
@@ -72,7 +68,7 @@ class ViewTenant extends ViewRecord
                                             ->label('Estado')
                                             ->badge()
                                             ->color(fn ($record) => $record->status_color)
-                                            ->formatStateUsing(fn ($state) => match($state) {
+                                            ->formatStateUsing(fn ($state) => match ($state) {
                                                 'active' => 'Activo ✅',
                                                 'trial' => 'En Prueba 🧪',
                                                 'suspended' => 'Suspendido ⚠️',
@@ -123,7 +119,7 @@ class ViewTenant extends ViewRecord
 
                                 Components\TextEntry::make('activeSubscription.billing_cycle')
                                     ->label('Ciclo de Facturación')
-                                    ->formatStateUsing(fn ($state) => match($state) {
+                                    ->formatStateUsing(fn ($state) => match ($state) {
                                         'monthly' => 'Mensual 📅',
                                         'yearly' => 'Anual 📆',
                                         default => $state,
@@ -135,14 +131,21 @@ class ViewTenant extends ViewRecord
                                     ->date('d/m/Y')
                                     ->placeholder('N/A')
                                     ->color(function ($record) {
-                                        if (!$record->activeSubscription || !$record->activeSubscription->ends_at) return 'gray';
+                                        if (! $record->activeSubscription || ! $record->activeSubscription->ends_at) {
+                                            return 'gray';
+                                        }
                                         $days = now()->diffInDays($record->activeSubscription->ends_at, false);
-                                        if ($days < 0) return 'danger';
-                                        if ($days <= 7) return 'warning';
+                                        if ($days < 0) {
+                                            return 'danger';
+                                        }
+                                        if ($days <= 7) {
+                                            return 'warning';
+                                        }
+
                                         return 'success';
                                     })
                                     ->formatStateUsing(function ($record) {
-                                        if (!$record->activeSubscription || !$record->activeSubscription->ends_at) {
+                                        if (! $record->activeSubscription || ! $record->activeSubscription->ends_at) {
                                             return null;
                                         }
 
@@ -164,14 +167,14 @@ class ViewTenant extends ViewRecord
                                     ->schema([
                                         Components\TextEntry::make('storage_used')
                                             ->label('Espacio Usado')
-                                            ->formatStateUsing(fn ($record) => TenantResource::getTenantStorageUsage(fn() => $record->database))
+                                            ->formatStateUsing(fn ($record) => TenantResource::getTenantStorageUsage(fn () => $record->database))
                                             ->icon('heroicon-o-server')
                                             ->size('lg')
                                             ->color('primary'),
 
                                         Components\TextEntry::make('file_count')
                                             ->label('Archivos')
-                                            ->formatStateUsing(fn ($record) => TenantResource::getTenantFileCount(fn() => $record->id))
+                                            ->formatStateUsing(fn ($record) => TenantResource::getTenantFileCount(fn () => $record->id))
                                             ->icon('heroicon-o-document'),
                                     ])
                                     ->compact(),
@@ -181,14 +184,14 @@ class ViewTenant extends ViewRecord
                                     ->schema([
                                         Components\TextEntry::make('user_count')
                                             ->label('Total Usuarios')
-                                            ->formatStateUsing(fn ($record) => TenantResource::getTenantUserCount(fn() => $record->id))
+                                            ->formatStateUsing(fn ($record) => TenantResource::getTenantUserCount(fn () => $record->id))
                                             ->icon('heroicon-o-users')
                                             ->size('lg')
                                             ->color('success'),
 
                                         Components\TextEntry::make('last_active')
                                             ->label('Última Actividad')
-                                            ->formatStateUsing(fn ($record) => TenantResource::getTenantLastActivity(fn() => $record->id))
+                                            ->formatStateUsing(fn ($record) => TenantResource::getTenantLastActivity(fn () => $record->id))
                                             ->icon('heroicon-o-clock')
                                             ->placeholder('Sin actividad'),
                                     ])
@@ -199,14 +202,14 @@ class ViewTenant extends ViewRecord
                                     ->schema([
                                         Components\TextEntry::make('product_count')
                                             ->label('Productos')
-                                            ->formatStateUsing(fn ($record) => TenantResource::getTenantProductCount(fn() => $record->database))
+                                            ->formatStateUsing(fn ($record) => TenantResource::getTenantProductCount(fn () => $record->database))
                                             ->icon('heroicon-o-cube')
                                             ->size('lg')
                                             ->color('info'),
 
                                         Components\TextEntry::make('sales_count')
                                             ->label('Ventas Totales')
-                                            ->formatStateUsing(fn ($record) => TenantResource::getTenantSalesCount(fn() => $record->database))
+                                            ->formatStateUsing(fn ($record) => TenantResource::getTenantSalesCount(fn () => $record->database))
                                             ->icon('heroicon-o-currency-dollar'),
                                     ])
                                     ->compact(),
@@ -216,14 +219,14 @@ class ViewTenant extends ViewRecord
                                     ->schema([
                                         Components\TextEntry::make('health_score')
                                             ->label('Salud del Sistema')
-                                            ->formatStateUsing(fn ($record) => TenantResource::calculateTenantHealthScore(fn() => $record))
+                                            ->formatStateUsing(fn ($record) => TenantResource::calculateTenantHealthScore(fn () => $record))
                                             ->icon('heroicon-o-heart')
                                             ->size('lg')
                                             ->color(fn ($state) => $state >= 80 ? 'success' : ($state >= 60 ? 'warning' : 'danger')),
 
                                         Components\TextEntry::make('api_calls_today')
                                             ->label('Llamadas API (Hoy)')
-                                            ->formatStateUsing(fn ($record) => TenantResource::getTenantApiCallsToday(fn() => $record->id))
+                                            ->formatStateUsing(fn ($record) => TenantResource::getTenantApiCallsToday(fn () => $record->id))
                                             ->icon('heroicon-o-chart-bar'),
                                     ])
                                     ->compact(),
@@ -252,7 +255,7 @@ class ViewTenant extends ViewRecord
 
                                 Components\TextEntry::make('locale')
                                     ->label('Idioma')
-                                    ->formatStateUsing(fn ($state) => match($state) {
+                                    ->formatStateUsing(fn ($state) => match ($state) {
                                         'es' => 'Español 🇪🇸',
                                         'en' => 'English 🇺🇸',
                                         'pt' => 'Português 🇧🇷',
@@ -312,7 +315,7 @@ class ViewTenant extends ViewRecord
                                     ]),
                             ])
                             ->columnSpanFull()
-                            ->hidden(fn ($record) => !$record->recentActivities()->exists()),
+                            ->hidden(fn ($record) => ! $record->recentActivities()->exists()),
                     ])
                     ->collapsible()
                     ->collapsed()
@@ -369,12 +372,13 @@ class ViewTenant extends ViewRecord
                     ->action(function () use ($tenant) {
                         $user = User::where('email', $tenant->contact_email)->first();
 
-                        if (!$user) {
+                        if (! $user) {
                             $this->showNotification(
                                 'Usuario no encontrado',
                                 "No se encontró un usuario con el email {$tenant->contact_email}",
                                 'danger'
                             );
+
                             return;
                         }
 
@@ -421,7 +425,7 @@ class ViewTenant extends ViewRecord
                         if ($result['success']) {
                             FilamentNotification::make()
                                 ->title('Backup Exitoso')
-                                ->body("Backup completado: {$tenant->database} (" . round($result['file_size'] / 1024 / 1024, 2) . " MB)")
+                                ->body("Backup completado: {$tenant->database} (".round($result['file_size'] / 1024 / 1024, 2).' MB)')
                                 ->success()
                                 ->send();
                         } else {
@@ -446,8 +450,8 @@ class ViewTenant extends ViewRecord
                         $users = $tenant->users;
 
                         foreach ($users as $user) {
-                            $lockoutKey = '2fa_lockout:' . $user->id;
-                            $attemptKey = '2fa_attempts:' . $user->id;
+                            $lockoutKey = '2fa_lockout:'.$user->id;
+                            $attemptKey = '2fa_attempts:'.$user->id;
 
                             if (Cache::has($lockoutKey)) {
                                 Cache::forget($lockoutKey);
@@ -500,15 +504,15 @@ class ViewTenant extends ViewRecord
                     ->modalDescription("Esta acción afectará el acceso del cliente. La tienda \"{$tenant->name}\" será desactivada y los usuarios no podrán acceder.")
                     ->modalSubmitActionLabel('Desactivar Tienda')
                     ->form([
-                        \Filament\Forms\Components\Textarea::make('reason')
+                        Textarea::make('reason')
                             ->label('Motivo de la desactivación')
                             ->required()
                             ->rows(3),
-                        \Filament\Forms\Components\TextInput::make('confirm_tenant_name')
+                        TextInput::make('confirm_tenant_name')
                             ->label('Confirmar nombre de la tienda')
                             ->required()
                             ->placeholder("Escribe: {$tenant->name}"),
-                        \Filament\Forms\Components\TextInput::make('admin_password')
+                        TextInput::make('admin_password')
                             ->label('Contraseña de Administrador')
                             ->required()
                             ->password()
@@ -521,16 +525,18 @@ class ViewTenant extends ViewRecord
                                 ->body('El nombre de la tienda no coincide.')
                                 ->danger()
                                 ->send();
+
                             return;
                         }
 
                         $admin = auth('superadmin')->user();
-                        if (!Hash::check($data['admin_password'], $admin->password)) {
+                        if (! Hash::check($data['admin_password'], $admin->password)) {
                             FilamentNotification::make()
                                 ->title('Error de Autenticación')
                                 ->body('La contraseña de administrador es incorrecta.')
                                 ->danger()
                                 ->send();
+
                             return;
                         }
 
@@ -570,7 +576,7 @@ class ViewTenant extends ViewRecord
         session()->flash('notification', [
             'title' => $title,
             'body' => $body,
-            'type' => $type
+            'type' => $type,
         ]);
     }
 
@@ -581,13 +587,13 @@ class ViewTenant extends ViewRecord
     {
         try {
             // Crear el mailer directamente para evitar el ChannelManager
-            $mailer = app(\Illuminate\Contracts\Mail\Mailer::class);
+            $mailer = app(Mailer::class);
 
             // Construir el email manualmente
             $emailContent = $this->buildWelcomeEmailContent($user, $tenant, $newPassword);
 
             // Enviar usando el mailer directamente
-            $mailer->raw($emailContent, function ($message) use ($user, $tenant) {
+            $mailer->raw($emailContent, function ($message) use ($user) {
                 $message->to($user->email, $user->name)
                     ->subject('¡Bienvenido a Emporio Digital!')
                     ->from(config('mail.from.address'), config('mail.from.name'));
@@ -598,11 +604,11 @@ class ViewTenant extends ViewRecord
             \Log::error('Error sending welcome email directly', [
                 'user_id' => $user->id,
                 'tenant_id' => $tenant->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             // Lanzar una excepción para que el usuario sepa que falló
-            throw new \Exception('No se pudo enviar el email de bienvenida: ' . $e->getMessage());
+            throw new \Exception('No se pudo enviar el email de bienvenida: '.$e->getMessage());
         }
     }
 
@@ -611,7 +617,7 @@ class ViewTenant extends ViewRecord
      */
     private function buildWelcomeEmailContent(User $user, Tenant $tenant, string $password): string
     {
-        $loginUrl = "https://{$tenant->domain}." . parse_url(config('app.url'), PHP_URL_HOST);
+        $loginUrl = "https://{$tenant->domain}.".parse_url(config('app.url'), PHP_URL_HOST);
 
         return "
 <!DOCTYPE html>

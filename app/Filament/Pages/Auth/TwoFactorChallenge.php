@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,6 +13,7 @@ namespace App\Filament\Pages\Auth;
 
 use App\Models\User;
 use App\Services\AuditLogger;
+use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -20,16 +21,17 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Http\Responses\Auth\Contracts\LoginResponse;
 use Filament\Notifications\Notification;
-use Filament\Pages\SimplePage;
 use Filament\Pages\Concerns\HasRoutes;
-use Illuminate\Support\Facades\Mail;
+use Filament\Pages\SimplePage;
 
 class TwoFactorChallenge extends SimplePage implements HasForms
 {
-    use InteractsWithForms, HasRoutes;
+    use HasRoutes, InteractsWithForms;
 
     protected static string $routePath = '/login/challenge';
+
     protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $title = 'Verificación de Dos Factores';
 
     // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
@@ -41,6 +43,7 @@ class TwoFactorChallenge extends SimplePage implements HasForms
     {
         if (! session('login.id') || ! ($user = User::find(session('login.id')))) {
             redirect(Filament::getPanel('admin')->getLoginUrl());
+
             return;
         }
         $this->form->fill();
@@ -55,11 +58,11 @@ class TwoFactorChallenge extends SimplePage implements HasForms
                 ->numeric()->required(),
         ])->statePath('data');
     }
-    
+
     protected function getFormActions(): array
     {
         return [
-            \Filament\Actions\Action::make('verify')
+            Action::make('verify')
                 ->label('Verificar e Iniciar Sesión')
                 ->submit('verify'),
         ];
@@ -70,7 +73,7 @@ class TwoFactorChallenge extends SimplePage implements HasForms
         $data = $this->form->getState();
         $user = User::find(session('login.id'));
 
-        if (!$user || ($user->locked_until && now()->lt($user->locked_until))) {
+        if (! $user || ($user->locked_until && now()->lt($user->locked_until))) {
             if ($user) {
                 AuditLogger::log(
                     subject: $user,
@@ -82,10 +85,11 @@ class TwoFactorChallenge extends SimplePage implements HasForms
                     properties: ['locked_until' => $user->locked_until]
                 );
             }
+
             return redirect(Filament::getPanel('admin')->getLoginUrl());
         }
 
-        if (!$user->two_factor_code || $data['code'] !== $user->two_factor_code || now()->gt($user->two_factor_expires_at)) {
+        if (! $user->two_factor_code || $data['code'] !== $user->two_factor_code || now()->gt($user->two_factor_expires_at)) {
             $user->increment('login_attempts');
             if ($user->login_attempts >= 3) {
                 $user->forceFill(['locked_until' => now()->addHour()])->save();
@@ -100,6 +104,7 @@ class TwoFactorChallenge extends SimplePage implements HasForms
                     guard: 'superadmin',
                     properties: ['attempts' => $user->login_attempts]
                 );
+
                 return redirect(Filament::getPanel('admin')->getLoginUrl());
             }
             AuditLogger::log(
@@ -115,6 +120,7 @@ class TwoFactorChallenge extends SimplePage implements HasForms
                 ]
             );
             Notification::make()->title('Código inválido o expirado.')->warning()->send();
+
             return;
         }
 

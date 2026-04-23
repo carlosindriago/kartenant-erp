@@ -2,19 +2,23 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Filament\App\Pages;
 
+use App\Models\BackupLog;
+use App\Models\BugReport;
+use App\Models\Tenant;
+use App\Models\TenantActivity;
+use App\Models\User;
 use App\Services\Dashboard\DashboardMetricsService;
 use App\Services\TenantStatsService;
 use Filament\Pages\Dashboard as BaseDashboard;
-use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Cache;
 
 class Dashboard extends BaseDashboard
@@ -32,7 +36,7 @@ class Dashboard extends BaseDashboard
      */
     public function getSubheading(): ?string
     {
-        return 'Resumen Ejecutivo - ' . now()->format('d/m/Y') . ' ' . now()->format('H:i');
+        return 'Resumen Ejecutivo - '.now()->format('d/m/Y').' '.now()->format('H:i');
     }
 
     /**
@@ -50,7 +54,7 @@ class Dashboard extends BaseDashboard
      * - Desktop: 3 columnas (vista panorámica completa)
      * - Large Desktop: 4 columnas (máxima densidad de información)
      */
-    public function getColumns(): int | string | array
+    public function getColumns(): int|string|array
     {
         return [
             'default' => 1,
@@ -65,11 +69,17 @@ class Dashboard extends BaseDashboard
     /**
      * Personalizar vista del dashboard con componentes corporativos
      */
-    public function getView(): View
+    public function getView(): string
     {
-        $data = $this->getDashboardData();
+        return 'filament.pages.corporate-dashboard';
+    }
 
-        return view('filament.pages.corporate-dashboard', $data);
+    /**
+     * Pasar datos a la vista del dashboard corporativo
+     */
+    protected function getViewData(): array
+    {
+        return $this->getDashboardData();
     }
 
     /**
@@ -77,7 +87,7 @@ class Dashboard extends BaseDashboard
      */
     protected function getDashboardData(): array
     {
-        $cacheKey = 'superadmin_dashboard_data_' . auth('superadmin')->id() . '_' . now()->format('Y-m-d-H');
+        $cacheKey = 'superadmin_dashboard_data_'.auth('superadmin')->id().'_'.now()->format('Y-m-d-H');
 
         return Cache::remember($cacheKey, 300, function () {
             $metricsService = app(DashboardMetricsService::class);
@@ -110,7 +120,7 @@ class Dashboard extends BaseDashboard
         $hour = now()->hour;
         $name = auth('superadmin')->user()->name ?? 'Administrador';
 
-        return match(true) {
+        return match (true) {
             $hour >= 5 && $hour < 12 => "☀️ Buenos días, {$name}",
             $hour >= 12 && $hour < 17 => "🌤️ Buenas tardes, {$name}",
             $hour >= 17 && $hour < 21 => "🌆 Buenas tardes, {$name}",
@@ -169,7 +179,7 @@ class Dashboard extends BaseDashboard
 
         // Verificar tenants con problemas críticos
         $criticalTenants = Cache::remember('critical_tenants_alert', 600, function () {
-            return \App\Models\Tenant::where('status', 'suspended')
+            return Tenant::where('status', 'suspended')
                 ->orWhere('status', 'expired')
                 ->count();
         });
@@ -187,7 +197,7 @@ class Dashboard extends BaseDashboard
 
         // Verificar backups fallidos
         $failedBackups = Cache::remember('failed_backups_count', 600, function () {
-            return \App\Models\BackupLog::where('status', 'failed')
+            return BackupLog::where('status', 'failed')
                 ->where('created_at', '>=', now()->subDays(1))
                 ->count();
         });
@@ -268,7 +278,7 @@ class Dashboard extends BaseDashboard
     private function getRecentActivities(): array
     {
         return Cache::remember('recent_superadmin_activities', 300, function () {
-            return \App\Models\TenantActivity::with('tenant', 'user')
+            return TenantActivity::with('tenant', 'user')
                 ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get()
@@ -309,11 +319,12 @@ class Dashboard extends BaseDashboard
     private function getTopPerformers(TenantStatsService $tenantStats): array
     {
         return Cache::remember('top_performing_tenants', 900, function () use ($tenantStats) {
-            return \App\Models\Tenant::where('status', 'active')
+            return Tenant::where('status', 'active')
                 ->get()
                 ->map(function ($tenant) use ($tenantStats) {
                     try {
                         $stats = $tenantStats->getTenantStats($tenant);
+
                         return [
                             'id' => $tenant->id,
                             'name' => $tenant->name,
@@ -358,18 +369,18 @@ class Dashboard extends BaseDashboard
     {
         return Cache::remember('tenant_distribution_stats', 600, function () {
             $distribution = [
-                'by_status' => \App\Models\Tenant::groupBy('status')
+                'by_status' => Tenant::groupBy('status')
                     ->selectRaw('status, COUNT(*) as count')
                     ->pluck('count', 'status')
                     ->toArray(),
-                'by_plan' => \App\Models\Tenant::join('tenant_subscriptions', 'tenants.id', '=', 'tenant_subscriptions.tenant_id')
+                'by_plan' => Tenant::join('tenant_subscriptions', 'tenants.id', '=', 'tenant_subscriptions.tenant_id')
                     ->join('subscription_plans', 'tenant_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
                     ->where('tenant_subscriptions.status', 'active')
                     ->groupBy('subscription_plans.name')
                     ->selectRaw('subscription_plans.name as plan_name, COUNT(*) as count')
                     ->pluck('count', 'plan_name')
                     ->toArray(),
-                'creation_trend' => \App\Models\Tenant::where('created_at', '>=', now()->subDays(30))
+                'creation_trend' => Tenant::where('created_at', '>=', now()->subDays(30))
                     ->groupByRaw('DATE(created_at)')
                     ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
                     ->orderBy('date')
@@ -378,10 +389,10 @@ class Dashboard extends BaseDashboard
             ];
 
             // Calcular porcentajes
-            $totalTenants = \App\Models\Tenant::count();
+            $totalTenants = Tenant::count();
             if ($totalTenants > 0) {
                 $distribution['by_status_percentages'] = array_map(
-                    fn($count) => round(($count / $totalTenants) * 100, 1),
+                    fn ($count) => round(($count / $totalTenants) * 100, 1),
                     $distribution['by_status']
                 );
             }
@@ -396,11 +407,11 @@ class Dashboard extends BaseDashboard
     private function getSupportTicketsOverview(): array
     {
         return [
-            'open_tickets' => \App\Models\BugReport::where('status', 'open')->count(),
-            'in_progress_tickets' => \App\Models\BugReport::where('status', 'in_progress')->count(),
-            'resolved_today' => \App\Models\BugReport::where('status', 'resolved')
+            'open_tickets' => BugReport::where('status', 'open')->count(),
+            'in_progress_tickets' => BugReport::where('status', 'in_progress')->count(),
+            'resolved_today' => BugReport::where('status', 'resolved')
                 ->whereDate('updated_at', today())->count(),
-            'critical_priority' => \App\Models\BugReport::where('priority', 'critical')
+            'critical_priority' => BugReport::where('priority', 'critical')
                 ->where('status', '!=', 'resolved')->count(),
             'average_resolution_time' => $this->calculateAverageResolutionTime(),
         ];
@@ -417,8 +428,8 @@ class Dashboard extends BaseDashboard
                 return rand(0, 10); // Placeholder
             }),
             'users_without_2fa' => Cache::remember('users_without_2fa', 600, function () {
-                return \App\Models\User::where('two_factor_secret', null)
-                    ->whereHas('tenant', fn($q) => $q->where('status', 'active'))
+                return User::where('two_factor_secret', null)
+                    ->whereHas('tenant', fn ($q) => $q->where('status', 'active'))
                     ->count();
             }),
             'expired_passwords' => 0, // Implementar si se requiere cambio de contraseña
@@ -477,7 +488,7 @@ class Dashboard extends BaseDashboard
 
     private function getActivityIcon(?string $action): string
     {
-        return match($action) {
+        return match ($action) {
             'create_tenant' => 'heroicon-o-plus-circle',
             'update_tenant' => 'heroicon-o-pencil',
             'delete_tenant' => 'heroicon-o-trash',
@@ -498,7 +509,7 @@ class Dashboard extends BaseDashboard
             'backup' => $this->checkBackupStatus(),
         ];
 
-        $healthyChecks = collect($checks)->filter(fn($status) => $status === 'healthy')->count();
+        $healthyChecks = collect($checks)->filter(fn ($status) => $status === 'healthy')->count();
 
         return (int) round(($healthyChecks / count($checks)) * 100);
     }
@@ -508,6 +519,7 @@ class Dashboard extends BaseDashboard
         try {
             \DB::connection('landlord')->select('SELECT 1');
             \DB::connection('tenant')->select('SELECT 1');
+
             return 'healthy';
         } catch (\Exception $e) {
             return 'unhealthy';
@@ -519,6 +531,7 @@ class Dashboard extends BaseDashboard
         try {
             Cache::put('health_check', 'ok', 60);
             $result = Cache::get('health_check') === 'ok';
+
             return $result ? 'healthy' : 'unhealthy';
         } catch (\Exception $e) {
             return 'unhealthy';
@@ -538,6 +551,7 @@ class Dashboard extends BaseDashboard
             file_put_contents($testFile, 'test');
             $result = file_exists($testFile);
             unlink($testFile);
+
             return $result ? 'healthy' : 'unhealthy';
         } catch (\Exception $e) {
             return 'unhealthy';
@@ -552,11 +566,17 @@ class Dashboard extends BaseDashboard
 
     private function checkBackupStatus(): string
     {
-        $latestBackup = \App\Models\BackupLog::latest()->first();
-        if (!$latestBackup) return 'warning';
+        $latestBackup = BackupLog::latest()->first();
+        if (! $latestBackup) {
+            return 'warning';
+        }
 
-        if ($latestBackup->status === 'failed') return 'unhealthy';
-        if ($latestBackup->created_at->diffInHours() > 48) return 'warning';
+        if ($latestBackup->status === 'failed') {
+            return 'unhealthy';
+        }
+        if ($latestBackup->created_at->diffInHours() > 48) {
+            return 'warning';
+        }
 
         return 'healthy';
     }
@@ -565,6 +585,7 @@ class Dashboard extends BaseDashboard
     {
         if (function_exists('sys_getloadavg')) {
             $load = sys_getloadavg();
+
             return [
                 '1min' => round($load[0] ?? 0, 2),
                 '5min' => round($load[1] ?? 0, 2),
@@ -577,7 +598,7 @@ class Dashboard extends BaseDashboard
 
     private function calculateAverageResolutionTime(): string
     {
-        $resolvedTickets = \App\Models\BugReport::where('status', 'resolved')
+        $resolvedTickets = BugReport::where('status', 'resolved')
             ->whereNotNull('resolved_at')
             ->where('resolved_at', '>=', now()->subDays(30))
             ->get();
@@ -593,11 +614,11 @@ class Dashboard extends BaseDashboard
         $averageHours = $totalHours / $resolvedTickets->count();
 
         if ($averageHours < 1) {
-            return round($averageHours * 60) . ' min';
+            return round($averageHours * 60).' min';
         } elseif ($averageHours < 24) {
-            return round($averageHours, 1) . ' hrs';
+            return round($averageHours, 1).' hrs';
         } else {
-            return round($averageHours / 24, 1) . ' días';
+            return round($averageHours / 24, 1).' días';
         }
     }
 
@@ -639,6 +660,7 @@ class Dashboard extends BaseDashboard
 
         if ($totalSpace && $freeSpace) {
             $usedSpace = $totalSpace - $freeSpace;
+
             return [
                 'total' => round($totalSpace / 1024 / 1024 / 1024, 2),
                 'used' => round($usedSpace / 1024 / 1024 / 1024, 2),

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Services\ErrorMonitoringService;
 use Illuminate\Console\Command;
+use Illuminate\Database\QueryException;
 use RuntimeException;
 
 class TestErrorMonitoring extends Command
@@ -19,7 +20,7 @@ class TestErrorMonitoring extends Command
         $this->info('🧪 Testing Error Monitoring System...');
         $this->newLine();
 
-        match($type) {
+        match ($type) {
             'critical' => $this->testCriticalError($errorMonitoring),
             'warning' => $this->testWarning($errorMonitoring),
             'database' => $this->testDatabaseError($errorMonitoring),
@@ -37,7 +38,7 @@ class TestErrorMonitoring extends Command
         $this->warn('Generating CRITICAL error test...');
 
         $exception = new RuntimeException(
-            'This is a TEST critical error from Kartenant monitoring system. ' .
+            'This is a TEST critical error from Kartenant monitoring system. '.
             'If you see this in Slack, your error monitoring is working correctly!'
         );
 
@@ -75,7 +76,7 @@ class TestErrorMonitoring extends Command
     {
         $this->warn('Generating DATABASE error test...');
 
-        $exception = new \Illuminate\Database\QueryException(
+        $exception = new QueryException(
             'landlord',
             'SELECT * FROM test_table',
             [],

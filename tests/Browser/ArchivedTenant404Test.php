@@ -2,8 +2,9 @@
 
 namespace Tests\Browser;
 
-use App\Models\User;
 use App\Models\Tenant;
+use App\Models\User;
+use Facebook\WebDriver\Exception\NoSuchElementException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Dusk\Browser;
@@ -20,13 +21,13 @@ class ArchivedTenant404Test extends DuskTestCase
         // Run landlord migrations
         $this->artisan('migrate', [
             '--database' => 'landlord',
-            '--path' => 'database/migrations/landlord'
+            '--path' => 'database/migrations/landlord',
         ]);
 
         // Seed landlord database
         $this->artisan('db:seed', [
             '--class' => 'Database\\Seeders\\LandlordAdminSeeder',
-            '--database' => 'landlord'
+            '--database' => 'landlord',
         ]);
     }
 
@@ -78,43 +79,43 @@ class ArchivedTenant404Test extends DuskTestCase
         $this->assertEquals(Tenant::STATUS_ARCHIVED, $tenant->status);
 
         // Step 4: Simulate user journey to archived tenant page
-        $this->browse(function (Browser $browser) use ($superAdmin, $tenant) {
+        $this->browse(function (Browser $browser) use ($tenant) {
             $browser->resize(1920, 1080)
-                    ->visit('/admin/login')
-                    ->assertSee('Iniciar Sesión')
-                    ->type('email', 'superadmin@test.com')
-                    ->type('password', 'password')
-                    ->press('Entrar')
-                    ->waitForLocation('/admin', 10)
-                    ->assertPathIs('/admin')
-                    ->assertSee('Panel de Administración');
+                ->visit('/admin/login')
+                ->assertSee('Iniciar Sesión')
+                ->type('email', 'superadmin@test.com')
+                ->type('password', 'password')
+                ->press('Entrar')
+                ->waitForLocation('/admin', 10)
+                ->assertPathIs('/admin')
+                ->assertSee('Panel de Administración');
 
             // Navigate directly to the archived tenant view page
             $viewUrl = "/admin/archived-tenants/{$tenant->id}";
 
             $browser->visit($viewUrl)
-                    ->pause(2000); // Wait for page to load
+                ->pause(2000); // Wait for page to load
 
             // Step 5: ASSERT - Check if we see "404" or "Not Found"
             try {
                 // Check if we got a 404 error page
                 $browser->assertSee('404')
-                        ->screenshot('archived_tenant_404_error_confirmed');
+                    ->screenshot('archived_tenant_404_error_confirmed');
 
                 // If we see 404, the issue is confirmed
-                $this->assertTrue(true, "CONFIRMED: Archived tenant view returns 404 error");
+                $this->assertTrue(true, 'CONFIRMED: Archived tenant view returns 404 error');
 
-            } catch (\Facebook\WebDriver\Exception\NoSuchElementException $e) {
+            } catch (NoSuchElementException $e) {
                 // Check if we can see the archived tenant details instead
                 try {
                     $browser->assertSee('Detalles del Tenant Archivado')
-                            ->assertSee('Ghost Store')
-                            ->screenshot('archived_tenant_view_works_correctly');
+                        ->assertSee('Ghost Store')
+                        ->screenshot('archived_tenant_view_works_correctly');
 
                     // If we see the archived tenant details, the issue is NOT present
-                    $this->assertTrue(true, "CANNOT REPRODUCE: Archived tenant view works correctly");
+                    $this->assertTrue(true, 'CANNOT REPRODUCE: Archived tenant view works correctly');
 
-                } catch (\Facebook\WebDriver\Exception\NoSuchElementException $e2) {
+                } catch (NoSuchElementException $e2) {
                     // If we don't see 404 or the tenant details, check for any other error indicators
                     $browser->screenshot('archived_tenant_unknown_state');
 
@@ -164,18 +165,18 @@ class ArchivedTenant404Test extends DuskTestCase
 
         $tenant->delete(); // Soft delete
 
-        $this->browse(function (Browser $browser) use ($superAdmin) {
+        $this->browse(function (Browser $browser) {
             $browser->resize(1920, 1080)
-                    ->visit('/admin/login')
-                    ->type('email', 'superadmin@test.com')
-                    ->type('password', 'password')
-                    ->press('Entrar')
-                    ->waitForLocation('/admin', 10)
-                    ->visit('/admin/archived-tenants')
-                    ->pause(2000)
-                    ->assertSee('Tenants Archivados')
-                    ->assertSee('List Test Store')
-                    ->screenshot('archived_tenants_list_works');
+                ->visit('/admin/login')
+                ->type('email', 'superadmin@test.com')
+                ->type('password', 'password')
+                ->press('Entrar')
+                ->waitForLocation('/admin', 10)
+                ->visit('/admin/archived-tenants')
+                ->pause(2000)
+                ->assertSee('Tenants Archivados')
+                ->assertSee('List Test Store')
+                ->screenshot('archived_tenants_list_works');
         });
     }
 
@@ -207,30 +208,30 @@ class ArchivedTenant404Test extends DuskTestCase
             $tenants[] = $tenant;
         }
 
-        $this->browse(function (Browser $browser) use ($superAdmin, $tenants) {
+        $this->browse(function (Browser $browser) use ($tenants) {
             $browser->resize(1920, 1080)
-                    ->visit('/admin/login')
-                    ->type('email', 'superadmin@test.com')
-                    ->type('password', 'password')
-                    ->press('Entrar')
-                    ->waitForLocation('/admin', 10);
+                ->visit('/admin/login')
+                ->type('email', 'superadmin@test.com')
+                ->type('password', 'password')
+                ->press('Entrar')
+                ->waitForLocation('/admin', 10);
 
             foreach ($tenants as $index => $tenant) {
                 $viewUrl = "/admin/archived-tenants/{$tenant->id}";
 
                 $browser->visit($viewUrl)
-                        ->pause(2000)
-                        ->screenshot("archived_tenant_" . ($index + 1) . "_view_test");
+                    ->pause(2000)
+                    ->screenshot('archived_tenant_'.($index + 1).'_view_test');
 
                 try {
                     $browser->assertSee('404');
                     $this->assertTrue(true, "Tenant {$tenant->name} returns 404");
-                } catch (\Facebook\WebDriver\Exception\NoSuchElementException $e) {
+                } catch (NoSuchElementException $e) {
                     try {
                         $browser->assertSee('Detalles del Tenant Archivado')
-                                ->assertSee($tenant->name);
+                            ->assertSee($tenant->name);
                         $this->assertTrue(true, "Tenant {$tenant->name} loads correctly");
-                    } catch (\Facebook\WebDriver\Exception\NoSuchElementException $e2) {
+                    } catch (NoSuchElementException $e2) {
                         $this->fail("Tenant {$tenant->name} shows unexpected state");
                     }
                 }

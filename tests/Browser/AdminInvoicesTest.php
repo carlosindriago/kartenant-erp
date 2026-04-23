@@ -14,18 +14,18 @@ class AdminInvoicesTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit('https://emporiodigital.test/admin/login')
-                    ->waitForText('Iniciar sesión', 10)
-                    ->assertSee('Iniciar sesión')
-                    ->type('email', 'admin@emporiodigital.com')
-                    ->type('password', 'password')
-                    ->press('Ingresar')
-                    ->waitForLocation('/admin', 15)
-                    ->assertPathIs('/admin')
-                    ->visit('/admin/invoices')
-                    ->waitForText('Facturas', 15)
-                    ->assertSee('Facturas')
-                    ->assertSeeIn('h1', 'Facturas')
-                    ->screenshot('admin-invoices-list');
+                ->waitForText('Iniciar sesión', 10)
+                ->assertSee('Iniciar sesión')
+                ->type('email', 'admin@emporiodigital.com')
+                ->type('password', 'password')
+                ->press('Ingresar')
+                ->waitForLocation('/admin', 15)
+                ->assertPathIs('/admin')
+                ->visit('/admin/invoices')
+                ->waitForText('Facturas', 15)
+                ->assertSee('Facturas')
+                ->assertSeeIn('h1', 'Facturas')
+                ->screenshot('admin-invoices-list');
         });
     }
 
@@ -36,18 +36,18 @@ class AdminInvoicesTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit('https://emporiodigital.test/admin/login')
-                    ->waitForText('Iniciar sesión', 10)
-                    ->type('email', 'admin@emporiodigital.com')
-                    ->type('password', 'password')
-                    ->press('Ingresar')
-                    ->waitForLocation('/admin', 15)
-                    ->assertPathIs('/admin')
-                    ->waitForText('Facturación', 10)
-                    ->clickLink('Facturas')
-                    ->waitForLocation('/admin/invoices', 10)
-                    ->assertPathIs('/admin/invoices')
-                    ->assertSee('Facturas')
-                    ->screenshot('admin-invoices-navigation');
+                ->waitForText('Iniciar sesión', 10)
+                ->type('email', 'admin@emporiodigital.com')
+                ->type('password', 'password')
+                ->press('Ingresar')
+                ->waitForLocation('/admin', 15)
+                ->assertPathIs('/admin')
+                ->waitForText('Facturación', 10)
+                ->clickLink('Facturas')
+                ->waitForLocation('/admin/invoices', 10)
+                ->assertPathIs('/admin/invoices')
+                ->assertSee('Facturas')
+                ->screenshot('admin-invoices-navigation');
         });
     }
 
@@ -58,18 +58,18 @@ class AdminInvoicesTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit('https://emporiodigital.test/admin/login')
-                    ->waitForText('Iniciar sesión', 10)
-                    ->type('email', 'admin@emporiodigital.com')
-                    ->type('password', 'password')
-                    ->press('Ingresar')
-                    ->waitForLocation('/admin', 15)
-                    ->assertPathIs('/admin')
-                    ->visit('/admin/invoices/create')
-                    ->waitForText('Crear Factura', 15)
-                    ->assertSee('Crear Factura')
-                    ->assertSee('Información General')
-                    ->assertSee('Número de Factura')
-                    ->screenshot('admin-invoices-create');
+                ->waitForText('Iniciar sesión', 10)
+                ->type('email', 'admin@emporiodigital.com')
+                ->type('password', 'password')
+                ->press('Ingresar')
+                ->waitForLocation('/admin', 15)
+                ->assertPathIs('/admin')
+                ->visit('/admin/invoices/create')
+                ->waitForText('Crear Factura', 15)
+                ->assertSee('Crear Factura')
+                ->assertSee('Información General')
+                ->assertSee('Número de Factura')
+                ->screenshot('admin-invoices-create');
         });
     }
 
@@ -80,10 +80,10 @@ class AdminInvoicesTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit('https://emporiodigital.test/admin/invoices')
-                    ->waitForLocation('/admin/login', 10)
-                    ->assertPathIs('/admin/login')
-                    ->assertSee('Iniciar sesión')
-                    ->screenshot('admin-invoices-unauthenticated');
+                ->waitForLocation('/admin/login', 10)
+                ->assertPathIs('/admin/login')
+                ->assertSee('Iniciar sesión')
+                ->screenshot('admin-invoices-unauthenticated');
         });
     }
 
@@ -94,19 +94,19 @@ class AdminInvoicesTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit('https://emporiodigital.test/admin/login')
-                    ->waitForText('Iniciar sesión', 10)
-                    ->type('email', 'admin@emporiodigital.com')
-                    ->type('password', 'password')
-                    ->press('Ingresar')
-                    ->waitForLocation('/admin', 15)
-                    ->assertPathIs('/admin')
-                    ->visit('/admin/invoices')
-                    ->waitForText('Facturas', 15)
-                    ->assertSee('Facturas');
+                ->waitForText('Iniciar sesión', 10)
+                ->type('email', 'admin@emporiodigital.com')
+                ->type('password', 'password')
+                ->press('Ingresar')
+                ->waitForLocation('/admin', 15)
+                ->assertPathIs('/admin')
+                ->visit('/admin/invoices')
+                ->waitForText('Facturas', 15)
+                ->assertSee('Facturas');
 
             // Check for JavaScript errors
             $errors = $browser->driver->manage()->getLog('browser');
-            $this->assertEmpty($errors, 'JavaScript errors found: ' . json_encode($errors));
+            $this->assertEmpty($errors, 'JavaScript errors found: '.json_encode($errors));
         });
     }
 }

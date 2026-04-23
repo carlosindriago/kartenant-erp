@@ -2,9 +2,9 @@
 
 namespace Tests\Browser;
 
+use App\Models\Tenant;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
-use App\Models\Tenant;
 
 class TenantEditPageSimpleTest extends DuskTestCase
 {
@@ -16,8 +16,9 @@ class TenantEditPageSimpleTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $tenant = Tenant::where('domain', 'data-protection-test-1764024534')->first();
 
-            if (!$tenant) {
+            if (! $tenant) {
                 $this->markTestSkipped('Test tenant not found');
+
                 return;
             }
 
@@ -34,6 +35,7 @@ class TenantEditPageSimpleTest extends DuskTestCase
                 $currentUrl = $browser->driver->getCurrentURL();
                 if (str_contains($currentUrl, '/admin/login')) {
                     $this->assertTrue(true, 'Correctly redirected to login page - no 500 error');
+
                     return;
                 }
 
@@ -52,7 +54,7 @@ class TenantEditPageSimpleTest extends DuskTestCase
                 if (str_contains($e->getMessage(), '500') ||
                     str_contains($e->getMessage(), 'TypeError') ||
                     str_contains($e->getMessage(), 'component')) {
-                    $this->fail('Component error detected: ' . $e->getMessage());
+                    $this->fail('Component error detected: '.$e->getMessage());
                 } else {
                     // Redirect or navigation error is acceptable
                     $this->assertTrue(true, 'No component errors detected');

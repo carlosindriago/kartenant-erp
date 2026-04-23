@@ -1,20 +1,38 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\HealthCheckController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\LandingPageController;
-use App\Http\Controllers\TenantLandingController;
+use App\Filament\App\Pages\Auth\ForgotPassword;
+use App\Filament\App\Pages\Auth\ResetPassword;
+use App\Filament\App\Pages\Auth\SecurityQuestionsReset;
+use App\Filament\App\Pages\Auth\SetupSecurityQuestions;
+use App\Filament\App\Pages\Auth\VerifySecurityCode;
 use App\Filament\Pages\Auth\TwoFactorChallenge;
+use App\Http\Controllers\DebugLogController;
+use App\Http\Controllers\HealthCheckController;
+use App\Http\Controllers\LandingPageController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Tenant\BugReportController;
+use App\Http\Controllers\Tenant\CreditNoteController;
+use App\Http\Controllers\Tenant\InternalVerificationController;
+use App\Http\Controllers\Tenant\POSReceiptController;
+use App\Http\Controllers\Tenant\StockMovementController;
+use App\Http\Controllers\TenantLandingController;
+use App\Http\Controllers\VerificationController;
+use App\Http\Middleware\AuthenticateTenantUser;
+use App\Http\Middleware\CheckVerificationAccess;
+use App\Http\Middleware\MakeSpatieTenantCurrent;
+use App\Http\Middleware\RequireInternalVerificationPermission;
+use App\Http\Middleware\VerificationSecurityMiddleware;
+use App\Livewire\POS\PointOfSale;
+use Filament\Http\Middleware\DisableBladeIconComponents;
+use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Http\Middleware\SetUpPanel;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Filament\Http\Middleware\DisableBladeIconComponents;
-use Filament\Http\Middleware\DispatchServingFilamentEvent;
 
 // Health Check endpoint for monitoring (no auth required)
 Route::get('/health', HealthCheckController::class)->name('health');
@@ -40,90 +58,90 @@ Route::domain('{tenant}.kartenant.test')->group(function () {
     })->name('tenant.login.redirect.short');
 
     // Forgot password flow routes
-    Route::get('/forgot-password', \App\Filament\App\Pages\Auth\ForgotPassword::class)
+    Route::get('/forgot-password', ForgotPassword::class)
         ->name('tenant.forgot-password');
-    Route::get('/verify-security-code', \App\Filament\App\Pages\Auth\VerifySecurityCode::class)
+    Route::get('/verify-security-code', VerifySecurityCode::class)
         ->name('tenant.verify-security-code');
-    Route::get('/security-questions-reset', \App\Filament\App\Pages\Auth\SecurityQuestionsReset::class)
+    Route::get('/security-questions-reset', SecurityQuestionsReset::class)
         ->name('tenant.security-questions-reset');
-    Route::get('/reset-password', \App\Filament\App\Pages\Auth\ResetPassword::class)
+    Route::get('/reset-password', ResetPassword::class)
         ->name('tenant.reset-password');
-    
+
     // Security questions setup route
-    Route::get('/setup-security-questions', \App\Filament\App\Pages\Auth\SetupSecurityQuestions::class)
+    Route::get('/setup-security-questions', SetupSecurityQuestions::class)
         ->name('tenant.setup-security-questions');
-    
+
     // POS Terminal - Fullscreen experience outside Filament
-    Route::get('/pos', \App\Livewire\POS\PointOfSale::class)
+    Route::get('/pos', PointOfSale::class)
         ->middleware([
             'web',
-            \App\Http\Middleware\MakeSpatieTenantCurrent::class,
-            \App\Http\Middleware\AuthenticateTenantUser::class
+            MakeSpatieTenantCurrent::class,
+            AuthenticateTenantUser::class,
         ])
         ->name('tenant.pos');
-    
+
     // POS Receipt Routes - PDF y Print
     Route::middleware([
         'web',
-        \App\Http\Middleware\MakeSpatieTenantCurrent::class,
-        \App\Http\Middleware\AuthenticateTenantUser::class
+        MakeSpatieTenantCurrent::class,
+        AuthenticateTenantUser::class,
     ])->prefix('pos/receipt')->name('tenant.pos.receipt.')->group(function () {
-        Route::get('/{sale}/pdf', [\App\Http\Controllers\Tenant\POSReceiptController::class, 'downloadPDF'])
+        Route::get('/{sale}/pdf', [POSReceiptController::class, 'downloadPDF'])
             ->name('pdf')
             ->whereNumber('sale');
-        Route::get('/{sale}/print', [\App\Http\Controllers\Tenant\POSReceiptController::class, 'print'])
+        Route::get('/{sale}/print', [POSReceiptController::class, 'print'])
             ->name('print')
             ->whereNumber('sale');
     });
-    
+
     // Credit Note Routes - PDF para Notas de Crédito (Devoluciones)
     Route::middleware([
         'web',
-        \App\Http\Middleware\MakeSpatieTenantCurrent::class,
-        \App\Http\Middleware\AuthenticateTenantUser::class
+        MakeSpatieTenantCurrent::class,
+        AuthenticateTenantUser::class,
     ])->prefix('pos/credit-note')->name('tenant.pos.credit-note.')->group(function () {
-        Route::get('/{saleReturn}/pdf', [\App\Http\Controllers\Tenant\CreditNoteController::class, 'download'])
+        Route::get('/{saleReturn}/pdf', [CreditNoteController::class, 'download'])
             ->name('pdf')
             ->whereNumber('saleReturn');
-        Route::get('/{saleReturn}/view', [\App\Http\Controllers\Tenant\CreditNoteController::class, 'view'])
+        Route::get('/{saleReturn}/view', [CreditNoteController::class, 'view'])
             ->name('view')
             ->whereNumber('saleReturn');
     });
-    
+
     // Stock Movement Routes - PDF para Movimientos de Inventario
     Route::middleware([
         'web',
-        \App\Http\Middleware\MakeSpatieTenantCurrent::class,
-        \App\Http\Middleware\AuthenticateTenantUser::class
+        MakeSpatieTenantCurrent::class,
+        AuthenticateTenantUser::class,
     ])->prefix('stock-movements')->name('tenant.stock-movements.')->group(function () {
-        Route::get('/{movement}/download', [\App\Http\Controllers\Tenant\StockMovementController::class, 'download'])
+        Route::get('/{movement}/download', [StockMovementController::class, 'download'])
             ->name('download')
             ->whereNumber('movement');
     });
-    
+
     // Internal Verification Routes - Verificación de documentos internos (requiere autenticación)
     Route::middleware([
         'web',
-        \App\Http\Middleware\MakeSpatieTenantCurrent::class,
-        \App\Http\Middleware\AuthenticateTenantUser::class,
-        \App\Http\Middleware\RequireInternalVerificationPermission::class
+        MakeSpatieTenantCurrent::class,
+        AuthenticateTenantUser::class,
+        RequireInternalVerificationPermission::class,
     ])->prefix('app/internal-verify')->name('tenant.internal-verification.')->group(function () {
-        Route::get('/{hash}', [\App\Http\Controllers\Tenant\InternalVerificationController::class, 'show'])
+        Route::get('/{hash}', [InternalVerificationController::class, 'show'])
             ->name('show');
-        Route::get('/{hash}/pdf', [\App\Http\Controllers\Tenant\InternalVerificationController::class, 'downloadPdf'])
+        Route::get('/{hash}/pdf', [InternalVerificationController::class, 'downloadPdf'])
             ->name('pdf');
-        Route::post('/{hash}/verify', [\App\Http\Controllers\Tenant\InternalVerificationController::class, 'verify'])
+        Route::post('/{hash}/verify', [InternalVerificationController::class, 'verify'])
             ->name('verify');
     });
 
     // Bug Report Route - Reporte de problemas desde el panel del tenant
     // Uses tenant guard for authentication (same as Filament app panel)
-    Route::post('/app/bug-report', [\App\Http\Controllers\Tenant\BugReportController::class, 'submit'])
+    Route::post('/app/bug-report', [BugReportController::class, 'submit'])
         ->middleware(['web', 'auth:tenant'])
         ->name('tenant.bug-report');
 
     // Debug Log Route - Para diagnosticar problemas de navegación
-    Route::post('/app/debug-log', [\App\Http\Controllers\DebugLogController::class, 'store'])
+    Route::post('/app/debug-log', [DebugLogController::class, 'store'])
         ->middleware(['web'])
         ->name('tenant.debug-log');
 });
@@ -132,13 +150,13 @@ Route::domain('{tenant}.kartenant.test')->group(function () {
 Route::prefix('verify')
     ->name('verify.')
     ->middleware([
-        \App\Http\Middleware\VerificationSecurityMiddleware::class, // Protección contra ataques
-        \App\Http\Middleware\CheckVerificationAccess::class,        // Control de acceso
+        VerificationSecurityMiddleware::class, // Protección contra ataques
+        CheckVerificationAccess::class,        // Control de acceso
     ])
     ->group(function () {
-        Route::get('/', [\App\Http\Controllers\VerificationController::class, 'index'])->name('index');
-        Route::get('/{hash}', [\App\Http\Controllers\VerificationController::class, 'verify'])->name('hash');
-        Route::post('/api', [\App\Http\Controllers\VerificationController::class, 'verifyApi'])->name('api');
+        Route::get('/', [VerificationController::class, 'index'])->name('index');
+        Route::get('/{hash}', [VerificationController::class, 'verify'])->name('hash');
+        Route::post('/api', [VerificationController::class, 'verifyApi'])->name('api');
     });
 
 Route::get('/dashboard', function () {
@@ -155,7 +173,7 @@ require __DIR__.'/auth.php';
 
 // Ruta pública para el desafío 2FA del panel admin (sin middleware de autenticación)
 Route::middleware([
-    SetUpPanel::class . ':admin',
+    SetUpPanel::class.':admin',
     EncryptCookies::class,
     AddQueuedCookiesToResponse::class,
     StartSession::class,

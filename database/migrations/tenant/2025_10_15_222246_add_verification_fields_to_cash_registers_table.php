@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::connection('tenant')->hasColumn('cash_registers', 'verification_hash')) {
+        if (! Schema::connection('tenant')->hasColumn('cash_registers', 'verification_hash')) {
             Schema::connection('tenant')->table('cash_registers', function (Blueprint $table) {
                 // Campos para verificación interna
                 $table->string('verification_hash')->nullable()->unique()->after('forced_reason');

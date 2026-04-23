@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\Multitenancy\SpatiePermissionsBootstrapper;
+use App\Services\Multitenancy\TenantTimezoneBootstrapper;
 use Illuminate\Broadcasting\BroadcastEvent;
 use Illuminate\Events\CallQueuedListener;
 use Illuminate\Mail\SendQueuedMailable;
@@ -10,6 +12,7 @@ use Spatie\Multitenancy\Actions\MakeQueueTenantAwareAction;
 use Spatie\Multitenancy\Actions\MakeTenantCurrentAction;
 use Spatie\Multitenancy\Actions\MigrateTenantAction;
 use Spatie\Multitenancy\Models\Tenant;
+use Spatie\Multitenancy\Tasks\SwitchTenantDatabaseTask;
 
 return [
     /*
@@ -17,7 +20,7 @@ return [
      * for the given request.
      *
      * This class should extend `Spatie\Multitenancy\TenantFinder\TenantFinder`
-     * 
+     *
      * NOTE: Set to null to disable automatic tenant resolution
      * Tenant resolution is handled by MakeSpatieTenantCurrent middleware
      * which is ONLY applied in AppPanelProvider (tenant panel)
@@ -38,9 +41,9 @@ return [
      */
     'switch_tenant_tasks' => [
         // \Spatie\Multitenancy\Tasks\PrefixCacheTask::class,
-         \Spatie\Multitenancy\Tasks\SwitchTenantDatabaseTask::class,
-         \App\Services\Multitenancy\SpatiePermissionsBootstrapper::class,
-         \App\Services\Multitenancy\TenantTimezoneBootstrapper::class,
+        SwitchTenantDatabaseTask::class,
+        SpatiePermissionsBootstrapper::class,
+        TenantTimezoneBootstrapper::class,
         // \Spatie\Multitenancy\Tasks\SwitchRouteCacheTask::class,
     ],
 
@@ -50,7 +53,7 @@ return [
      * It must  extend `Spatie\Multitenancy\Models\Tenant::class` or
      * implement `Spatie\Multitenancy\Contracts\IsTenant::class` interface
      */
-    'tenant_model' => \App\Models\Tenant::class,
+    'tenant_model' => App\Models\Tenant::class,
 
     /*
      * If there is a current tenant when dispatching a job, the id of the current tenant

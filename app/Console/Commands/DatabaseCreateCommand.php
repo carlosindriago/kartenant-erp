@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -48,6 +48,7 @@ class DatabaseCreateCommand extends Command
         } catch (\Exception $e) {
             // Si algo sale mal (ej: la DB ya existe), atrapamos el error.
             $this->error($e->getMessage());
+
             return 1; // Retornamos un código de error.
         }
 

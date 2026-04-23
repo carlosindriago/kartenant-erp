@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\PaymentProof;
+use App\Models\PaymentSettings;
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
 use App\Models\User;
-use App\Models\PaymentProof;
-use App\Models\PaymentSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
@@ -19,16 +19,17 @@ use Tests\TestCase;
  *
  * Tests all billing API endpoints for proper functionality,
  * security, and tenant isolation
- *
- * @package Tests\Feature\Api
  */
 class TenantBillingApiTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 
     private Tenant $tenant;
+
     private User $user;
+
     private string $token;
+
     private TenantSubscription $subscription;
 
     protected function setUp(): void

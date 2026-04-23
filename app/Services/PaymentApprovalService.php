@@ -2,22 +2,19 @@
 
 namespace App\Services;
 
-use App\Models\PaymentProof;
-use App\Models\PaymentTransaction;
-use App\Models\TenantSubscription;
 use App\Models\Invoice;
-use App\Models\User;
+use App\Models\PaymentProof;
 use App\Models\Tenant;
-use App\Settings\PaymentSettings;
-use App\Settings\BillingSettings;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Notification;
+use App\Models\User;
 use App\Notifications\PaymentProofApproved;
 use App\Notifications\PaymentProofRejected;
 use App\Notifications\SubscriptionActivated;
+use App\Settings\BillingSettings;
+use App\Settings\PaymentSettings;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class PaymentApprovalService
 {
@@ -80,6 +77,7 @@ class PaymentApprovalService
                 'Tiempo de aprobación excedido',
                 'La prueba de pago fue rechazada automáticamente por superar el tiempo límite de aprobación.'
             );
+
             return;
         }
 
@@ -126,7 +124,7 @@ class PaymentApprovalService
 
             // Validate payment proof data
             $validation = $this->validatePaymentProof($paymentProof);
-            if (!$validation['valid']) {
+            if (! $validation['valid']) {
                 return $this->rejectPaymentProof(
                     $paymentProof,
                     $approver,
@@ -194,7 +192,7 @@ class PaymentApprovalService
     private function validatePaymentProof(PaymentProof $paymentProof): array
     {
         $subscription = $paymentProof->subscription;
-        if (!$subscription) {
+        if (! $subscription) {
             return [
                 'valid' => false,
                 'reason' => 'Suscripción no encontrada',
@@ -249,7 +247,7 @@ class PaymentApprovalService
         // Validate files if present
         if ($paymentProof->file_paths) {
             $fileValidation = $this->validatePaymentFiles($paymentProof);
-            if (!$fileValidation['valid']) {
+            if (! $fileValidation['valid']) {
                 return $fileValidation;
             }
         }
@@ -266,9 +264,9 @@ class PaymentApprovalService
         $maxSizeBytes = $this->paymentSettings->getMaxFileSizeBytesAttribute();
 
         foreach ($paymentProof->file_paths as $filePath) {
-            $fullPath = storage_path('app/' . $filePath);
+            $fullPath = storage_path('app/'.$filePath);
 
-            if (!file_exists($fullPath)) {
+            if (! file_exists($fullPath)) {
                 return [
                     'valid' => false,
                     'reason' => 'Archivo no encontrado',
@@ -286,7 +284,7 @@ class PaymentApprovalService
             }
 
             $fileExtension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
-            if (!in_array($fileExtension, $allowedTypes)) {
+            if (! in_array($fileExtension, $allowedTypes)) {
                 return [
                     'valid' => false,
                     'reason' => 'Tipo de archivo no permitido',
@@ -342,7 +340,7 @@ class PaymentApprovalService
     private function processSubscriptionRejection(PaymentProof $paymentProof): void
     {
         $subscription = $paymentProof->subscription;
-        if (!$subscription) {
+        if (! $subscription) {
             return;
         }
 
@@ -474,8 +472,8 @@ class PaymentApprovalService
             PaymentProof::STATUS_APPROVED,
             PaymentProof::STATUS_REJECTED,
         ])
-        ->whereNotNull('reviewed_at')
-        ->get();
+            ->whereNotNull('reviewed_at')
+            ->get();
 
         if ($processedPayments->isEmpty()) {
             return 0;

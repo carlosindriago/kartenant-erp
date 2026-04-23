@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,13 +13,13 @@ namespace App\Services;
 
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
-use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class SubscriptionLimitService
 {
     protected ?Tenant $tenant = null;
+
     protected ?TenantSubscription $subscription = null;
 
     public function __construct(?Tenant $tenant = null)
@@ -52,7 +52,7 @@ class SubscriptionLimitService
      */
     public function isExpired(): bool
     {
-        return !$this->subscription || $this->subscription->isExpired();
+        return ! $this->subscription || $this->subscription->isExpired();
     }
 
     /**
@@ -78,7 +78,7 @@ class SubscriptionLimitService
     {
         $plan = $this->getPlan();
 
-        if (!$plan) {
+        if (! $plan) {
             return false; // No plan = no modules
         }
 
@@ -92,7 +92,7 @@ class SubscriptionLimitService
     {
         $plan = $this->getPlan();
 
-        if (!$plan) {
+        if (! $plan) {
             return ['allowed' => false, 'reason' => 'No hay plan activo'];
         }
 
@@ -116,7 +116,7 @@ class SubscriptionLimitService
             'limit' => $limit,
             'remaining' => max(0, $limit - $currentUsers),
             'percentage' => $limit > 0 ? round(($currentUsers / $limit) * 100, 1) : 0,
-            'reason' => !$allowed ? "Has alcanzado el límite de {$limit} usuarios de tu plan" : null,
+            'reason' => ! $allowed ? "Has alcanzado el límite de {$limit} usuarios de tu plan" : null,
         ];
     }
 
@@ -127,7 +127,7 @@ class SubscriptionLimitService
     {
         $plan = $this->getPlan();
 
-        if (!$plan) {
+        if (! $plan) {
             return ['allowed' => false, 'reason' => 'No hay plan activo'];
         }
 
@@ -150,7 +150,7 @@ class SubscriptionLimitService
             'limit' => $limit,
             'remaining' => max(0, $limit - $currentProducts),
             'percentage' => $limit > 0 ? round(($currentProducts / $limit) * 100, 1) : 0,
-            'reason' => !$allowed ? "Has alcanzado el límite de {$limit} productos de tu plan" : null,
+            'reason' => ! $allowed ? "Has alcanzado el límite de {$limit} productos de tu plan" : null,
         ];
     }
 
@@ -161,7 +161,7 @@ class SubscriptionLimitService
     {
         $plan = $this->getPlan();
 
-        if (!$plan) {
+        if (! $plan) {
             return ['allowed' => false, 'reason' => 'No hay plan activo'];
         }
 
@@ -186,7 +186,7 @@ class SubscriptionLimitService
             'limit' => $limit,
             'remaining' => max(0, $limit - $currentSales),
             'percentage' => $limit > 0 ? round(($currentSales / $limit) * 100, 1) : 0,
-            'reason' => !$allowed ? "Has alcanzado el límite de {$limit} ventas/mes de tu plan" : null,
+            'reason' => ! $allowed ? "Has alcanzado el límite de {$limit} ventas/mes de tu plan" : null,
         ];
     }
 
@@ -221,7 +221,7 @@ class SubscriptionLimitService
         $warnings = [];
 
         // Check subscription expiration
-        if ($this->subscription && !$this->isExpired()) {
+        if ($this->subscription && ! $this->isExpired()) {
             $daysUntilExpiration = $this->subscription->daysUntilExpiration();
             if ($daysUntilExpiration !== null && $daysUntilExpiration <= 7) {
                 $warnings[] = [
@@ -278,7 +278,7 @@ class SubscriptionLimitService
      */
     public function getCachedLimitsStatus(): array
     {
-        if (!$this->tenant) {
+        if (! $this->tenant) {
             return [];
         }
 
@@ -294,7 +294,7 @@ class SubscriptionLimitService
      */
     public function clearCache(): void
     {
-        if (!$this->tenant) {
+        if (! $this->tenant) {
             return;
         }
 
@@ -306,7 +306,7 @@ class SubscriptionLimitService
      */
     public function daysUntilTrialEnds(): ?int
     {
-        if (!$this->isOnTrial()) {
+        if (! $this->isOnTrial()) {
             return null;
         }
 

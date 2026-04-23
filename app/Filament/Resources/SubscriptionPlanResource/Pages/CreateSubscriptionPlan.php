@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,6 +13,7 @@ namespace App\Filament\Resources\SubscriptionPlanResource\Pages;
 
 use App\Filament\Resources\SubscriptionPlanResource;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Str;
 
 class CreateSubscriptionPlan extends CreateRecord
 {
@@ -41,8 +42,8 @@ class CreateSubscriptionPlan extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Auto-generate slug if not provided
-        if (empty($data['slug']) && !empty($data['name'])) {
-            $data['slug'] = \Illuminate\Support\Str::slug($data['name']);
+        if (empty($data['slug']) && ! empty($data['name'])) {
+            $data['slug'] = Str::slug($data['name']);
         }
 
         return $data;

@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -18,15 +18,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Sale extends Model
 {
+    use HasCrossDatabaseUserRelations;
     use HasFactory;
     use LogsActivity;
     use VerifiablePDF;
-    use HasCrossDatabaseUserRelations;
 
     // Use tenant connection in database-per-tenant architecture
     protected $connection = 'tenant';
@@ -165,18 +165,18 @@ class Sale extends Model
     {
         $prefix = 'FAC-';
         $date = now()->format('Ymd');
-        
+
         // En database-per-tenant, no necesitamos filtrar por tenant_id
         // porque ya estamos en la BD del tenant
         $lastSale = static::whereDate('created_at', now())
             ->orderBy('id', 'desc')
             ->first();
-        
+
         $sequence = $lastSale ? (int) substr($lastSale->invoice_number, -4) + 1 : 1;
-        
-        return $prefix . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+
+        return $prefix.$date.'-'.str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
-    
+
     /**
      * Métodos requeridos por VerifiablePDF trait
      */
@@ -192,12 +192,12 @@ class Sale extends Model
             'items_count' => $this->items()->count(),
         ];
     }
-    
+
     public function getVerificationDocumentType(): string
     {
         return 'sale_receipt';
     }
-    
+
     protected function getVerificationMetadata(): array
     {
         return [

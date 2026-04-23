@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -14,17 +14,17 @@ namespace App\Filament\App\Widgets;
 use App\Models\Tenant;
 use App\Services\SubscriptionLimitService;
 use Filament\Widgets\Widget;
-use Illuminate\Contracts\View\View;
 
 class SubscriptionStatusWidget extends Widget
 {
     protected static string $view = 'filament.app.widgets.subscription-status';
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     public static function canView(): bool
     {
-        return config('app.mode') === 'saas';
+        // Only show in tenant panel when in SaaS mode
+        return config('app.mode') === 'saas' && Tenant::current() !== null;
     }
 
     protected static ?int $sort = -10; // Show at top
@@ -33,7 +33,7 @@ class SubscriptionStatusWidget extends Widget
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return [];
         }
 
@@ -52,11 +52,5 @@ class SubscriptionStatusWidget extends Widget
             'needsUpgrade' => $limitService->needsUpgrade(),
             'suggestions' => $limitService->getUpgradeSuggestions(),
         ];
-    }
-
-    public static function canView(): bool
-    {
-        // Only show in tenant panel
-        return Tenant::current() !== null;
     }
 }

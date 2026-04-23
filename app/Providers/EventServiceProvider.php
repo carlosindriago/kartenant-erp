@@ -2,16 +2,24 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Providers;
 
+use App\Listeners\LogFailedLogin;
+use App\Listeners\LogLogout;
+use App\Listeners\LogSuccessfulLogin;
+use App\Listeners\LogTenantIdentificationFailure;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Spatie\Multitenancy\Events\TenantNotFoundForRequestEvent;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -21,17 +29,17 @@ class EventServiceProvider extends ServiceProvider
      * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
-        \Illuminate\Auth\Events\Login::class => [
-            \App\Listeners\LogSuccessfulLogin::class,
+        Login::class => [
+            LogSuccessfulLogin::class,
         ],
-        \Illuminate\Auth\Events\Logout::class => [
-            \App\Listeners\LogLogout::class,
+        Logout::class => [
+            LogLogout::class,
         ],
-        \Illuminate\Auth\Events\Failed::class => [
-            \App\Listeners\LogFailedLogin::class,
+        Failed::class => [
+            LogFailedLogin::class,
         ],
-        \Spatie\Multitenancy\Events\TenantNotFoundForRequestEvent::class => [
-            \App\Listeners\LogTenantIdentificationFailure::class,
+        TenantNotFoundForRequestEvent::class => [
+            LogTenantIdentificationFailure::class,
         ],
     ];
 }

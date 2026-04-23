@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 class SystemSetting extends Model
 {
     protected $connection = 'landlord';
+
     protected $table = 'system_settings';
 
     protected $fillable = [
@@ -25,8 +26,8 @@ class SystemSetting extends Model
     {
         return Cache::remember("system_setting.{$key}", 3600, function () use ($key, $default) {
             $setting = self::where('key', $key)->first();
-            
-            if (!$setting) {
+
+            if (! $setting) {
                 return $default;
             }
 
@@ -71,7 +72,7 @@ class SystemSetting extends Model
      */
     private static function castValue($value, string $type)
     {
-        return match($type) {
+        return match ($type) {
             'boolean' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
             'integer' => (int) $value,
             'float', 'decimal' => (float) $value,
@@ -86,10 +87,19 @@ class SystemSetting extends Model
      */
     private static function detectType($value): string
     {
-        if (is_bool($value)) return 'boolean';
-        if (is_int($value)) return 'integer';
-        if (is_float($value)) return 'float';
-        if (is_array($value)) return 'json';
+        if (is_bool($value)) {
+            return 'boolean';
+        }
+        if (is_int($value)) {
+            return 'integer';
+        }
+        if (is_float($value)) {
+            return 'float';
+        }
+        if (is_array($value)) {
+            return 'json';
+        }
+
         return 'string';
     }
 

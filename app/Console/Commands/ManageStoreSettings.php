@@ -2,12 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Models\StoreSetting;
 use App\Models\Tenant;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Spatie\Multitenancy\Commands\Concerns\TenantAware;
 
 class ManageStoreSettings extends Command
 {
@@ -46,6 +44,7 @@ class ManageStoreSettings extends Command
             default:
                 $this->error("Acción inválida: {$action}");
                 $this->info('Acciones disponibles: migrate, seed, reset');
+
                 return 1;
         }
     }
@@ -57,15 +56,18 @@ class ManageStoreSettings extends Command
     {
         $tenants = $tenantId ? [Tenant::find($tenantId)] : Tenant::all();
 
-        if ($tenantId && !$tenants[0]) {
+        if ($tenantId && ! $tenants[0]) {
             $this->error("Tenant con ID {$tenantId} no encontrado");
+
             return 1;
         }
 
-        $this->info("Iniciando migración de StoreSettings...");
+        $this->info('Iniciando migración de StoreSettings...');
 
         foreach ($tenants as $tenant) {
-            if (!$tenant) continue;
+            if (! $tenant) {
+                continue;
+            }
 
             $this->line("Procesando tenant: {$tenant->name} (ID: {$tenant->id})");
 
@@ -75,6 +77,7 @@ class ManageStoreSettings extends Command
                 // Check if table already exists
                 if (Schema::hasTable('store_settings')) {
                     $this->comment("  La tabla 'store_settings' ya existe");
+
                     continue;
                 }
 
@@ -87,11 +90,13 @@ class ManageStoreSettings extends Command
             } catch (\Exception $e) {
                 $this->error("  ❌ Error procesando tenant {$tenant->id}: {$e->getMessage()}");
                 Tenant::forgetCurrent();
+
                 return 1;
             }
         }
 
-        $this->info("✅ Migración de StoreSettings completada");
+        $this->info('✅ Migración de StoreSettings completada');
+
         return 0;
     }
 
@@ -102,15 +107,18 @@ class ManageStoreSettings extends Command
     {
         $tenants = $tenantId ? [Tenant::find($tenantId)] : Tenant::all();
 
-        if ($tenantId && !$tenants[0]) {
+        if ($tenantId && ! $tenants[0]) {
             $this->error("Tenant con ID {$tenantId} no encontrado");
+
             return 1;
         }
 
-        $this->info("Iniciando seed de StoreSettings...");
+        $this->info('Iniciando seed de StoreSettings...');
 
         foreach ($tenants as $tenant) {
-            if (!$tenant) continue;
+            if (! $tenant) {
+                continue;
+            }
 
             $this->line("Procesando tenant: {$tenant->name} (ID: {$tenant->id})");
 
@@ -118,21 +126,23 @@ class ManageStoreSettings extends Command
                 $tenant->makeCurrent();
 
                 // Check if table exists
-                if (!Schema::hasTable('store_settings')) {
+                if (! Schema::hasTable('store_settings')) {
                     $this->error("  ❌ La tabla 'store_settings' no existe. Ejecuta 'migrate' primero.");
+
                     continue;
                 }
 
                 // Check if settings already exist using DB directly
                 $existing = DB::table('store_settings')->first();
-                if ($existing && !$force) {
-                    $this->comment("  StoreSettings ya existen (usa --force para sobreescribir)");
+                if ($existing && ! $force) {
+                    $this->comment('  StoreSettings ya existen (usa --force para sobreescribir)');
+
                     continue;
                 }
 
                 if ($existing && $force) {
                     DB::table('store_settings')->delete();
-                    $this->comment("  StoreSettings existentes eliminados");
+                    $this->comment('  StoreSettings existentes eliminados');
                 }
 
                 // Create default settings using DB directly
@@ -148,17 +158,19 @@ class ManageStoreSettings extends Command
                     'updated_at' => now(),
                 ]);
 
-                $this->info("  ✅ StoreSettings creados exitosamente");
+                $this->info('  ✅ StoreSettings creados exitosamente');
 
                 Tenant::forgetCurrent();
             } catch (\Exception $e) {
                 $this->error("  ❌ Error procesando tenant {$tenant->id}: {$e->getMessage()}");
                 Tenant::forgetCurrent();
+
                 return 1;
             }
         }
 
-        $this->info("✅ Seed de StoreSettings completado");
+        $this->info('✅ Seed de StoreSettings completado');
+
         return 0;
     }
 
@@ -167,22 +179,26 @@ class ManageStoreSettings extends Command
      */
     private function resetStoreSettings(?int $tenantId, bool $force): int
     {
-        if (!$force && !$this->confirm('¿Estás seguro de que quieres eliminar todos los StoreSettings? Esta acción no se puede deshacer.')) {
+        if (! $force && ! $this->confirm('¿Estás seguro de que quieres eliminar todos los StoreSettings? Esta acción no se puede deshacer.')) {
             $this->info('Operación cancelada');
+
             return 0;
         }
 
         $tenants = $tenantId ? [Tenant::find($tenantId)] : Tenant::all();
 
-        if ($tenantId && !$tenants[0]) {
+        if ($tenantId && ! $tenants[0]) {
             $this->error("Tenant con ID {$tenantId} no encontrado");
+
             return 1;
         }
 
-        $this->info("Iniciando reset de StoreSettings...");
+        $this->info('Iniciando reset de StoreSettings...');
 
         foreach ($tenants as $tenant) {
-            if (!$tenant) continue;
+            if (! $tenant) {
+                continue;
+            }
 
             $this->line("Procesando tenant: {$tenant->name} (ID: {$tenant->id})");
 
@@ -201,11 +217,13 @@ class ManageStoreSettings extends Command
             } catch (\Exception $e) {
                 $this->error("  ❌ Error procesando tenant {$tenant->id}: {$e->getMessage()}");
                 Tenant::forgetCurrent();
+
                 return 1;
             }
         }
 
-        $this->info("✅ Reset de StoreSettings completado");
+        $this->info('✅ Reset de StoreSettings completado');
+
         return 0;
     }
 

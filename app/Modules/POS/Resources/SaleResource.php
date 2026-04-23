@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,22 +12,21 @@
 namespace App\Modules\POS\Resources;
 
 use App\Filament\Actions\HasStandardActionGroup;
-use App\Modules\POS\Resources\SaleResource\Pages;
 use App\Modules\POS\Models\Sale;
+use App\Modules\POS\Resources\SaleResource\Pages;
 use App\Modules\POS\Services\ReturnService;
-use Filament\Tables\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
-use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
+use Illuminate\Support\HtmlString;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use Spatie\Multitenancy\Models\Tenant;
 
 class SaleResource extends Resource
 {
@@ -36,19 +35,19 @@ class SaleResource extends Resource
     protected static ?string $model = Sale::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
-    
+
     protected static ?string $navigationLabel = 'Ventas';
-    
+
     protected static ?string $modelLabel = 'Venta';
-    
+
     protected static ?string $pluralModelLabel = 'Ventas';
-    
+
     protected static ?string $navigationGroup = 'Punto de Venta';
-    
+
     protected static ?int $navigationSort = 2;
-    
+
     protected static bool $isScopedToTenant = false;
-    
+
     public static function getEloquentQuery(): Builder
     {
         // En database-per-tenant, no necesitamos filtrar por tenant_id
@@ -66,13 +65,13 @@ class SaleResource extends Resource
                         Forms\Components\TextInput::make('invoice_number')
                             ->label('Número de Factura')
                             ->disabled(),
-                        
+
                         Forms\Components\Select::make('customer_id')
                             ->label('Cliente')
                             ->relationship('customer', 'name')
                             ->searchable()
                             ->preload(),
-                        
+
                         Forms\Components\Select::make('status')
                             ->label('Estado')
                             ->options([
@@ -81,7 +80,7 @@ class SaleResource extends Resource
                                 'cancelled' => 'Cancelada',
                             ])
                             ->disabled(),
-                        
+
                         Forms\Components\TextInput::make('total')
                             ->label('Total')
                             ->disabled()
@@ -101,20 +100,20 @@ class SaleResource extends Resource
                     ->copyable()
                     ->weight('bold')
                     ->icon('heroicon-m-document-text'),
-                
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Fecha')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(),
-                
+
                 Tables\Columns\TextColumn::make('customer.name')
                     ->label('Cliente')
                     ->searchable()
                     ->sortable()
                     ->default('Cliente General')
                     ->icon('heroicon-m-user'),
-                
+
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Cajero')
                     ->searchable()
@@ -123,7 +122,7 @@ class SaleResource extends Resource
                     ->icon('heroicon-m-user-circle')
                     ->toggleable()
                     ->toggledHiddenByDefault(false),
-                
+
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Estado')
                     ->formatStateUsing(fn (string $state): string => match ($state) {
@@ -138,7 +137,7 @@ class SaleResource extends Resource
                         'cancelled' => 'danger',
                         default => 'gray',
                     }),
-                
+
                 Tables\Columns\TextColumn::make('payment_method')
                     ->label('Método de Pago')
                     ->formatStateUsing(fn (string $state): string => match ($state) {
@@ -148,14 +147,14 @@ class SaleResource extends Resource
                         default => ucfirst($state),
                     })
                     ->toggleable(),
-                
+
                 Tables\Columns\TextColumn::make('total')
                     ->label('Total')
                     ->money('USD', true)
                     ->sortable()
                     ->weight('bold')
                     ->color('success'),
-                
+
                 Tables\Columns\IconColumn::make('has_returns')
                     ->label('Devoluciones')
                     ->boolean()
@@ -182,7 +181,7 @@ class SaleResource extends Resource
                         'pending' => 'Pendiente',
                         'cancelled' => 'Cancelada',
                     ]),
-                
+
                 Tables\Filters\SelectFilter::make('payment_method')
                     ->label('Método de Pago')
                     ->options([
@@ -190,7 +189,7 @@ class SaleResource extends Resource
                         'card' => 'Tarjeta',
                         'transfer' => 'Transferencia',
                     ]),
-                
+
                 Tables\Filters\Filter::make('created_at')
                     ->form([
                         Forms\Components\DatePicker::make('from')
@@ -246,12 +245,13 @@ class SaleResource extends Resource
 
                             // Procesar devolución simple (primer ítem)
                             $firstItem = $record->items->first();
-                            if (!$firstItem) {
+                            if (! $firstItem) {
                                 Notification::make()
                                     ->title('Error en Devolución')
                                     ->body('No hay productos disponibles para devolver.')
                                     ->danger()
                                     ->send();
+
                                 return;
                             }
 
@@ -290,8 +290,7 @@ class SaleResource extends Resource
                     ->icon('heroicon-o-arrow-uturn-left')
                     ->color('warning')
                     ->tooltip('Proceso formal de devolución de múltiples productos')
-                    ->visible(fn (Sale $record) =>
-                        $record->status === 'completed' &&
+                    ->visible(fn (Sale $record) => $record->status === 'completed' &&
                         auth()->user()->can('process_returns')
                     )
                     ->modalHeading('📦 Procesar Devolución de Productos')
@@ -330,7 +329,7 @@ class SaleResource extends Resource
                                         ->schema([
                                             Forms\Components\Placeholder::make("product_info_{$item->id}")
                                                 ->label('Producto')
-                                                ->content(new \Illuminate\Support\HtmlString("
+                                                ->content(new HtmlString("
                                                     <div class='space-y-1'>
                                                         <div class='font-semibold text-gray-900 dark:text-white'>{$item->product_name}</div>
                                                         <div class='text-sm text-gray-500'>
@@ -384,6 +383,7 @@ class SaleResource extends Resource
                                     ->body('Debe especificar al menos un producto con cantidad mayor a 0.')
                                     ->warning()
                                     ->send();
+
                                 return;
                             }
 
@@ -395,8 +395,8 @@ class SaleResource extends Resource
                             );
 
                             $pdfUrl = route('tenant.pos.credit-note.pdf', [
-                                'tenant' => \Spatie\Multitenancy\Models\Tenant::current()->domain,
-                                'saleReturn' => $saleReturn->id
+                                'tenant' => Tenant::current()->domain,
+                                'saleReturn' => $saleReturn->id,
                             ]);
 
                             Notification::make()
@@ -413,8 +413,8 @@ class SaleResource extends Resource
                                     \Filament\Notifications\Actions\Action::make('view')
                                         ->label('👁️ Ver en Navegador')
                                         ->url(route('tenant.pos.credit-note.view', [
-                                            'tenant' => \Spatie\Multitenancy\Models\Tenant::current()->domain,
-                                            'saleReturn' => $saleReturn->id
+                                            'tenant' => Tenant::current()->domain,
+                                            'saleReturn' => $saleReturn->id,
                                         ]))
                                         ->openUrlInNewTab(),
                                 ])
@@ -442,14 +442,14 @@ class SaleResource extends Resource
             ])
             ->defaultSort('created_at', 'desc');
     }
-    
+
     public static function getRelations(): array
     {
         return [
             //
         ];
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -464,7 +464,9 @@ class SaleResource extends Resource
     public static function calculateSaleHealthScore($record): int
     {
         try {
-            if (!$record) return 0;
+            if (! $record) {
+                return 0;
+            }
 
             $cacheKey = "sale_health_{$record->id}";
 
@@ -484,12 +486,12 @@ class SaleResource extends Resource
                 }
 
                 // Customer assignment
-                if (!$record->customer_id) {
+                if (! $record->customer_id) {
                     $score -= 10; // Sin cliente asignado
                 }
 
                 // User assignment
-                if (!$record->user_id) {
+                if (! $record->user_id) {
                     $score -= 10; // Sin cajero asignado
                 }
 
@@ -527,7 +529,7 @@ class SaleResource extends Resource
                     $todaySales = Sale::whereDate('created_at', today())->count();
                     $weekSales = Sale::whereBetween('created_at', [
                         now()->startOfWeek(),
-                        now()->endOfWeek()
+                        now()->endOfWeek(),
                     ])->count();
 
                     // Business health based on sales volume
@@ -564,7 +566,9 @@ class SaleResource extends Resource
     public static function getSaleHealthTooltip($record): string
     {
         try {
-            if (!$record) return 'Error al calcular salud';
+            if (! $record) {
+                return 'Error al calcular salud';
+            }
 
             $cacheKey = "sale_health_tooltip_{$record->id}";
 
@@ -596,14 +600,14 @@ class SaleResource extends Resource
                 }
 
                 // Customer analysis
-                if (!$record->customer_id) {
+                if (! $record->customer_id) {
                     $factors[] = '🟡 Sin cliente (-10)';
                 } else {
                     $factors[] = '🟢 Con cliente asignado';
                 }
 
                 // User analysis
-                if (!$record->user_id) {
+                if (! $record->user_id) {
                     $factors[] = '🟡 Sin cajero (-10)';
                 } else {
                     $factors[] = '🟢 Cajero asignado';
@@ -613,7 +617,7 @@ class SaleResource extends Resource
                 if (empty($record->invoice_number)) {
                     $factors[] = '🔴 Sin factura (-15)';
                 } else {
-                    $factors[] = '🟢 Factura: ' . $record->invoice_number;
+                    $factors[] = '🟢 Factura: '.$record->invoice_number;
                 }
 
                 // Total analysis
@@ -622,7 +626,7 @@ class SaleResource extends Resource
                 } elseif ($record->total < 10) {
                     $factors[] = '🟡 Total muy bajo (-10)';
                 } else {
-                    $factors[] = '🟢 Total válido: $' . number_format($record->total, 2);
+                    $factors[] = '🟢 Total válido: $'.number_format($record->total, 2);
                 }
 
                 // Returns analysis
@@ -659,7 +663,7 @@ class SaleResource extends Resource
                     $todaySales = Sale::whereDate('created_at', today())->count();
                     $weekSales = Sale::whereBetween('created_at', [
                         now()->startOfWeek(),
-                        now()->endOfWeek()
+                        now()->endOfWeek(),
                     ])->count();
 
                     $factors[] = "📊 Ventas hoy: {$todaySales}";
@@ -677,7 +681,7 @@ class SaleResource extends Resource
                 $score = self::calculateSaleHealthScore($record);
                 $color = $score >= 80 ? '🟢' : ($score >= 60 ? '🟡' : '🔴');
 
-                return $color . " Salud: {$score}/100\n\n" . implode("\n", $factors);
+                return $color." Salud: {$score}/100\n\n".implode("\n", $factors);
             });
         } catch (\Exception $e) {
             return 'Error al calcular detalles de salud';

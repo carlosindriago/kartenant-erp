@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -14,6 +14,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\UserStatusChange;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EmployeeEventService
 {
@@ -31,15 +32,15 @@ class EmployeeEventService
                 'changed_at' => now(),
                 'additional_notes' => $notes,
             ]);
-            
+
             // Generar número de documento
             $event->document_number = $event->generateDocumentNumber();
-            
+
             // Generar hash de verificación
             $event->ensureVerificationHash();
-            
+
             $event->save();
-            
+
             // Registrar en activity log
             activity()
                 ->causedBy($createdBy)
@@ -50,11 +51,11 @@ class EmployeeEventService
                     'verification_hash' => $event->verification_hash,
                 ])
                 ->log('Empleado registrado con comprobante verificable');
-            
+
             return $event->fresh(['user', 'changedBy']);
         });
     }
-    
+
     /**
      * Registrar desactivación de empleado con verificación
      */
@@ -72,7 +73,7 @@ class EmployeeEventService
                 'deactivated_by' => $deactivatedBy->id,
                 'deactivation_reason' => $reason,
             ]);
-            
+
             // Crear evento de desactivación
             $event = UserStatusChange::create([
                 'user_id' => $user->id,
@@ -82,15 +83,15 @@ class EmployeeEventService
                 'changed_at' => now(),
                 'additional_notes' => $notes,
             ]);
-            
+
             // Generar número de documento
             $event->document_number = $event->generateDocumentNumber();
-            
+
             // Generar hash de verificación
             $event->ensureVerificationHash();
-            
+
             $event->save();
-            
+
             // Registrar en activity log
             activity()
                 ->causedBy($deactivatedBy)
@@ -102,11 +103,11 @@ class EmployeeEventService
                     'reason' => $reason,
                 ])
                 ->log('Empleado desactivado con comprobante verificable');
-            
+
             return $event->fresh(['user', 'changedBy']);
         });
     }
-    
+
     /**
      * Registrar reactivación de empleado con verificación
      */
@@ -124,7 +125,7 @@ class EmployeeEventService
                 'reactivated_by' => $activatedBy->id,
                 'reactivation_reason' => $reason,
             ]);
-            
+
             // Crear evento de activación
             $event = UserStatusChange::create([
                 'user_id' => $user->id,
@@ -134,15 +135,15 @@ class EmployeeEventService
                 'changed_at' => now(),
                 'additional_notes' => $notes,
             ]);
-            
+
             // Generar número de documento
             $event->document_number = $event->generateDocumentNumber();
-            
+
             // Generar hash de verificación
             $event->ensureVerificationHash();
-            
+
             $event->save();
-            
+
             // Registrar en activity log
             activity()
                 ->causedBy($activatedBy)
@@ -154,20 +155,20 @@ class EmployeeEventService
                     'reason' => $reason,
                 ])
                 ->log('Empleado reactivado con comprobante verificable');
-            
+
             return $event->fresh(['user', 'changedBy']);
         });
     }
-    
+
     /**
      * Generar y descargar PDF del evento
      */
-    public function downloadEventPdf(UserStatusChange $event): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function downloadEventPdf(UserStatusChange $event): StreamedResponse
     {
         $pdf = $event->generatePdf();
-        
-        $filename = strtolower(str_replace(' ', '-', $event->event_type)) . '-' . $event->document_number . '.pdf';
-        
+
+        $filename = strtolower(str_replace(' ', '-', $event->event_type)).'-'.$event->document_number.'.pdf';
+
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         }, $filename);

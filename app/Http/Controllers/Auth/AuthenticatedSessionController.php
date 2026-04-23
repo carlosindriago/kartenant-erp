@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,10 +13,13 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\StoreSetting;
+use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Spatie\Multitenancy\Tasks\SwitchTenantDatabaseTask;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -45,17 +48,17 @@ class AuthenticatedSessionController extends Controller
             if (count($parts) >= 3 && $subdomain && $subdomain !== 'emporiodigital' && $subdomain !== 'www') {
                 try {
                     // Check if tenant exists
-                    $tenant = \App\Models\Tenant::where('domain', $subdomain)->first();
+                    $tenant = Tenant::where('domain', $subdomain)->first();
 
                     if ($tenant) {
                         $isTenant = true;
 
                         // Initialize tenant context to get store settings
                         try {
-                            $tenantManager = app(\Spatie\Multitenancy\Tasks\SwitchTenantDatabaseTask::class);
+                            $tenantManager = app(SwitchTenantDatabaseTask::class);
                             $tenant->makeCurrent();
 
-                            $settings = \App\Models\StoreSetting::current();
+                            $settings = StoreSetting::current();
                             $storeName = $settings->effective_store_name ?? $tenant->display_name ?? $tenant->name ?? 'Emporio Digital';
                             $storeSlogan = $settings->effective_store_slogan ?? 'Inicia sesión para gestionar tu negocio';
                             $brandColor = $settings->effective_brand_color ?? '#2563eb';

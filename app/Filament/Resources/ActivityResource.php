@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,11 +13,11 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ActivityResource\Pages;
 use App\Models\Activity;
-use Filament\Infolists\Infolist;
+use Filament\Forms;
+use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Infolists\Components\KeyValueEntry;
-use Filament\Forms;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -28,10 +28,13 @@ class ActivityResource extends Resource
     protected static ?string $model = Activity::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
+
     protected static ?string $navigationLabel = 'Auditoría';
+
     protected static ?string $navigationGroup = 'Seguridad';
 
     protected static ?string $modelLabel = 'Evento';
+
     protected static ?string $pluralModelLabel = 'Eventos';
 
     public static function table(Table $table): Table
@@ -160,10 +163,10 @@ class ActivityResource extends Resource
     public static function shouldRegisterNavigation(): bool
     {
         $user = auth('superadmin')->user();
-        if (!$user) {
+        if (! $user) {
             return false;
         }
-        
+
         // Verificar permiso con el guard superadmin explícitamente
         return $user->is_super_admin || $user->hasPermissionTo('admin.audit.view', 'superadmin');
     }

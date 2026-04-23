@@ -2,19 +2,18 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Filament\Widgets;
 
-use App\Services\ErrorMonitoringService;
 use Filament\Widgets\Widget;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class SystemHealthWidget extends Widget
@@ -23,7 +22,7 @@ class SystemHealthWidget extends Widget
 
     protected static ?int $sort = 1;
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     /**
      * Solo mostrar en panel admin
@@ -32,6 +31,7 @@ class SystemHealthWidget extends Widget
     {
         // Use filament() helper for proper panel context with null checks
         $panel = filament()->getCurrentPanel();
+
         return $panel && $panel->getId() === 'admin' && filament()->auth()->check();
     }
 
@@ -44,7 +44,7 @@ class SystemHealthWidget extends Widget
             'queue' => $this->checkQueue(),
         ];
 
-        $allHealthy = collect($checks)->every(fn($check) => $check['status'] === 'ok');
+        $allHealthy = collect($checks)->every(fn ($check) => $check['status'] === 'ok');
 
         return [
             'overall_status' => $allHealthy ? 'healthy' : 'degraded',
@@ -57,6 +57,7 @@ class SystemHealthWidget extends Widget
     {
         try {
             DB::connection('landlord')->getPdo();
+
             return ['status' => 'ok', 'message' => 'Conectado'];
         } catch (Throwable $e) {
             return ['status' => 'error', 'message' => 'Error de conexión'];
@@ -66,7 +67,7 @@ class SystemHealthWidget extends Widget
     protected function checkCache(): array
     {
         try {
-            $key = 'health_test_' . time();
+            $key = 'health_test_'.time();
             Cache::put($key, 'test', 5);
             $result = Cache::get($key);
             Cache::forget($key);
@@ -81,6 +82,7 @@ class SystemHealthWidget extends Widget
     {
         try {
             $writable = is_writable(storage_path('logs'));
+
             return ['status' => $writable ? 'ok' : 'error', 'message' => $writable ? 'Escribible' : 'No escribible'];
         } catch (Throwable $e) {
             return ['status' => 'error', 'message' => 'Error'];
@@ -91,7 +93,8 @@ class SystemHealthWidget extends Widget
     {
         try {
             $connection = config('queue.default');
-            return ['status' => 'ok', 'message' => 'Configurado (' . $connection . ')'];
+
+            return ['status' => 'ok', 'message' => 'Configurado ('.$connection.')'];
         } catch (Throwable $e) {
             return ['status' => 'error', 'message' => 'Error'];
         }
@@ -102,7 +105,7 @@ class SystemHealthWidget extends Widget
         $webhookUrl = config('logging.channels.slack.url');
 
         return [
-            'configured' => !empty($webhookUrl),
+            'configured' => ! empty($webhookUrl),
             'url' => $webhookUrl ? '✅ Configurado' : '❌ No configurado',
             'environment' => app()->environment(),
         ];

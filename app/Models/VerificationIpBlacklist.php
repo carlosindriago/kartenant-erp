@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -17,9 +17,9 @@ use Illuminate\Support\Facades\Cache;
 class VerificationIpBlacklist extends Model
 {
     protected $connection = 'landlord';
-    
+
     protected $table = 'verification_ip_blacklist';
-    
+
     protected $fillable = [
         'ip_address',
         'tenant_id',
@@ -29,20 +29,20 @@ class VerificationIpBlacklist extends Model
         'expires_at',
         'is_active',
     ];
-    
+
     protected $casts = [
         'blocked_at' => 'datetime',
         'expires_at' => 'datetime',
         'is_active' => 'boolean',
     ];
-    
+
     /**
      * Check if an IP is blacklisted
      */
     public static function isBlacklisted(string $ipAddress, ?int $tenantId = null): bool
     {
-        $cacheKey = "ip_blacklist_{$ipAddress}_" . ($tenantId ?? 'global');
-        
+        $cacheKey = "ip_blacklist_{$ipAddress}_".($tenantId ?? 'global');
+
         return Cache::remember($cacheKey, 300, function () use ($ipAddress, $tenantId) {
             return static::where('ip_address', $ipAddress)
                 ->where('is_active', true)
@@ -57,7 +57,7 @@ class VerificationIpBlacklist extends Model
                 ->exists();
         });
     }
-    
+
     /**
      * Add IP to blacklist
      */
@@ -71,7 +71,7 @@ class VerificationIpBlacklist extends Model
         $existing = static::where('ip_address', $ipAddress)
             ->where('tenant_id', $tenantId)
             ->first();
-        
+
         if ($existing) {
             $existing->update([
                 'offense_count' => $existing->offense_count + 1,
@@ -90,12 +90,12 @@ class VerificationIpBlacklist extends Model
                 'is_active' => true,
             ]);
         }
-        
+
         // Clear cache
-        $cacheKey = "ip_blacklist_{$ipAddress}_" . ($tenantId ?? 'global');
+        $cacheKey = "ip_blacklist_{$ipAddress}_".($tenantId ?? 'global');
         Cache::forget($cacheKey);
     }
-    
+
     /**
      * Remove IP from blacklist
      */
@@ -104,9 +104,9 @@ class VerificationIpBlacklist extends Model
         static::where('ip_address', $ipAddress)
             ->where('tenant_id', $tenantId)
             ->update(['is_active' => false]);
-        
+
         // Clear cache
-        $cacheKey = "ip_blacklist_{$ipAddress}_" . ($tenantId ?? 'global');
+        $cacheKey = "ip_blacklist_{$ipAddress}_".($tenantId ?? 'global');
         Cache::forget($cacheKey);
     }
 }

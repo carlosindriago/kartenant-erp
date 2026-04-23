@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,33 +12,30 @@
 namespace App\Modules;
 
 use App\Filament\Actions\HasStandardActionGroup;
-use App\Modules\ProductResource\Pages;
 use App\Modules\Inventory\Models\Product;
+use App\Modules\ProductResource\Pages;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\HtmlString;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class ProductResource extends Resource
 {
@@ -47,12 +44,17 @@ class ProductResource extends Resource
     protected static ?string $model = Product::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-cube';
+
     protected static ?string $navigationLabel = 'Productos';
+
     protected static ?string $modelLabel = 'Producto';
+
     protected static ?string $pluralModelLabel = 'Productos';
+
     protected static ?string $navigationGroup = 'Inventario';
+
     protected static ?int $navigationSort = 1;
-    
+
     // Products are tenant-scoped but don't have user ownership
     // Disable Filament's tenant scoping to avoid ownership relationship checks
     protected static bool $isScopedToTenant = false;
@@ -71,29 +73,29 @@ class ProductResource extends Resource
                                 Forms\Components\Placeholder::make('current_image')
                                     ->label('Imagen Actual')
                                     ->content(function ($record) {
-                                        if (!$record || !$record->image) {
-                                            return new \Illuminate\Support\HtmlString('
+                                        if (! $record || ! $record->image) {
+                                            return new HtmlString('
                                                 <div class="flex items-center justify-center md:justify-start">
-                                                    <img src="' . asset('images/placeholder-product.svg') . '" 
+                                                    <img src="'.asset('images/placeholder-product.svg').'" 
                                                          class="w-32 h-32 object-contain rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
                                                          alt="Sin imagen">
                                                 </div>
                                             ');
                                         }
-                                        
+
                                         $imageName = str_replace('products/', '', $record->image);
-                                        $imageUrl = Storage::disk('public')->url('products/' . $imageName);
-                                        
-                                        return new \Illuminate\Support\HtmlString('
+                                        $imageUrl = Storage::disk('public')->url('products/'.$imageName);
+
+                                        return new HtmlString('
                                             <div class="flex items-center justify-center md:justify-start">
-                                                <img src="' . $imageUrl . '" 
+                                                <img src="'.$imageUrl.'" 
                                                      class="w-32 h-32 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-sm"
                                                      alt="Imagen del producto">
                                             </div>
                                         ');
                                     })
                                     ->visibleOn('edit'),
-                                
+
                                 // CAMPO PARA SUBIR NUEVA IMAGEN
                                 FileUpload::make('image')
                                     ->label(fn ($record) => $record ? 'Cambiar Imagen' : 'Imagen del Producto')
@@ -125,7 +127,7 @@ class ProductResource extends Resource
                             ->required()
                             ->columnSpanFull()
                             ->maxLength(255),
-                
+
                         TextInput::make('price')
                             ->label('Precio de Venta')
                             ->prefix('$')
@@ -136,7 +138,7 @@ class ProductResource extends Resource
                                 'default' => 2,
                                 'md' => 1,
                             ]),
-                
+
                         TextInput::make('initial_stock')
                             ->label('Stock Inicial')
                             ->numeric()
@@ -147,7 +149,7 @@ class ProductResource extends Resource
                                 'default' => 2,
                                 'md' => 1,
                             ]),
-                
+
                         TextInput::make('min_stock')
                             ->label('Stock Mínimo')
                             ->numeric()
@@ -157,7 +159,7 @@ class ProductResource extends Resource
                                 'default' => 2,
                                 'md' => 1,
                             ]),
-                
+
                         Select::make('unit_of_measure')
                             ->label('Unidad de Medida')
                             ->options([
@@ -175,7 +177,7 @@ class ProductResource extends Resource
                                 'default' => 2,
                                 'md' => 1,
                             ]),
-                
+
                         Select::make('category_id')
                             ->label('Categoría')
                             ->relationship('category', 'name')
@@ -191,7 +193,7 @@ class ProductResource extends Resource
                                 'default' => 2,
                                 'md' => 1,
                             ]),
-                
+
                         Select::make('tax_id')
                             ->label('Impuesto')
                             ->relationship('tax', 'name')
@@ -231,25 +233,25 @@ class ProductResource extends Resource
                                     ->label('Código Interno (SKU)')
                                     ->unique(ignoreRecord: true)
                                     ->placeholder('Se autogenera si se deja vacío'),
-                                
+
                                 TextInput::make('barcode')
                                     ->label('Código de Barras')
                                     ->maxLength(255),
-                                
+
                                 Textarea::make('description')
                                     ->label('Descripción')
                                     ->placeholder('Describe las características principales del producto')
                                     ->rows(3)
                                     ->columnSpanFull()
                                     ->maxLength(500),
-                                
+
                                 TextInput::make('cost_price')
                                     ->label('Precio de Costo')
                                     ->prefix('$')
                                     ->numeric()
                                     ->step(0.01)
                                     ->helperText('Lo que te cuesta este producto'),
-                                
+
                                 Toggle::make('status')
                                     ->label('Activo')
                                     ->default(true),
@@ -266,35 +268,36 @@ class ProductResource extends Resource
                     ->label('Imagen')
                     ->disk('public')
                     ->getStateUsing(function ($record) {
-                        if (!$record->image) {
+                        if (! $record->image) {
                             return null;
                         }
                         // Si ya tiene el prefijo products/, usarlo directamente
                         if (str_starts_with($record->image, 'products/')) {
                             return $record->image;
                         }
+
                         // Si no, agregarlo
-                        return 'products/' . $record->image;
+                        return 'products/'.$record->image;
                     })
                     ->defaultImageUrl(asset('images/placeholder-product.svg'))
                     ->circular()
                     ->size(50),
-                
+
                 Tables\Columns\TextColumn::make('name')
                     ->label('Producto')
                     ->description(fn ($record) => $record->barcode)
                     ->searchable()
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('sku')
                     ->label('Código')
                     ->searchable(),
-                
+
                 Tables\Columns\TextColumn::make('price')
                     ->label('Precio')
                     ->money('ARS')
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('stock')
                     ->label('En Stock')
                     ->numeric()
@@ -305,13 +308,13 @@ class ProductResource extends Resource
                         default => 'success',
                     })
                     ->badge(),
-                
+
                 Tables\Columns\TextColumn::make('stock_value')
                     ->label('Valor en Stock')
                     ->getStateUsing(fn ($record) => $record->stock * $record->price)
                     ->money('ARS')
                     ->sortable(),
-                
+
                 Tables\Columns\IconColumn::make('low_stock_alert')
                     ->label('Alerta')
                     ->getStateUsing(fn ($record) => $record->stock <= $record->min_stock)
@@ -333,7 +336,7 @@ class ProductResource extends Resource
                 Tables\Filters\Filter::make('low_stock')
                     ->label('Stock Bajo')
                     ->query(fn (Builder $query): Builder => $query->whereColumn('stock', '<=', 'min_stock')),
-                
+
                 Tables\Filters\Filter::make('out_of_stock')
                     ->label('Sin Stock')
                     ->query(fn (Builder $query): Builder => $query->where('stock', '<=', 0)),
@@ -352,12 +355,12 @@ class ProductResource extends Resource
                     ->color('success')
                     ->tooltip('Ajustar stock rápidamente')
                     ->form([
-                        Forms\Components\TextInput::make('adjustment')
+                        TextInput::make('adjustment')
                             ->label('Cantidad')
                             ->helperText('Positivos suman, negativos restan')
                             ->numeric()
                             ->required(),
-                        Forms\Components\Select::make('reason')
+                        Select::make('reason')
                             ->label('Motivo')
                             ->options([
                                 'inventory' => 'Ajuste de Inventario',
@@ -370,7 +373,7 @@ class ProductResource extends Resource
                     ])
                     ->action(function (array $data, $record) {
                         $record->update(['stock' => $record->stock + $data['adjustment']]);
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Stock Actualizado')
                             ->body("El stock del producto {$record->name} ahora es {$record->stock}")
                             ->success()
@@ -433,7 +436,9 @@ class ProductResource extends Resource
     public static function calculateProductHealthScore($record): int
     {
         try {
-            if (!$record) return 0;
+            if (! $record) {
+                return 0;
+            }
 
             $cacheKey = "product_health_{$record->id}";
 
@@ -457,17 +462,17 @@ class ProductResource extends Resource
                 }
 
                 // Image completeness
-                if (!$record->image) {
+                if (! $record->image) {
                     $score -= 15; // Sin imagen
                 }
 
                 // Category assignment
-                if (!$record->category_id) {
+                if (! $record->category_id) {
                     $score -= 10; // Sin categoría
                 }
 
                 // SKU/Barcode completeness
-                if (!$record->sku && !$record->barcode) {
+                if (! $record->sku && ! $record->barcode) {
                     $score -= 5; // Sin código de identificación
                 }
 
@@ -517,7 +522,9 @@ class ProductResource extends Resource
     public static function getProductHealthTooltip($record): string
     {
         try {
-            if (!$record) return 'Error al calcular salud';
+            if (! $record) {
+                return 'Error al calcular salud';
+            }
 
             $cacheKey = "product_health_tooltip_{$record->id}";
 
@@ -545,14 +552,14 @@ class ProductResource extends Resource
                 }
 
                 // Image analysis
-                if (!$record->image) {
+                if (! $record->image) {
                     $factors[] = '🟡 Sin imagen (-15)';
                 } else {
                     $factors[] = '🟢 Con imagen';
                 }
 
                 // Category analysis
-                if (!$record->category_id) {
+                if (! $record->category_id) {
                     $factors[] = '🟡 Sin categoría (-10)';
                 } else {
                     $factors[] = '🟢 Categorizado';
@@ -581,7 +588,7 @@ class ProductResource extends Resource
                 $score = self::calculateProductHealthScore($record);
                 $color = $score >= 80 ? '🟢' : ($score >= 60 ? '🟡' : '🔴');
 
-                return $color . " Salud: {$score}/100\n\n" . implode("\n", $factors);
+                return $color." Salud: {$score}/100\n\n".implode("\n", $factors);
             });
         } catch (\Exception $e) {
             return 'Error al calcular detalles de salud';

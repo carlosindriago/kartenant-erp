@@ -5,7 +5,6 @@
  * Validates that the security test files are syntactically correct
  * and contain the required test cases.
  */
-
 echo "🔒 OPERATION FORTRESS - SECURITY TEST VALIDATOR\n";
 echo "================================================\n\n";
 
@@ -13,7 +12,7 @@ echo "================================================\n\n";
 $requiredFiles = [
     'tests/Feature/Tenant/AuthSecurityTest.php',
     'tests/Support/SecurityTestHelpers.php',
-    'tests/security-validation-runner.php'
+    'tests/security-validation-runner.php',
 ];
 
 $allFilesExist = true;
@@ -29,7 +28,7 @@ foreach ($requiredFiles as $file) {
         if ($readable) {
             echo "   ✅ File is readable\n";
         } else {
-            echo "   ❌ File is not readable (permissions: " . substr(sprintf('%o', fileperms($file)), -4) . ")\n";
+            echo '   ❌ File is not readable (permissions: '.substr(sprintf('%o', fileperms($file)), -4).")\n";
             chmod($file, 0644);
             echo "   🔧 Fixed permissions\n";
         }
@@ -60,7 +59,7 @@ foreach ($requiredFiles as $file) {
 // Validate test content if main test file exists
 if (file_exists('tests/Feature/Tenant/AuthSecurityTest.php')) {
     echo "🔍 Validating Security Test Content:\n";
-    echo str_repeat('-', 40) . "\n";
+    echo str_repeat('-', 40)."\n";
 
     $testContent = file_get_contents('tests/Feature/Tenant/AuthSecurityTest.php');
 
@@ -71,7 +70,7 @@ if (file_exists('tests/Feature/Tenant/AuthSecurityTest.php')) {
         'session id changes after successful login',
         'account locks out after 5 failed attempts',
         'authentication respects tenant isolation',
-        'successful login flow works with security fixes'
+        'successful login flow works with security fixes',
     ];
 
     $foundTests = 0;
@@ -85,7 +84,7 @@ if (file_exists('tests/Feature/Tenant/AuthSecurityTest.php')) {
         }
     }
 
-    echo "\n📊 Test Coverage: {$foundTests}/" . count($criticalTests) . " critical tests found\n";
+    echo "\n📊 Test Coverage: {$foundTests}/".count($criticalTests)." critical tests found\n";
 
     // Check for security-specific patterns
     $securityPatterns = [
@@ -93,7 +92,7 @@ if (file_exists('tests/Feature/Tenant/AuthSecurityTest.php')) {
         'session fixation' => '🔐 Session security',
         'rate limiting' => '🚦 Rate limiting',
         'user enumeration' => '👤 Anti-enumeration',
-        'exponential lockout' => '🔒 Progressive lockout'
+        'exponential lockout' => '🔒 Progressive lockout',
     ];
 
     echo "\n🛡️ Security Controls Validated:\n";
@@ -111,7 +110,7 @@ echo "\n";
 // Check helper functions
 if (file_exists('tests/Support/SecurityTestHelpers.php')) {
     echo "🔧 Validating Security Test Helpers:\n";
-    echo str_repeat('-', 40) . "\n";
+    echo str_repeat('-', 40)."\n";
 
     $helperContent = file_get_contents('tests/Support/SecurityTestHelpers.php');
 
@@ -120,7 +119,7 @@ if (file_exists('tests/Support/SecurityTestHelpers.php')) {
         'measureResponseTime',
         'generateAttackPayloads',
         'assertRateLimitKeysExist',
-        'createTestTenantWithUser'
+        'createTestTenantWithUser',
     ];
 
     $foundHelpers = 0;
@@ -134,7 +133,7 @@ if (file_exists('tests/Support/SecurityTestHelpers.php')) {
         }
     }
 
-    echo "\n📊 Helper Coverage: {$foundHelpers}/" . count($helperFunctions) . " functions found\n";
+    echo "\n📊 Helper Coverage: {$foundHelpers}/".count($helperFunctions)." functions found\n";
 }
 
 echo "\n";
@@ -142,7 +141,7 @@ echo "\n";
 // Check test runner
 if (file_exists('tests/security-validation-runner.php')) {
     echo "🚀 Validating Security Test Runner:\n";
-    echo str_repeat('-', 40) . "\n";
+    echo str_repeat('-', 40)."\n";
 
     $runnerContent = file_get_contents('tests/security-validation-runner.php');
 
@@ -150,7 +149,7 @@ if (file_exists('tests/security-validation-runner.php')) {
         'validateEnvironment' => 'Environment validation',
         'runSecurityTests' => 'Test execution',
         'generateReport' => 'Report generation',
-        'validateProductionReadiness' => 'Production readiness'
+        'validateProductionReadiness' => 'Production readiness',
     ];
 
     $foundFeatures = 0;
@@ -176,7 +175,7 @@ echo "\n";
 
 // Final validation
 echo "🎯 FINAL VALIDATION RESULTS:\n";
-echo str_repeat('=', 40) . "\n";
+echo str_repeat('=', 40)."\n";
 
 if ($allFilesExist) {
     echo "✅ All required files are present and valid\n";

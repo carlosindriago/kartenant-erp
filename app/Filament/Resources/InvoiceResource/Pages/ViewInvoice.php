@@ -3,12 +3,14 @@
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Resources\InvoiceResource;
+use App\Models\Invoice;
+use App\Models\PaymentProof;
+use App\Models\PaymentSettings;
+use App\Models\PaymentTransaction;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
-use App\Models\Invoice;
-use App\Models\PaymentSettings;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\Response;
 
 class ViewInvoice extends ViewRecord
 {
@@ -94,7 +96,7 @@ class ViewInvoice extends ViewRecord
         ];
     }
 
-    protected function generateAndDownloadPDF(): \Symfony\Component\HttpFoundation\Response
+    protected function generateAndDownloadPDF(): ?Response
     {
         try {
             // Generate PDF
@@ -109,13 +111,15 @@ class ViewInvoice extends ViewRecord
 
             // Download the PDF
             return response()->streamDownload(
-                fn () => print($pdf->output()),
+                fn () => print ($pdf->output()),
                 $filename,
                 ['Content-Type' => 'application/pdf']
             );
 
         } catch (\Exception $e) {
-            $this->notify('error', 'Error al generar PDF: ' . $e->getMessage());
+            $this->notify('error', 'Error al generar PDF: '.$e->getMessage());
+
+            return null;
         }
     }
 
@@ -144,7 +148,7 @@ class ViewInvoice extends ViewRecord
             $this->redirect(InvoiceResource::getUrl('edit', ['record' => $newInvoice]));
 
         } catch (\Exception $e) {
-            $this->notify('error', 'Error al duplicar factura: ' . $e->getMessage());
+            $this->notify('error', 'Error al duplicar factura: '.$e->getMessage());
         }
     }
 
@@ -169,11 +173,11 @@ class ViewInvoice extends ViewRecord
 
     protected function getRelatedPaymentProofs()
     {
-        if (!$this->record->subscription) {
+        if (! $this->record->subscription) {
             return collect();
         }
 
-        return \App\Models\PaymentProof::where('subscription_id', $this->record->subscription->id)
+        return PaymentProof::where('subscription_id', $this->record->subscription->id)
             ->with('reviewer')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -181,11 +185,11 @@ class ViewInvoice extends ViewRecord
 
     protected function getRelatedTransactions()
     {
-        if (!$this->record->subscription) {
+        if (! $this->record->subscription) {
             return collect();
         }
 
-        return \App\Models\PaymentTransaction::where('subscription_id', $this->record->subscription->id)
+        return PaymentTransaction::where('subscription_id', $this->record->subscription->id)
             ->with('approver')
             ->orderBy('created_at', 'desc')
             ->get();

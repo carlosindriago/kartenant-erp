@@ -1,7 +1,6 @@
 <?php
 
 use Laravel\Dusk\Browser;
-use App\Models\User;
 
 it('can resend welcome email from tenant detail page', function () {
     $this->browse(function (Browser $browser) {
@@ -29,27 +28,30 @@ it('can resend welcome email from tenant detail page', function () {
             ->waitFor('button[aria-label="Gestión"]', 10)
             ->click('button[aria-label="Gestión"]')
             ->waitForText('Reenviar Email de Bienvenida', 5)
-            ->assertSee('Reenviar Email de Bienvenida')
+            ->assertSee('Reenviar Email de Bienvenida');
 
-            // Take screenshot before action
-            $browser->screenshot('welcome-email-before-action');
+        // Take screenshot before action
+        $browser->screenshot('welcome-email-before-action');
 
+        $browser
             // Click on the resend email action
             ->clickLink('Reenviar Email de Bienvenida')
             ->waitForText('Reenviar Email de Bienvenida', 5) // Modal header
-            ->assertSee('Se generará una nueva contraseña temporal')
+            ->assertSee('Se generará una nueva contraseña temporal');
 
-            // Take screenshot of modal
-            $browser->screenshot('welcome-email-modal');
+        // Take screenshot of modal
+        $browser->screenshot('welcome-email-modal');
 
+        $browser
             // Confirm the action
             ->press('Confirmar')
             ->waitForText('Email Reenviado', 10)
-            ->assertSee('Se ha enviado el email de bienvenida')
+            ->assertSee('Se ha enviado el email de bienvenida');
 
-            // Take screenshot after action
-            $browser->screenshot('welcome-email-after-action');
+        // Take screenshot after action
+        $browser->screenshot('welcome-email-after-action');
 
+        $browser
             // Verify no error occurred
             ->assertDontSee('Call to undefined method')
             ->assertDontSee('MailChannel::make()')

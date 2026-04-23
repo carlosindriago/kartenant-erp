@@ -18,7 +18,7 @@ class UsageOverview extends BaseWidget
         $usageStatus = $usageService->getUsageStatus($tenantId);
         $currentUsage = TenantUsage::getCurrentUsage($tenantId);
 
-        if (!$currentUsage) {
+        if (! $currentUsage) {
             return [
                 Stat::make('Estado del Uso', 'Sin Datos')
                     ->description('No hay actividad registrada')
@@ -118,7 +118,7 @@ class UsageOverview extends BaseWidget
         $remaining = $metricInfo['remaining'];
 
         if ($remaining === PHP_INT_MAX) {
-            return "Ilimitado";
+            return 'Ilimitado';
         }
 
         $description = "{$percentage}% utilizado";
@@ -132,7 +132,7 @@ class UsageOverview extends BaseWidget
 
     private function getUsageIcon(string $zone): string
     {
-        return match($zone) {
+        return match ($zone) {
             'normal' => 'heroicon-m-arrow-trending-down',
             'warning' => 'heroicon-m-exclamation-triangle',
             'overdraft' => 'heroicon-m-exclamation-triangle',
@@ -143,7 +143,7 @@ class UsageOverview extends BaseWidget
 
     private function getZoneColor(string $zone): string
     {
-        return match($zone) {
+        return match ($zone) {
             'normal' => 'success',
             'warning' => 'warning',
             'overdraft' => 'danger',

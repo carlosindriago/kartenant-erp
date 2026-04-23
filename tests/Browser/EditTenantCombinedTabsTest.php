@@ -2,10 +2,10 @@
 
 namespace Tests\Browser;
 
+use App\Models\Tenant;
+use App\Models\User;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
-use App\Models\User;
-use App\Models\Tenant;
 
 class EditTenantCombinedTabsTest extends DuskTestCase
 {
@@ -32,14 +32,14 @@ class EditTenantCombinedTabsTest extends DuskTestCase
             // Get test tenant
             $tenant = Tenant::where('id', '10')->first();
 
-            if (!$tenant) {
+            if (! $tenant) {
                 $this->markTestSkipped('Test tenant not found');
             }
 
             $browser->loginAs($this->user)
-                    ->visit('/admin/tenants/' . $tenant->id . '/edit')
-                    ->waitFor('.fi-ta-content', 10)
-                    ->pause(1000); // Allow tabs to render
+                ->visit('/admin/tenants/'.$tenant->id.'/edit')
+                ->waitFor('.fi-ta-content', 10)
+                ->pause(1000); // Allow tabs to render
 
             // 1. Test tab structure and ordering
             echo "🧪 Testing tab structure and ordering...\n";
@@ -76,16 +76,16 @@ class EditTenantCombinedTabsTest extends DuskTestCase
 
             // Initially, buttons should not be visible since we're on the first tab (Modules)
             $browser->assertDontSee('Guardar Cambios')
-                    ->assertDontSee('Cancelar');
+                ->assertDontSee('Cancelar');
 
             // Click on "Información" tab
             $browser->click('.fi-ta-tabs .fi-ta-tab:nth-child(2)')
-                    ->pause(500) // Allow tab content to load
-                    ->waitFor('.fi-form', 5);
+                ->pause(500) // Allow tab content to load
+                ->waitFor('.fi-form', 5);
 
             // Now Save/Cancel buttons should be visible inside the tab
             $browser->assertSee('Guardar Cambios')
-                    ->assertSee('Cancelar');
+                ->assertSee('Cancelar');
 
             // Check that buttons are inside the tab content area, not outside
             $tabContent = $browser->element('.fi-ta-content .fi-ta-tab-content.active');
@@ -108,19 +108,19 @@ class EditTenantCombinedTabsTest extends DuskTestCase
             echo "\n🧪 Testing form functionality...\n";
 
             // Switch to "Información" tab if not already active
-            if (!$browser->element('.fi-ta-tabs .fi-ta-tab:nth-child(2).active')) {
+            if (! $browser->element('.fi-ta-tabs .fi-ta-tab:nth-child(2).active')) {
                 $browser->click('.fi-ta-tabs .fi-ta-tab:nth-child(2)')
-                        ->pause(500);
+                    ->pause(500);
             }
 
             // Verify form fields are present and accessible
             $browser->assertVisible('input[name="tenant.name"]')
-                    ->assertVisible('input[name="tenant.domain"]')
-                    ->assertVisible('input[name="tenant.email"]');
+                ->assertVisible('input[name="tenant.domain"]')
+                ->assertVisible('input[name="tenant.email"]');
 
             // Test that form fields can be edited
             $browser->type('tenant.name', 'Updated Test Tenant Name')
-                    ->pause(200);
+                ->pause(200);
 
             // Verify the value was entered
             $nameValue = $browser->value('input[name="tenant.name"]');
@@ -132,19 +132,19 @@ class EditTenantCombinedTabsTest extends DuskTestCase
             echo "\n🧪 Testing cancel button...\n";
 
             $browser->click('.fi-ta-content .fi-ta-tab-content.active .fi-action-button[href*="cancel"]')
-                    ->pause(1000);
+                ->pause(1000);
 
             // Should redirect to view page
-            $browser->assertPathMatches('/admin\/tenants\/' . $tenant->id);
+            $browser->assertPathMatches('/admin\/tenants\/'.$tenant->id);
 
             echo "✅ Cancel button working correctly\n";
 
             // 5. Go back to edit page for final verification
             echo "\n🧪 Final verification of tab order...\n";
 
-            $browser->visit('/admin/tenants/' . $tenant->id . '/edit')
-                    ->waitFor('.fi-ta-content', 10)
-                    ->pause(1000);
+            $browser->visit('/admin/tenants/'.$tenant->id.'/edit')
+                ->waitFor('.fi-ta-content', 10)
+                ->pause(1000);
 
             // Verify tab order is consistent
             $tabsAfterRefresh = $browser->elements('.fi-ta-tabs .fi-ta-tab');
@@ -170,26 +170,26 @@ class EditTenantCombinedTabsTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $tenant = Tenant::where('id', '10')->first();
 
-            if (!$tenant) {
+            if (! $tenant) {
                 $this->markTestSkipped('Test tenant not found');
             }
 
             $browser->loginAs($this->user)
-                    ->visit('/admin/tenants/' . $tenant->id . '/edit')
-                    ->waitFor('.fi-ta-content', 10)
-                    ->pause(1000);
+                ->visit('/admin/tenants/'.$tenant->id.'/edit')
+                ->waitFor('.fi-ta-content', 10)
+                ->pause(1000);
 
             // Check that Save/Cancel buttons are NOT outside the tab system
             $browser->assertDontSeeIn('.fi-ta-content', 'Guardar Cambios')
-                    ->assertDontSeeIn('.fi-ta-content', 'Cancelar');
+                ->assertDontSeeIn('.fi-ta-content', 'Cancelar');
 
             // Click on Information tab to show buttons
             $browser->click('.fi-ta-tabs .fi-ta-tab:nth-child(2)')
-                    ->pause(500);
+                ->pause(500);
 
             // Now buttons should be visible, but only inside the active tab content
             $browser->assertSeeIn('.fi-ta-content .fi-ta-tab-content.active', 'Guardar Cambios')
-                    ->assertSeeIn('.fi-ta-content .fi-ta-tab-content.active', 'Cancelar');
+                ->assertSeeIn('.fi-ta-content .fi-ta-tab-content.active', 'Cancelar');
 
             // Verify buttons are not in other tabs
             $browser->assertDontSeeIn('.fi-ta-tabs .fi-ta-tab:nth-child(1)', 'Guardar Cambios');

@@ -2,37 +2,39 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Modules\POS\Services;
 
+use App\Modules\Inventory\Models\MovementReason;
+use App\Modules\Inventory\Models\Product;
+use App\Modules\Inventory\Models\StockMovement;
 use App\Modules\POS\Models\Sale;
+use App\Modules\POS\Models\SaleItem;
 use App\Modules\POS\Models\SaleReturn;
 use App\Modules\POS\Models\SaleReturnItem;
-use App\Modules\Inventory\Models\StockMovement;
-use App\Modules\Inventory\Models\Product;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use Spatie\Multitenancy\Models\Tenant;
 
 class ReturnService
 {
     /**
      * 📝 El Método Maestro: Crear Nota de Crédito
-     * 
+     *
      * Este método es el "asiento contable de reversión".
      * Nunca borra la venta original, crea un nuevo documento que la revierte.
-     * 
-     * @param Sale $sale La venta original
-     * @param array $itemsToReturn ['sale_item_id' => ['quantity' => X, 'reason' => '...']]
-     * @param string $refundMethod Método de reembolso
-     * @param string|null $generalReason Razón general de la devolución
+     *
+     * @param  Sale  $sale  La venta original
+     * @param  array  $itemsToReturn  ['sale_item_id' => ['quantity' => X, 'reason' => '...']]
+     * @param  string  $refundMethod  Método de reembolso
+     * @param  string|null  $generalReason  Razón general de la devolución
      * @return SaleReturn La nota de crédito creada
+     *
      * @throws \Exception Si algo falla en el proceso
      */
     public function recordReturn(
@@ -114,11 +116,11 @@ class ReturnService
                 $product = Product::find($originalItem->product_id);
                 $previousStock = $product ? $product->stock : 0;
                 $newStock = $previousStock + $quantity;
-                
+
                 // 🎯 7️⃣ Crear movimiento de entrada al inventario
                 // Este es el "asiento contable" que devuelve el stock
                 $currentUser = auth('tenant')->user() ?? auth('web')->user();
-                
+
                 StockMovement::create([
                     'product_id' => $originalItem->product_id,
                     'movement_reason_id' => $this->getReturnReasonId(),
@@ -152,7 +154,7 @@ class ReturnService
                     'cancelled_by' => auth('tenant')->id() ?? auth('web')->id(),
                     'cancellation_reason' => $generalReason ?? 'Anulación completa de venta',
                 ]);
-                
+
                 \Log::info('🚫 VENTA MARCADA COMO ANULADA', [
                     'sale_id' => $sale->id,
                     'invoice_number' => $sale->invoice_number,
@@ -172,8 +174,9 @@ class ReturnService
                 'refund_amount' => $saleReturn->total,
                 'refund_method' => $refundMethod,
                 'items_count' => count($itemsToReturn),
-                'items_detail' => collect($itemsToReturn)->map(function($data, $itemId) {
-                    $item = \App\Modules\POS\Models\SaleItem::find($itemId);
+                'items_detail' => collect($itemsToReturn)->map(function ($data, $itemId) {
+                    $item = SaleItem::find($itemId);
+
                     return [
                         'product' => $item->product_name,
                         'quantity_returned' => $data['quantity'],
@@ -218,7 +221,7 @@ class ReturnService
      */
     protected function getReturnReasonId(): int
     {
-        $reason = \App\Modules\Inventory\Models\MovementReason::firstOrCreate([
+        $reason = MovementReason::firstOrCreate([
             'name' => 'Devolución de venta',
             'type' => 'entrada',
         ], [
@@ -230,13 +233,12 @@ class ReturnService
 
     /**
      * 🚨 Método de Pánico: Anular última venta completa
-     * 
+     *
      * Este es el "botón de deshacer" para errores inmediatos.
      * Devuelve TODOS los productos de la venta más reciente.
-     * 
-     * @param Sale $sale La venta a anular
-     * @param string $reason Razón de la anulación
-     * @return SaleReturn
+     *
+     * @param  Sale  $sale  La venta a anular
+     * @param  string  $reason  Razón de la anulación
      */
     public function quickCancelLastSale(Sale $sale, string $reason = 'Anulación de venta por error'): SaleReturn
     {
@@ -252,7 +254,7 @@ class ReturnService
             'triggered_by_user_name' => (auth('tenant')->user() ?? auth('web')->user())?->name ?? 'System',
             'timestamp' => now()->toDateTimeString(),
         ]);
-        
+
         // Preparar array de todos los items para devolución completa
         $itemsToReturn = [];
         foreach ($sale->items as $item) {
@@ -276,6 +278,7 @@ class ReturnService
         }
 
         $fiveMinutesAgo = now()->subMinutes(5);
+
         return $sale->created_at->gte($fiveMinutesAgo);
     }
 }

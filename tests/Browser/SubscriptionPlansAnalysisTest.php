@@ -2,10 +2,10 @@
 
 namespace Tests\Browser;
 
+use App\Models\SubscriptionPlan;
+use App\Models\User;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
-use App\Models\User;
-use App\Models\SubscriptionPlan;
 
 class SubscriptionPlansAnalysisTest extends DuskTestCase
 {
@@ -19,14 +19,14 @@ class SubscriptionPlansAnalysisTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/subscription-plans')
-                    ->pause(2000) // Wait for page to load
-                    ->screenshot('01_subscription_plans_initial_load');
+                ->visit('/admin/subscription-plans')
+                ->pause(2000) // Wait for page to load
+                ->screenshot('01_subscription_plans_initial_load');
 
             // 1. Check page title and basic structure
             $browser->assertSee('Planes de Suscripción')
-                    ->assertPresent('table')
-                    ->screenshot('02_page_structure_verified');
+                ->assertPresent('table')
+                ->screenshot('02_page_structure_verified');
 
             // 2. Analyze the table headers
             $headers = $browser->elements('th');
@@ -57,7 +57,7 @@ class SubscriptionPlansAnalysisTest extends DuskTestCase
                         }
                     }
                 } catch (\Exception $e) {
-                    echo "Error reading row {$rowIndex}: " . $e->getMessage() . "\n";
+                    echo "Error reading row {$rowIndex}: ".$e->getMessage()."\n";
                 }
             }
 
@@ -70,7 +70,7 @@ class SubscriptionPlansAnalysisTest extends DuskTestCase
                     $browser->screenshot('06_pagination_info');
                 }
             } catch (\Exception $e) {
-                echo "No pagination found or error reading pagination: " . $e->getMessage() . "\n";
+                echo 'No pagination found or error reading pagination: '.$e->getMessage()."\n";
             }
 
             // 6. Test individual deletion attempt
@@ -82,19 +82,19 @@ class SubscriptionPlansAnalysisTest extends DuskTestCase
                     $firstRow = $browser->element('input[type="checkbox"][dusk*="tableRecordCheckbox"]:not([dusk*="toggleAll"])');
                     if ($firstRow) {
                         $browser->click($firstRow)
-                                ->pause(500)
-                                ->screenshot('07_first_row_selected');
+                            ->pause(500)
+                            ->screenshot('07_first_row_selected');
 
                         // Check if delete button appears for individual row
                         $deleteButtons = $browser->elements('button[dusk*="table-delete-action"]');
                         if (count($deleteButtons) > 0) {
-                            echo "Found " . count($deleteButtons) . " delete buttons\n";
+                            echo 'Found '.count($deleteButtons)." delete buttons\n";
                             $browser->screenshot('08_delete_buttons_visible');
                         }
                     }
                 }
             } catch (\Exception $e) {
-                echo "Error testing individual deletion: " . $e->getMessage() . "\n";
+                echo 'Error testing individual deletion: '.$e->getMessage()."\n";
             }
 
             // 7. Test bulk selection and deletion
@@ -103,15 +103,15 @@ class SubscriptionPlansAnalysisTest extends DuskTestCase
                 $toggleAllCheckbox = $browser->element('input[type="checkbox"][dusk*="toggleAll"]');
                 if ($toggleAllCheckbox) {
                     $browser->click($toggleAllCheckbox)
-                            ->pause(1000)
-                            ->screenshot('09_all_items_selected');
+                        ->pause(1000)
+                        ->screenshot('09_all_items_selected');
 
                     // Check bulk actions dropdown
                     $bulkActionsDropdown = $browser->element('button[dusk*="bulk-actions"]');
                     if ($bulkActionsDropdown) {
                         $browser->click($bulkActionsDropdown)
-                                ->pause(500)
-                                ->screenshot('10_bulk_actions_opened');
+                            ->pause(500)
+                            ->screenshot('10_bulk_actions_opened');
 
                         // Look for delete bulk action
                         $deleteBulkAction = $browser->element('button[dusk*="bulk-delete-action"]');
@@ -129,27 +129,27 @@ class SubscriptionPlansAnalysisTest extends DuskTestCase
                     }
                 }
             } catch (\Exception $e) {
-                echo "Error testing bulk deletion: " . $e->getMessage() . "\n";
+                echo 'Error testing bulk deletion: '.$e->getMessage()."\n";
             }
 
             // 8. Check for filters and their states
             try {
                 $filters = $browser->elements('.filament-tables-filter');
-                echo "Found " . count($filters) . " filters\n";
+                echo 'Found '.count($filters)." filters\n";
                 $browser->screenshot('13_filters_visible');
             } catch (\Exception $e) {
-                echo "Error checking filters: " . $e->getMessage() . "\n";
+                echo 'Error checking filters: '.$e->getMessage()."\n";
             }
 
             // 9. Check for any error messages or notifications
             try {
                 $notifications = $browser->elements('.filament-notifications');
-                echo "Found " . count($notifications) . " notifications\n";
+                echo 'Found '.count($notifications)." notifications\n";
                 if (count($notifications) > 0) {
                     $browser->screenshot('14_notifications_present');
                 }
             } catch (\Exception $e) {
-                echo "Error checking notifications: " . $e->getMessage() . "\n";
+                echo 'Error checking notifications: '.$e->getMessage()."\n";
             }
 
             // 10. Final state screenshot
@@ -166,12 +166,12 @@ class SubscriptionPlansAnalysisTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/subscription-plans')
-                    ->pause(3000);
+                ->visit('/admin/subscription-plans')
+                ->pause(3000);
 
             // Capture console errors
             $logs = $browser->driver->manage()->getLog('browser');
-            $errors = array_filter($logs, function($log) {
+            $errors = array_filter($logs, function ($log) {
                 return $log['level'] === 'SEVERE';
             });
 
@@ -180,9 +180,9 @@ class SubscriptionPlansAnalysisTest extends DuskTestCase
                 echo "No JavaScript errors found\n";
             } else {
                 foreach ($errors as $error) {
-                    echo "Error: " . $error['message'] . "\n";
-                    echo "Source: " . $error['source'] . "\n";
-                    echo "Line: " . $error['line'] . "\n";
+                    echo 'Error: '.$error['message']."\n";
+                    echo 'Source: '.$error['source']."\n";
+                    echo 'Line: '.$error['line']."\n";
                     echo "---\n";
                 }
             }
@@ -200,8 +200,8 @@ class SubscriptionPlansAnalysisTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/subscription-plans')
-                    ->pause(2000);
+                ->visit('/admin/subscription-plans')
+                ->pause(2000);
 
             // Try to trigger some API calls by interacting with the page
             try {
@@ -209,19 +209,19 @@ class SubscriptionPlansAnalysisTest extends DuskTestCase
                 $sortHeader = $browser->element('th.sortable');
                 if ($sortHeader) {
                     $browser->click($sortHeader)
-                            ->pause(1000)
-                            ->screenshot('17_sort_attempt');
+                        ->pause(1000)
+                        ->screenshot('17_sort_attempt');
                 }
 
                 // Try filtering
                 $filterButton = $browser->element('button[dusk*="filter"]');
                 if ($filterButton) {
                     $browser->click($filterButton)
-                            ->pause(1000)
-                            ->screenshot('18_filter_opened');
+                        ->pause(1000)
+                        ->screenshot('18_filter_opened');
                 }
             } catch (\Exception $e) {
-                echo "Error during interaction testing: " . $e->getMessage() . "\n";
+                echo 'Error during interaction testing: '.$e->getMessage()."\n";
             }
 
             $browser->screenshot('19_network_analysis_complete');
@@ -237,17 +237,17 @@ class SubscriptionPlansAnalysisTest extends DuskTestCase
 
         // Get a plan that should be deletable (no subscriptions, inactive, not visible, not featured)
         $deletablePlan = SubscriptionPlan::where('is_active', false)
-                                       ->where('is_visible', false)
-                                       ->where('is_featured', false)
-                                       ->whereHas('subscriptions', function($query) {
-                                           $query->whereRaw('0=1'); // No subscriptions
-                                       }, '=', 0)
-                                       ->first();
+            ->where('is_visible', false)
+            ->where('is_featured', false)
+            ->whereHas('subscriptions', function ($query) {
+                $query->whereRaw('0=1'); // No subscriptions
+            }, '=', 0)
+            ->first();
 
         $this->browse(function (Browser $browser) use ($admin, $deletablePlan) {
             $browser->loginAs($admin)
-                    ->visit('/admin/subscription-plans')
-                    ->pause(2000);
+                ->visit('/admin/subscription-plans')
+                ->pause(2000);
 
             if ($deletablePlan) {
                 echo "\n=== TESTING DELETABLE PLAN ===\n";
@@ -258,14 +258,14 @@ class SubscriptionPlansAnalysisTest extends DuskTestCase
                 $planRow = $browser->element("td:contains('{$deletablePlan->name}')")->getParent();
                 if ($planRow) {
                     $browser->scrollIntoView($planRow)
-                            ->screenshot('20_deletable_plan_found');
+                        ->screenshot('20_deletable_plan_found');
 
                     // Try to click the delete action for this specific plan
                     $deleteButton = $browser->element("tr:has(td:contains('{$deletablePlan->name}')) button[dusk*='delete-action']");
                     if ($deleteButton) {
                         $browser->click($deleteButton)
-                                ->pause(1000)
-                                ->screenshot('21_delete_dialog_opened');
+                            ->pause(1000)
+                            ->screenshot('21_delete_dialog_opened');
 
                         // Check if we can confirm deletion
                         try {
@@ -276,7 +276,7 @@ class SubscriptionPlansAnalysisTest extends DuskTestCase
                                 // Don't actually click - just verify it exists
                             }
                         } catch (\Exception $e) {
-                            echo "No delete confirmation button found: " . $e->getMessage() . "\n";
+                            echo 'No delete confirmation button found: '.$e->getMessage()."\n";
                         }
                     } else {
                         echo "No delete button found for deletable plan\n";

@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,37 +13,41 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TenantResource\Pages;
 use App\Filament\Resources\TenantResource\RelationManagers;
-use App\Models\Tenant;
+use App\Mail\WelcomeNewTenant;
+use App\Models\BackupLog;
 use App\Models\SubscriptionPlan;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
+use App\Models\Tenant;
+use App\Models\TenantActivity;
+use App\Models\User;
+use App\Modules\Inventory\Models\Product;
+use App\Modules\POS\Models\Sale;
+use App\Services\TenantBackupService;
+use App\Services\TenantStatsService;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Form;
+use Filament\Infolists\Components;
+use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
+use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Grid;
-use App\Mail\WelcomeNewTenant;
-use App\Models\User;
-use Filament\Notifications\Notification;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\ViewAction;
-use Filament\Infolists\Infolist;
-use Filament\Infolists\Components;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Cache;
-use App\Services\TenantStatsService;
+use Illuminate\Support\HtmlString;
 
 class TenantResource extends Resource
 {
@@ -131,12 +135,12 @@ class TenantResource extends Resource
                             ->label('Información del Plan')
                             ->content(function ($get) {
                                 $planId = $get('subscription_plan_id');
-                                if (!$planId) {
+                                if (! $planId) {
                                     return 'Selecciona un plan para ver detalles';
                                 }
 
                                 $plan = SubscriptionPlan::find($planId);
-                                if (!$plan) {
+                                if (! $plan) {
                                     return 'Plan no encontrado';
                                 }
 
@@ -144,18 +148,24 @@ class TenantResource extends Resource
                                 $price = $plan->getFormattedPrice($cycle);
 
                                 $limits = [];
-                                if ($plan->max_users) $limits[] = "{$plan->max_users} usuarios";
-                                if ($plan->max_products) $limits[] = "{$plan->max_products} productos";
-                                if ($plan->max_sales_per_month) $limits[] = "{$plan->max_sales_per_month} ventas/mes";
+                                if ($plan->max_users) {
+                                    $limits[] = "{$plan->max_users} usuarios";
+                                }
+                                if ($plan->max_products) {
+                                    $limits[] = "{$plan->max_products} productos";
+                                }
+                                if ($plan->max_sales_per_month) {
+                                    $limits[] = "{$plan->max_sales_per_month} ventas/mes";
+                                }
 
                                 $limitsText = count($limits) > 0 ? implode(' • ', $limits) : 'Sin límites';
 
-                                return new \Illuminate\Support\HtmlString(
+                                return new HtmlString(
                                     "<div class='space-y-2'>
                                         <div><strong>Precio:</strong> {$price}</div>
                                         <div><strong>Límites:</strong> {$limitsText}</div>
-                                        " . ($plan->has_trial ? "<div class='text-green-600'><strong>Trial:</strong> {$plan->trial_days} días gratis</div>" : "") . "
-                                    </div>"
+                                        ".($plan->has_trial ? "<div class='text-green-600'><strong>Trial:</strong> {$plan->trial_days} días gratis</div>" : '').'
+                                    </div>'
                                 );
                             })
                             ->columnSpanFull(),
@@ -167,8 +177,11 @@ class TenantResource extends Resource
                             ->default(true)
                             ->visible(function ($get) {
                                 $planId = $get('subscription_plan_id');
-                                if (!$planId) return false;
+                                if (! $planId) {
+                                    return false;
+                                }
                                 $plan = SubscriptionPlan::find($planId);
+
                                 return $plan && $plan->has_trial;
                             }),
 
@@ -373,12 +386,12 @@ class TenantResource extends Resource
                                     ->size(80)
                                     ->circular()
                                     ->defaultImageUrl(fn ($record) => $record->logo_type === 'text'
-                                        ? 'data:image/svg+xml;base64,' . base64_encode(
+                                        ? 'data:image/svg+xml;base64,'.base64_encode(
                                             '<svg width="80" height="80" xmlns="http://www.w3.org/2000/svg">
-                                                <rect width="80" height="80" fill="' . ($record->logo_background_color ?? '#3B82F6') . '"/>
+                                                <rect width="80" height="80" fill="'.($record->logo_background_color ?? '#3B82F6').'"/>
                                                 <text x="40" y="45" font-family="Arial" font-size="24" font-weight="bold"
-                                                      text-anchor="middle" fill="' . ($record->logo_text_color ?? '#FFFFFF') . '">
-                                                    ' . strtoupper(substr($record->name, 0, 2)) . '
+                                                      text-anchor="middle" fill="'.($record->logo_text_color ?? '#FFFFFF').'">
+                                                    '.strtoupper(substr($record->name, 0, 2)).'
                                                 </text>
                                             </svg>'
                                         )
@@ -398,7 +411,7 @@ class TenantResource extends Resource
                                             ->label('Estado')
                                             ->badge()
                                             ->color(fn ($record) => $record->status_color)
-                                            ->formatStateUsing(fn ($state) => match($state) {
+                                            ->formatStateUsing(fn ($state) => match ($state) {
                                                 'active' => 'Activo ✅',
                                                 'trial' => 'En Prueba 🧪',
                                                 'suspended' => 'Suspendido ⚠️',
@@ -449,7 +462,7 @@ class TenantResource extends Resource
 
                                 Components\TextEntry::make('activeSubscription.billing_cycle')
                                     ->label('Ciclo de Facturación')
-                                    ->formatStateUsing(fn ($state) => match($state) {
+                                    ->formatStateUsing(fn ($state) => match ($state) {
                                         'monthly' => 'Mensual 📅',
                                         'yearly' => 'Anual 📆',
                                         default => $state,
@@ -461,21 +474,29 @@ class TenantResource extends Resource
                                     ->date('d/m/Y')
                                     ->placeholder('N/A')
                                     ->color(function ($record) {
-                                        if (!$record->activeSubscription || !$record->activeSubscription->ends_at) return 'gray';
+                                        if (! $record->activeSubscription || ! $record->activeSubscription->ends_at) {
+                                            return 'gray';
+                                        }
                                         $days = now()->diffInDays($record->activeSubscription->ends_at, false);
-                                        if ($days < 0) return 'danger';
-                                        if ($days <= 7) return 'warning';
+                                        if ($days < 0) {
+                                            return 'danger';
+                                        }
+                                        if ($days <= 7) {
+                                            return 'warning';
+                                        }
+
                                         return 'success';
                                     })
                                     ->formatStateUsing(function ($record) {
-                                        if (!$record->activeSubscription || !$record->activeSubscription->ends_at) {
+                                        if (! $record->activeSubscription || ! $record->activeSubscription->ends_at) {
                                             return null;
                                         }
                                         $diff = now()->diff($record->activeSubscription->ends_at);
                                         if ($diff->days > 0) {
                                             return "{$diff->days} días restantes";
                                         }
-                                        return "Vencido";
+
+                                        return 'Vencido';
                                     }),
                             ]),
                     ])
@@ -500,7 +521,7 @@ class TenantResource extends Resource
 
                                 Components\TextEntry::make('modules_monthly_cost')
                                     ->label('Costo Mensual')
-                                    ->formatStateUsing(fn ($record) => '$' . number_format($record->getModulesMonthlyCost(), 2))
+                                    ->formatStateUsing(fn ($record) => '$'.number_format($record->getModulesMonthlyCost(), 2))
                                     ->icon('heroicon-o-banknotes')
                                     ->color('warning'),
 
@@ -540,13 +561,14 @@ class TenantResource extends Resource
 
                                         Components\TextEntry::make('monthly_cost')
                                             ->label('Costo Mensual')
-                                            ->formatStateUsing(fn ($record) => '$' . number_format($record['monthly_cost'], 2)),
+                                            ->formatStateUsing(fn ($record) => '$'.number_format($record['monthly_cost'], 2)),
                                     ]),
                             ])
                             ->columnSpanFull()
                             ->state(fn ($record) => $record->activeModules()
                                 ->map(function ($module) use ($record) {
                                     $tenantModule = $record->getTenantModule($module->slug);
+
                                     return [
                                         'name' => $module->name,
                                         'category' => $module->getDisplayCategory(),
@@ -572,14 +594,14 @@ class TenantResource extends Resource
                                     ->schema([
                                         Components\TextEntry::make('storage_used')
                                             ->label('Espacio Usado')
-                                            ->formatStateUsing(fn ($record) => self::getTenantStorageUsage(fn() => $record->database))
+                                            ->formatStateUsing(fn ($record) => self::getTenantStorageUsage(fn () => $record->database))
                                             ->icon('heroicon-o-server')
                                             ->size('lg')
                                             ->color('primary'),
 
                                         Components\TextEntry::make('file_count')
                                             ->label('Archivos Subidos')
-                                            ->formatStateUsing(fn ($record) => self::getTenantFileCount(fn() => $record->id))
+                                            ->formatStateUsing(fn ($record) => self::getTenantFileCount(fn () => $record->id))
                                             ->icon('heroicon-o-document'),
                                     ])
                                     ->compact(),
@@ -589,14 +611,14 @@ class TenantResource extends Resource
                                     ->schema([
                                         Components\TextEntry::make('user_count')
                                             ->label('Total Usuarios')
-                                            ->formatStateUsing(fn ($record) => self::getTenantUserCount(fn() => $record->id))
+                                            ->formatStateUsing(fn ($record) => self::getTenantUserCount(fn () => $record->id))
                                             ->icon('heroicon-o-users')
                                             ->size('lg')
                                             ->color('success'),
 
                                         Components\TextEntry::make('last_active')
                                             ->label('Última Actividad')
-                                            ->formatStateUsing(fn ($record) => self::getTenantLastActivity(fn() => $record->id))
+                                            ->formatStateUsing(fn ($record) => self::getTenantLastActivity(fn () => $record->id))
                                             ->icon('heroicon-o-clock')
                                             ->placeholder('Sin actividad'),
                                     ])
@@ -607,14 +629,14 @@ class TenantResource extends Resource
                                     ->schema([
                                         Components\TextEntry::make('product_count')
                                             ->label('Productos')
-                                            ->formatStateUsing(fn ($record) => self::getTenantProductCount(fn() => $record->database))
+                                            ->formatStateUsing(fn ($record) => self::getTenantProductCount(fn () => $record->database))
                                             ->icon('heroicon-o-cube')
                                             ->size('lg')
                                             ->color('info'),
 
                                         Components\TextEntry::make('sales_count')
                                             ->label('Ventas Totales')
-                                            ->formatStateUsing(fn ($record) => self::getTenantSalesCount(fn() => $record->database))
+                                            ->formatStateUsing(fn ($record) => self::getTenantSalesCount(fn () => $record->database))
                                             ->icon('heroicon-o-currency-dollar'),
                                     ])
                                     ->compact(),
@@ -624,14 +646,14 @@ class TenantResource extends Resource
                                     ->schema([
                                         Components\TextEntry::make('health_score')
                                             ->label('Salud del Sistema')
-                                            ->formatStateUsing(fn ($record) => self::calculateTenantHealthScore(fn() => $record))
+                                            ->formatStateUsing(fn ($record) => self::calculateTenantHealthScore(fn () => $record))
                                             ->icon('heroicon-o-heart')
                                             ->size('lg')
                                             ->color(fn ($state) => $state >= 80 ? 'success' : ($state >= 60 ? 'warning' : 'danger')),
 
                                         Components\TextEntry::make('api_calls_today')
                                             ->label('Llamadas API (Hoy)')
-                                            ->formatStateUsing(fn ($record) => self::getTenantApiCallsToday(fn() => $record->id))
+                                            ->formatStateUsing(fn ($record) => self::getTenantApiCallsToday(fn () => $record->id))
                                             ->icon('heroicon-o-chart-bar'),
                                     ])
                                     ->compact(),
@@ -677,13 +699,13 @@ class TenantResource extends Resource
                                     ]),
                             ])
                             ->columnSpanFull()
-                            ->hidden(fn ($record) => !$record->recentActivities()->exists()),
+                            ->hidden(fn ($record) => ! $record->recentActivities()->exists()),
                     ])
                     ->collapsible()
                     ->collapsed()
                     ->columns(1),
 
-                ]);
+            ]);
     }
 
     public static function table(Table $table): Table
@@ -705,7 +727,7 @@ class TenantResource extends Resource
                 TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => match($state) {
+                    ->formatStateUsing(fn ($state) => match ($state) {
                         'active' => 'Activo',
                         'trial' => 'Prueba',
                         'suspended' => 'Suspendido',
@@ -714,7 +736,7 @@ class TenantResource extends Resource
                         'inactive' => 'Inactivo',
                         default => 'Desconocido',
                     })
-                    ->color(fn ($state) => match($state) {
+                    ->color(fn ($state) => match ($state) {
                         'active' => 'success',
                         'trial' => 'info',
                         'suspended' => 'warning',
@@ -753,19 +775,28 @@ class TenantResource extends Resource
                     ->label('Health Score')
                     ->badge()
                     ->getStateUsing(function ($record) {
-                        $score = self::calculateTenantHealthScore(function() use ($record) { return $record; });
+                        $score = self::calculateTenantHealthScore(function () use ($record) {
+                            return $record;
+                        });
                         if ($score >= 80) {
-                            return '🟢 ' . $score;
+                            return '🟢 '.$score;
                         } elseif ($score >= 60) {
-                            return '🟡 ' . $score;
+                            return '🟡 '.$score;
                         } else {
-                            return '🔴 ' . $score;
+                            return '🔴 '.$score;
                         }
                     })
                     ->color(function ($record) {
-                        $score = self::calculateTenantHealthScore(function() use ($record) { return $record; });
-                        if ($score >= 80) return 'success';
-                        if ($score >= 60) return 'warning';
+                        $score = self::calculateTenantHealthScore(function () use ($record) {
+                            return $record;
+                        });
+                        if ($score >= 80) {
+                            return 'success';
+                        }
+                        if ($score >= 60) {
+                            return 'warning';
+                        }
+
                         return 'danger';
                     })
                     ->tooltip(function ($record) {
@@ -773,13 +804,16 @@ class TenantResource extends Resource
                     })
                     ->action(
                         function ($record) {
-                            return Tables\Actions\Action::make('view_health_details')
+                            return Action::make('view_health_details')
                                 ->label('Ver análisis de salud')
                                 ->icon('heroicon-o-heart')
                                 ->modalHeading('Análisis de Salud del Tenant')
                                 ->modalDescription(function ($record) {
-                                    $score = self::calculateTenantHealthScore(function() use ($record) { return $record; });
+                                    $score = self::calculateTenantHealthScore(function () use ($record) {
+                                        return $record;
+                                    });
                                     $statusText = $score >= 80 ? 'Saludable' : ($score >= 60 ? 'Advertencia' : 'Crítico');
+
                                     return "Tenant: {$record->name} | Score: {$score}/100 | Estado: {$statusText}";
                                 })
                                 ->action(function ($record) {
@@ -808,7 +842,7 @@ class TenantResource extends Resource
                         'no_subscription' => 'Sin Suscripción',
                     ])
                     ->query(function (Builder $query, array $data) {
-                        if (!isset($data['value'])) {
+                        if (! isset($data['value'])) {
                             return $query;
                         }
 
@@ -835,30 +869,28 @@ class TenantResource extends Resource
 
                 Tables\Filters\Filter::make('expiring_soon')
                     ->label('Vence en 7 días')
-                    ->query(fn (Builder $query) =>
-                        $query->whereHas('activeSubscription', function ($q) {
-                            $q->where('status', 'active')
-                                ->whereBetween('ends_at', [now(), now()->addDays(7)]);
-                        })
+                    ->query(fn (Builder $query) => $query->whereHas('activeSubscription', function ($q) {
+                        $q->where('status', 'active')
+                            ->whereBetween('ends_at', [now(), now()->addDays(7)]);
+                    })
                     )
                     ->toggle(),
 
                 Tables\Filters\Filter::make('on_trial')
                     ->label('En Trial')
-                    ->query(fn (Builder $query) =>
-                        $query->whereHas('activeSubscription', function ($q) {
-                            $q->where('status', 'active')
-                                ->whereNotNull('trial_ends_at')
-                                ->where('trial_ends_at', '>', now());
-                        })
+                    ->query(fn (Builder $query) => $query->whereHas('activeSubscription', function ($q) {
+                        $q->where('status', 'active')
+                            ->whereNotNull('trial_ends_at')
+                            ->where('trial_ends_at', '>', now());
+                    })
                     )
                     ->toggle(),
 
                 Tables\Filters\SelectFilter::make('plan')
                     ->label('Plan')
-                    ->options(\App\Models\SubscriptionPlan::where('is_active', true)->pluck('name', 'id'))
+                    ->options(SubscriptionPlan::where('is_active', true)->pluck('name', 'id'))
                     ->query(function (Builder $query, array $data) {
-                        if (!isset($data['value'])) {
+                        if (! isset($data['value'])) {
                             return $query;
                         }
 
@@ -876,7 +908,7 @@ class TenantResource extends Resource
                         'yearly' => 'Anual',
                     ])
                     ->query(function (Builder $query, array $data) {
-                        if (!isset($data['value'])) {
+                        if (! isset($data['value'])) {
                             return $query;
                         }
 
@@ -888,7 +920,7 @@ class TenantResource extends Resource
             ])
             ->actions([
                 // VIEW ACTION - Primary Action (Navigate to Details Page)
-                Tables\Actions\Action::make('view')
+                Action::make('view')
                     ->label('')
                     ->icon('heroicon-o-eye')
                     ->color('primary')
@@ -913,7 +945,7 @@ class TenantResource extends Resource
                         ->openUrlInNewTab()
                         ->color('success')
                         ->tooltip('Abrir dashboard del tenant')
-                                                ->visible(fn (): bool => auth('superadmin')->user()?->can('admin.tenants.view') ?? false),
+                        ->visible(fn (): bool => auth('superadmin')->user()?->can('admin.tenants.view') ?? false),
 
                     // UNLOCK USER ACCOUNTS
                     Action::make('unlock_accounts')
@@ -926,12 +958,13 @@ class TenantResource extends Resource
                         ->modalSubmitActionLabel('Sí, Desbloquear')
                         ->modalCancelActionLabel('Cancelar')
                         ->tooltip('Desbloquear cuentas 2FA')
-                                                ->action(function ($record) {
+                        ->action(function ($record) {
                             self::unlockTenantAccounts($record);
                         })
                         ->visible(fn (): bool => auth('superadmin')->user()?->can('admin.tenants.update') ?? false)
                         ->badge(function ($record) {
                             $lockedCount = self::getLockedAccountsCount($record);
+
                             return $lockedCount > 0 ? $lockedCount : null;
                         })
                         ->color(fn ($record) => self::getLockedAccountsCount($record) > 0 ? 'danger' : 'gray'),
@@ -941,19 +974,20 @@ class TenantResource extends Resource
                         ->label('Reenviar Bienvenida')
                         ->icon('heroicon-o-envelope')
                         ->tooltip('Reenviar email de bienvenida')
-                                                ->requiresConfirmation()
+                        ->requiresConfirmation()
                         ->modalHeading('Reenviar Email de Bienvenida')
                         ->modalDescription('Se generará una nueva contraseña temporal y se enviará el email de bienvenida al usuario.')
                         ->visible(fn () => auth('superadmin')->user()?->can('admin.tenants.update') ?? false)
                         ->action(function ($record) {
                             $user = User::where('email', $record->contact_email)->first();
 
-                            if (!$user) {
+                            if (! $user) {
                                 Notification::make()
                                     ->title('Usuario no encontrado')
                                     ->body("No se encontró un usuario con el email {$record->contact_email}")
                                     ->danger()
                                     ->send();
+
                                 return;
                             }
 
@@ -982,13 +1016,13 @@ class TenantResource extends Resource
                         ->icon('heroicon-o-circle-stack')
                         ->color('info')
                         ->tooltip('Ejecutar backup manual')
-                                                ->requiresConfirmation()
+                        ->requiresConfirmation()
                         ->modalHeading('Ejecutar Backup Manual')
                         ->modalDescription(fn ($record) => "Se creará un backup de la base de datos '{$record->database}' de forma inmediata.")
                         ->modalSubmitActionLabel('Ejecutar Backup')
                         ->visible(fn (): bool => auth('superadmin')->user()?->is_super_admin ?? false)
                         ->action(function ($record) {
-                            $backupService = app(\App\Services\TenantBackupService::class);
+                            $backupService = app(TenantBackupService::class);
 
                             Notification::make()
                                 ->title('Backup Iniciado')
@@ -1002,7 +1036,7 @@ class TenantResource extends Resource
                             if ($result['success']) {
                                 Notification::make()
                                     ->title('Backup Exitoso')
-                                    ->body("Backup completado: {$record->database} (" . round($result['file_size'] / 1024 / 1024, 2) . " MB)")
+                                    ->body("Backup completado: {$record->database} (".round($result['file_size'] / 1024 / 1024, 2).' MB)')
                                     ->success()
                                     ->send();
                             } else {
@@ -1020,7 +1054,7 @@ class TenantResource extends Resource
                         ->icon('heroicon-o-wrench-screwdriver')
                         ->color('warning')
                         ->tooltip('Activar modo mantenimiento')
-                                                ->requiresConfirmation()
+                        ->requiresConfirmation()
                         ->modalHeading('Activar Modo Mantenimiento')
                         ->modalDescription('La tienda será temporalmente inaccesible para los usuarios.')
                         ->modalSubmitActionLabel('Activar Mantenimiento')
@@ -1040,16 +1074,16 @@ class TenantResource extends Resource
                         ->icon('heroicon-o-pause-circle')
                         ->color('danger')
                         ->tooltip('Desactivar tienda (riesgoso)')
-                                                ->requiresConfirmation()
+                        ->requiresConfirmation()
                         ->modalHeading('⚠️ Confirmar Desactivación de Tienda')
                         ->modalDescription(function ($record) {
-                            return "**ESTA ACCIÓN AFECTARÁ EL ACCESO DEL CLIENTE**\n\n" .
-                                   "La tienda \"{$record->name}\" será desactivada y los usuarios no podrán acceder.\n\n" .
-                                   "**Consecuencias:**\n" .
-                                   "• Todos los usuarios perderán acceso al sistema\n" .
-                                   "• Las operaciones comerciales se detendrán\n" .
-                                   "• Reactivación requiere aprobación manual\n" .
-                                   "• No se eliminarán datos";
+                            return "**ESTA ACCIÓN AFECTARÁ EL ACCESO DEL CLIENTE**\n\n".
+                                   "La tienda \"{$record->name}\" será desactivada y los usuarios no podrán acceder.\n\n".
+                                   "**Consecuencias:**\n".
+                                   "• Todos los usuarios perderán acceso al sistema\n".
+                                   "• Las operaciones comerciales se detendrán\n".
+                                   "• Reactivación requiere aprobación manual\n".
+                                   '• No se eliminarán datos';
                         })
                         ->modalSubmitActionLabel('Desactivar Tienda')
                         ->action(function ($record, array $data) {
@@ -1060,17 +1094,19 @@ class TenantResource extends Resource
                                     ->body('El nombre de la tienda no coincide. Desactivación cancelada.')
                                     ->danger()
                                     ->send();
+
                                 return;
                             }
 
                             // Verify admin password
                             $admin = auth('superadmin')->user();
-                            if (!Hash::check($data['admin_password'], $admin->password)) {
+                            if (! Hash::check($data['admin_password'], $admin->password)) {
                                 Notification::make()
                                     ->title('Error de Autenticación')
                                     ->body('La contraseña de administrador es incorrecta.')
                                     ->danger()
                                     ->send();
+
                                 return;
                             }
 
@@ -1095,19 +1131,19 @@ class TenantResource extends Resource
                                 ->send();
                         })
                         ->form([
-                            \Filament\Forms\Components\Textarea::make('reason')
+                            Textarea::make('reason')
                                 ->label('Motivo de la desactivación')
                                 ->required()
                                 ->rows(3)
                                 ->helperText('Este motivo quedará registrado en el auditoría.'),
-                            \Filament\Forms\Components\TextInput::make('confirm_tenant_name')
+                            TextInput::make('confirm_tenant_name')
                                 ->label('Confirmar nombre de la tienda')
                                 ->required()
                                 ->placeholder(function ($record) {
-                                    return "Escribe: " . ($record->name ?? '[nombre de la tienda]');
+                                    return 'Escribe: '.($record->name ?? '[nombre de la tienda]');
                                 })
                                 ->helperText('Debes escribir el nombre exacto de la tienda para confirmar.'),
-                            \Filament\Forms\Components\TextInput::make('admin_password')
+                            TextInput::make('admin_password')
                                 ->label('Contraseña de Administrador')
                                 ->required()
                                 ->password()
@@ -1121,27 +1157,28 @@ class TenantResource extends Resource
                         ->icon('heroicon-o-archive-box-arrow-down')
                         ->color('danger')
                         ->tooltip('Archivar tienda (casi irreversible)')
-                                                ->requiresConfirmation()
+                        ->requiresConfirmation()
                         ->modalHeading('🔒 ARCHIVAR TIENDA - ACCIÓN IRREVERSIBLE')
                         ->modalDescription(function ($record) {
-                            return "**PELIGRO: Esta acción es casi permanente**\n\n" .
-                                   "Archivar la tienda \"{$record->name}\" significa:\n\n" .
-                                   "• La tienda será eliminada del listado activo\n" .
-                                   "• El acceso quedará completamente bloqueado\n" .
-                                   "• Los datos serán conservados solo para auditoría\n" .
-                                   "• Reactivación requerirá intervención técnica\n" .
-                                   "• Esta acción no puede deshacerse fácilmente";
+                            return "**PELIGRO: Esta acción es casi permanente**\n\n".
+                                   "Archivar la tienda \"{$record->name}\" significa:\n\n".
+                                   "• La tienda será eliminada del listado activo\n".
+                                   "• El acceso quedará completamente bloqueado\n".
+                                   "• Los datos serán conservados solo para auditoría\n".
+                                   "• Reactivación requerirá intervención técnica\n".
+                                   '• Esta acción no puede deshacerse fácilmente';
                         })
                         ->modalSubmitActionLabel('Entiendo, Archivar Tienda')
                         ->action(function ($record, array $data) {
                             // Additional security: require OTP code
-                            $expectedCode = 'ARCHIVE' . strtoupper(substr($record->name, 0, 4));
+                            $expectedCode = 'ARCHIVE'.strtoupper(substr($record->name, 0, 4));
                             if (empty($data['otp_code']) || $data['otp_code'] !== $expectedCode) {
                                 Notification::make()
                                     ->title('Código de Verificación Incorrecto')
                                     ->body('El código OTP no es válido. Archivado cancelado.')
                                     ->danger()
                                     ->send();
+
                                 return;
                             }
 
@@ -1168,26 +1205,27 @@ class TenantResource extends Resource
                                 ->send();
                         })
                         ->form([
-                            \Filament\Forms\Components\TextInput::make('otp_code')
+                            TextInput::make('otp_code')
                                 ->label('Código de Verificación (OTP)')
                                 ->required()
                                 ->placeholder(function ($record) {
                                     $name = $record->name ?? 'XXXX';
-                                    return "Escribe: ARCHIVE" . strtoupper(substr($name, 0, 4));
+
+                                    return 'Escribe: ARCHIVE'.strtoupper(substr($name, 0, 4));
                                 })
                                 ->helperText('Para seguridad adicional, ingresa el código exacto que se muestra en la advertencia.'),
-                            \Filament\Forms\Components\Checkbox::make('understand_consequences')
+                            Checkbox::make('understand_consequences')
                                 ->label('Entiendo que esta acción es casi irreversible y afectará el acceso del cliente.')
                                 ->required(),
-                            \Filament\Forms\Components\Checkbox::make('confirm_backup')
+                            Checkbox::make('confirm_backup')
                                 ->label('Confirmo que existe un backup reciente de esta tienda.')
                                 ->required(),
                         ])
-                        ->visible(fn ($record): bool => !$record->trashed() && (auth('superadmin')->user()?->is_super_admin ?? false)),
+                        ->visible(fn ($record): bool => ! $record->trashed() && (auth('superadmin')->user()?->is_super_admin ?? false)),
 
                     Tables\Actions\RestoreAction::make()
                         ->tooltip('Restaurar tenant archivado')
-                                                ->visible(fn ($record): bool => $record->trashed() && (auth('superadmin')->user()?->can('admin.tenants.restore') ?? false)),
+                        ->visible(fn ($record): bool => $record->trashed() && (auth('superadmin')->user()?->can('admin.tenants.restore') ?? false)),
 
                     Tables\Actions\ForceDeleteAction::make()
                         ->requiresConfirmation()
@@ -1195,13 +1233,12 @@ class TenantResource extends Resource
                         ->modalDescription('Esta acción no se puede deshacer. Se eliminarán permanentemente todos los datos del tenant.')
                         ->modalSubmitActionLabel('Sí, Eliminar Permanentemente')
                         ->tooltip('Eliminar permanentemente (destructivo)')
-                                                ->visible(fn ($record): bool => $record->trashed() && (auth('superadmin')->user()?->can('admin.tenants.force-delete') ?? false)),
+                        ->visible(fn ($record): bool => $record->trashed() && (auth('superadmin')->user()?->can('admin.tenants.force-delete') ?? false)),
                 ])
                     ->label('')
                     ->icon('heroicon-o-ellipsis-vertical')
                     ->color('gray')
-                    ->tooltip('Acciones avanzadas')
-                    ,
+                    ->tooltip('Acciones avanzadas'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -1209,7 +1246,7 @@ class TenantResource extends Resource
                         ->label('')
                         ->icon('heroicon-o-trash')
                         ->tooltip('Eliminar seleccionados')
-                                                ->requiresConfirmation()
+                        ->requiresConfirmation()
                         ->modalHeading('Confirmar Eliminación')
                         ->modalDescription('Esta acción eliminará permanentemente todos los datos de los tenants seleccionados. No se puede deshacer.')
                         ->modalSubmitActionLabel('Sí, Eliminar')
@@ -1220,13 +1257,13 @@ class TenantResource extends Resource
                         ->icon('heroicon-o-circle-stack')
                         ->color('info')
                         ->tooltip('Backup de seleccionados')
-                                                ->requiresConfirmation()
+                        ->requiresConfirmation()
                         ->modalHeading('Ejecutar Backup de Tenants Seleccionados')
-                        ->modalDescription(fn ($records) => "Se crearán backups de " . $records->count() . " tenant(s) seleccionado(s).")
+                        ->modalDescription(fn ($records) => 'Se crearán backups de '.$records->count().' tenant(s) seleccionado(s).')
                         ->modalSubmitActionLabel('Ejecutar Backups')
                         ->visible(fn (): bool => auth('superadmin')->user()?->is_super_admin ?? false)
                         ->action(function ($records) {
-                            $backupService = app(\App\Services\TenantBackupService::class);
+                            $backupService = app(TenantBackupService::class);
                             $successCount = 0;
                             $failedCount = 0;
 
@@ -1264,7 +1301,7 @@ class TenantResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
-            ->where('status', '!=', \App\Models\Tenant::STATUS_ARCHIVED) // Exclude archived tenants
+            ->where('status', '!=', Tenant::STATUS_ARCHIVED) // Exclude archived tenants
             ->whereNull('deleted_at'); // Only show non-deleted tenants
     }
 
@@ -1288,6 +1325,7 @@ class TenantResource extends Resource
     public static function shouldRegisterNavigation(): bool
     {
         $user = auth('superadmin')->user();
+
         return $user?->is_super_admin || ($user?->hasPermissionTo('admin.tenants.view', 'superadmin') ?? false);
     }
 
@@ -1299,18 +1337,21 @@ class TenantResource extends Resource
     public static function canCreate(): bool
     {
         $user = auth('superadmin')->user();
+
         return $user?->is_super_admin || ($user?->hasPermissionTo('admin.tenants.create', 'superadmin') ?? false);
     }
 
     public static function canEdit($record): bool
     {
         $user = auth('superadmin')->user();
+
         return $user?->is_super_admin || ($user?->hasPermissionTo('admin.tenants.update', 'superadmin') ?? false);
     }
 
     public static function canDelete($record): bool
     {
         $user = auth('superadmin')->user();
+
         return $user?->is_super_admin || ($user?->hasPermissionTo('admin.tenants.delete', 'superadmin') ?? false);
     }
 
@@ -1326,19 +1367,21 @@ class TenantResource extends Resource
     {
         try {
             $database = $databaseCallback();
-            if (!$database) return 'N/A';
+            if (! $database) {
+                return 'N/A';
+            }
 
             // Cache for 5 minutes to improve performance
             $cacheKey = "tenant_storage_{$database}";
 
             return Cache::remember($cacheKey, 300, function () use ($database) {
                 // Get database size from PostgreSQL
-                $result = DB::select("
+                $result = DB::select('
                     SELECT pg_size_pretty(pg_database_size(?)) as size
                     FROM pg_database WHERE datname = ?
-                ", [$database, $database]);
+                ', [$database, $database]);
 
-                if (!empty($result)) {
+                if (! empty($result)) {
                     return $result[0]->size ?? '0 MB';
                 }
 
@@ -1349,7 +1392,8 @@ class TenantResource extends Resource
                     foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($storagePath)) as $file) {
                         $size += $file->getSize();
                     }
-                    return round($size / 1024 / 1024, 2) . ' MB';
+
+                    return round($size / 1024 / 1024, 2).' MB';
                 }
 
                 return '0 MB';
@@ -1366,13 +1410,17 @@ class TenantResource extends Resource
     {
         try {
             $tenantId = $tenantIdCallback();
-            if (!$tenantId) return 0;
+            if (! $tenantId) {
+                return 0;
+            }
 
             $cacheKey = "tenant_files_{$tenantId}";
 
             return Cache::remember($cacheKey, 300, function () use ($tenantId) {
                 $storagePath = storage_path("app/tenant-uploads/{$tenantId}");
-                if (!is_dir($storagePath)) return 0;
+                if (! is_dir($storagePath)) {
+                    return 0;
+                }
 
                 $fileCount = 0;
                 $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($storagePath));
@@ -1396,12 +1444,14 @@ class TenantResource extends Resource
     {
         try {
             $tenantId = $tenantIdCallback();
-            if (!$tenantId) return 0;
+            if (! $tenantId) {
+                return 0;
+            }
 
             $cacheKey = "tenant_users_{$tenantId}";
 
             return Cache::remember($cacheKey, 600, function () use ($tenantId) {
-                return \App\Models\User::where('tenant_id', $tenantId)->count();
+                return User::where('tenant_id', $tenantId)->count();
             });
         } catch (\Exception $e) {
             return 0;
@@ -1415,19 +1465,23 @@ class TenantResource extends Resource
     {
         try {
             $tenantId = $tenantIdCallback();
-            if (!$tenantId) return 'Sin datos';
+            if (! $tenantId) {
+                return 'Sin datos';
+            }
 
             $cacheKey = "tenant_activity_{$tenantId}";
 
             $lastActivity = Cache::remember($cacheKey, 300, function () use ($tenantId) {
-                $activity = \App\Models\TenantActivity::where('tenant_id', $tenantId)
+                $activity = TenantActivity::where('tenant_id', $tenantId)
                     ->latest('created_at')
                     ->first();
 
                 return $activity ? $activity->created_at : null;
             });
 
-            if (!$lastActivity) return 'Sin actividad';
+            if (! $lastActivity) {
+                return 'Sin actividad';
+            }
 
             $diff = $lastActivity->diffForHumans(now());
 
@@ -1450,21 +1504,25 @@ class TenantResource extends Resource
     {
         try {
             $database = $databaseCallback();
-            if (!$database) return 0;
+            if (! $database) {
+                return 0;
+            }
 
             $cacheKey = "tenant_products_{$database}";
 
-            return Cache::remember($cacheKey, 600, function () use ($database) {
+            return Cache::remember($cacheKey, 600, function () {
                 // Switch to tenant connection temporarily
                 $originalConnection = config('database.default');
                 config(['database.default' => 'tenant']);
 
                 try {
-                    $count = \App\Modules\Inventory\Models\Product::count();
+                    $count = Product::count();
                     config(['database.default' => $originalConnection]);
+
                     return $count;
                 } catch (\Exception $e) {
                     config(['database.default' => $originalConnection]);
+
                     return 0;
                 }
             });
@@ -1480,21 +1538,25 @@ class TenantResource extends Resource
     {
         try {
             $database = $databaseCallback();
-            if (!$database) return 0;
+            if (! $database) {
+                return 0;
+            }
 
             $cacheKey = "tenant_sales_{$database}";
 
-            return Cache::remember($cacheKey, 600, function () use ($database) {
+            return Cache::remember($cacheKey, 600, function () {
                 // Switch to tenant connection temporarily
                 $originalConnection = config('database.default');
                 config(['database.default' => 'tenant']);
 
                 try {
-                    $count = \App\Modules\POS\Models\Sale::count();
+                    $count = Sale::count();
                     config(['database.default' => $originalConnection]);
+
                     return $count;
                 } catch (\Exception $e) {
                     config(['database.default' => $originalConnection]);
+
                     return 0;
                 }
             });
@@ -1510,7 +1572,9 @@ class TenantResource extends Resource
     {
         try {
             $tenant = $tenantCallback();
-            if (!$tenant) return 0;
+            if (! $tenant) {
+                return 0;
+            }
 
             $cacheKey = "tenant_health_{$tenant->id}";
 
@@ -1518,25 +1582,34 @@ class TenantResource extends Resource
                 $score = 100;
 
                 // Check tenant status
-                if ($tenant->status === 'suspended') $score -= 40;
-                if ($tenant->status === 'expired') $score -= 50;
-                if ($tenant->status === 'inactive') $score -= 30;
+                if ($tenant->status === 'suspended') {
+                    $score -= 40;
+                }
+                if ($tenant->status === 'expired') {
+                    $score -= 50;
+                }
+                if ($tenant->status === 'inactive') {
+                    $score -= 30;
+                }
 
                 // Check subscription
                 if ($tenant->activeSubscription) {
                     $daysUntilExpiry = now()->diffInDays($tenant->activeSubscription->ends_at, false);
-                    if ($daysUntilExpiry < 0) $score -= 35;
-                    elseif ($daysUntilExpiry < 7) $score -= 15;
+                    if ($daysUntilExpiry < 0) {
+                        $score -= 35;
+                    } elseif ($daysUntilExpiry < 7) {
+                        $score -= 15;
+                    }
                 } else {
                     $score -= 25;
                 }
 
                 // Check backup status
-                $latestBackup = \App\Models\BackupLog::where('tenant_id', $tenant->id)
+                $latestBackup = BackupLog::where('tenant_id', $tenant->id)
                     ->latest('created_at')
                     ->first();
 
-                if (!$latestBackup) {
+                if (! $latestBackup) {
                     $score -= 20;
                 } elseif ($latestBackup->status === 'failed') {
                     $score -= 15;
@@ -1545,12 +1618,15 @@ class TenantResource extends Resource
                 }
 
                 // Check recent activity
-                $recentActivity = \App\Models\TenantActivity::where('tenant_id', $tenant->id)
+                $recentActivity = TenantActivity::where('tenant_id', $tenant->id)
                     ->where('created_at', '>', now()->subDays(7))
                     ->count();
 
-                if ($recentActivity === 0) $score -= 15;
-                elseif ($recentActivity < 5) $score -= 5;
+                if ($recentActivity === 0) {
+                    $score -= 15;
+                } elseif ($recentActivity < 5) {
+                    $score -= 5;
+                }
 
                 return max(0, min(100, $score));
             });
@@ -1566,11 +1642,13 @@ class TenantResource extends Resource
     {
         try {
             $tenantId = $tenantIdCallback();
-            if (!$tenantId) return 0;
+            if (! $tenantId) {
+                return 0;
+            }
 
-            $cacheKey = "tenant_api_calls_{$tenantId}_" . date('Y-m-d');
+            $cacheKey = "tenant_api_calls_{$tenantId}_".date('Y-m-d');
 
-            return Cache::remember($cacheKey, 300, function () use ($tenantId) {
+            return Cache::remember($cacheKey, 300, function () {
                 // This would typically query a logs table or API usage tracking
                 // For now, return a placeholder value
                 return rand(50, 500);
@@ -1593,8 +1671,8 @@ class TenantResource extends Resource
             $users = $tenant->users;
 
             foreach ($users as $user) {
-                $lockoutKey = '2fa_lockout:' . $user->id;
-                $attemptKey = '2fa_attempts:' . $user->id;
+                $lockoutKey = '2fa_lockout:'.$user->id;
+                $attemptKey = '2fa_attempts:'.$user->id;
 
                 // Clear 2FA lockout and attempts
                 if (Cache::has($lockoutKey)) {
@@ -1617,7 +1695,7 @@ class TenantResource extends Resource
             ]);
 
             // Show success notification
-            \Filament\Notifications\Notification::make()
+            Notification::make()
                 ->title('✅ Cuentas Desbloqueadas')
                 ->body("Se han desbloqueado {$unlockedCount} cuentas del tenant {$tenant->name}.")
                 ->success()
@@ -1630,7 +1708,7 @@ class TenantResource extends Resource
                 'admin_id' => auth('superadmin')->id(),
             ]);
 
-            \Filament\Notifications\Notification::make()
+            Notification::make()
                 ->title('❌ Error al Desbloquear')
                 ->body('No se pudieron desbloquear las cuentas. Por favor intenta nuevamente.')
                 ->danger()
@@ -1651,7 +1729,7 @@ class TenantResource extends Resource
             $users = $tenant->users;
 
             foreach ($users as $user) {
-                $lockoutKey = '2fa_lockout:' . $user->id;
+                $lockoutKey = '2fa_lockout:'.$user->id;
                 if (Cache::has($lockoutKey)) {
                     $lockedCount++;
                 }
@@ -1671,11 +1749,13 @@ class TenantResource extends Resource
         try {
             $statsService = app(TenantStatsService::class);
             $health = $statsService->getTenantHealth($record);
-            $score = self::calculateTenantHealthScore(function() use ($record) { return $record; });
+            $score = self::calculateTenantHealthScore(function () use ($record) {
+                return $record;
+            });
 
             $tooltip = "**Puntuación: {$score}/100**\n\n";
 
-            if (!empty($health['issues'])) {
+            if (! empty($health['issues'])) {
                 $tooltip .= "⚠️ **Issues detectados:**\n";
                 foreach ($health['issues'] as $issue) {
                     $tooltip .= "• {$issue}\n";
@@ -1689,13 +1769,13 @@ class TenantResource extends Resource
                 $stats = $statsService->getTenantStats($record);
 
                 $tooltip .= "\n**📊 Métricas clave:**\n";
-                $tooltip .= "• Usuarios activos: " . ($stats['active_users_count'] ?? 0) . "\n";
-                $tooltip .= "• Productos: " . ($stats['products_count'] ?? 0) . "\n";
-                $tooltip .= "• Ventas del mes: " . ($stats['sales_last_month'] ?? 0) . "\n";
+                $tooltip .= '• Usuarios activos: '.($stats['active_users_count'] ?? 0)."\n";
+                $tooltip .= '• Productos: '.($stats['products_count'] ?? 0)."\n";
+                $tooltip .= '• Ventas del mes: '.($stats['sales_last_month'] ?? 0)."\n";
 
                 // Last activity
                 if (isset($stats['last_activity']) && $stats['last_activity']) {
-                    $tooltip .= "• Última actividad: " . $stats['last_activity']->diffForHumans() . "\n";
+                    $tooltip .= '• Última actividad: '.$stats['last_activity']->diffForHumans()."\n";
                 }
 
                 // Subscription status
@@ -1721,7 +1801,7 @@ class TenantResource extends Resource
             return $tooltip;
 
         } catch (\Exception $e) {
-            return "Error al cargar información del health score";
+            return 'Error al cargar información del health score';
         }
     }
 
@@ -1733,7 +1813,9 @@ class TenantResource extends Resource
         try {
             $statsService = app(TenantStatsService::class);
             $health = $statsService->getTenantHealth($record);
-            $score = self::calculateTenantHealthScore(function() use ($record) { return $record; });
+            $score = self::calculateTenantHealthScore(function () use ($record) {
+                return $record;
+            });
             $stats = $statsService->getTenantStats($record);
 
             // Calculate status
@@ -1767,19 +1849,19 @@ class TenantResource extends Resource
                 <!-- Métricas Detalladas -->
                 <div class='grid grid-cols-2 md:grid-cols-4 gap-4'>
                     <div class='bg-blue-50 rounded-lg p-4 text-center'>
-                        <div class='text-2xl font-bold text-blue-600'>" . ($stats['users_count'] ?? 0) . "</div>
+                        <div class='text-2xl font-bold text-blue-600'>".($stats['users_count'] ?? 0)."</div>
                         <div class='text-sm text-gray-600'>Usuarios Totales</div>
                     </div>
                     <div class='bg-green-50 rounded-lg p-4 text-center'>
-                        <div class='text-2xl font-bold text-green-600'>" . ($stats['active_users_count'] ?? 0) . "</div>
+                        <div class='text-2xl font-bold text-green-600'>".($stats['active_users_count'] ?? 0)."</div>
                         <div class='text-sm text-gray-600'>Usuarios Activos</div>
                     </div>
                     <div class='bg-purple-50 rounded-lg p-4 text-center'>
-                        <div class='text-2xl font-bold text-purple-600'>" . ($stats['products_count'] ?? 0) . "</div>
+                        <div class='text-2xl font-bold text-purple-600'>".($stats['products_count'] ?? 0)."</div>
                         <div class='text-sm text-gray-600'>Productos</div>
                     </div>
                     <div class='bg-orange-50 rounded-lg p-4 text-center'>
-                        <div class='text-2xl font-bold text-orange-600'>" . ($stats['sales_count'] ?? 0) . "</div>
+                        <div class='text-2xl font-bold text-orange-600'>".($stats['sales_count'] ?? 0)."</div>
                         <div class='text-sm text-gray-600'>Ventas Totales</div>
                     </div>
                 </div>
@@ -1787,7 +1869,7 @@ class TenantResource extends Resource
                 <!-- Problemas Detectados -->
                 <div class='space-y-3'>";
 
-            if (!empty($health['issues'])) {
+            if (! empty($health['issues'])) {
                 $content .= "
                     <h3 class='text-lg font-semibold text-gray-900 flex items-center'>
                         <span class='text-red-500 mr-2'>⚠️</span>
@@ -1803,8 +1885,8 @@ class TenantResource extends Resource
                         </div>";
                 }
 
-                $content .= "
-                    </div>";
+                $content .= '
+                    </div>';
             } else {
                 $content .= "
                     <div class='bg-green-50 border border-green-200 rounded-lg p-4'>
@@ -1841,7 +1923,7 @@ class TenantResource extends Resource
                             <div class='font-medium text-gray-800'>{$recommendation['title']}</div>
                             <div class='text-sm text-gray-600 mt-1'>{$recommendation['description']}</div>";
 
-                if (!empty($recommendation['action'])) {
+                if (! empty($recommendation['action'])) {
                     $content .= "
                         <div class='mt-2'>
                             <span class='text-xs bg-{$priorityColor}-100 text-{$priorityColor}-800 px-2 py-1 rounded-full'>
@@ -1850,9 +1932,9 @@ class TenantResource extends Resource
                         </div>";
                 }
 
-                $content .= "
+                $content .= '
                         </div>
-                    </div>";
+                    </div>';
             }
 
             $content .= "
@@ -1866,12 +1948,12 @@ class TenantResource extends Resource
                         <div class='text-sm text-gray-600 space-y-1'>";
 
             if (isset($stats['last_activity']) && $stats['last_activity']) {
-                $content .= "
-                    <div>• Última actividad: " . $stats['last_activity']->diffForHumans() . "</div>
-                    <div>• Actividad últimos 7 días: " . ($stats['activities_last_week'] ?? 0) . " eventos</div>";
+                $content .= '
+                    <div>• Última actividad: '.$stats['last_activity']->diffForHumans().'</div>
+                    <div>• Actividad últimos 7 días: '.($stats['activities_last_week'] ?? 0).' eventos</div>';
             } else {
-                $content .= "
-                    <div>• Sin actividad registrada</div>";
+                $content .= '
+                    <div>• Sin actividad registrada</div>';
             }
 
             $content .= "
@@ -1881,13 +1963,13 @@ class TenantResource extends Resource
                     <div class='bg-gray-50 rounded-lg p-4'>
                         <h4 class='font-medium text-gray-900 mb-2'>💾 Uso de Almacenamiento</h4>
                         <div class='text-sm text-gray-600 space-y-1'>
-                            <div>• Base de datos: " . round($stats['database_size'] ?? 0, 2) . " MB</div>
-                            <div>• Archivos: " . round(($stats['storage_usage']['files_size_mb'] ?? 0), 2) . " MB</div>
-                            <div>• Total: " . round(($stats['storage_usage']['total_size_mb'] ?? 0), 2) . " MB</div>
+                            <div>• Base de datos: ".round($stats['database_size'] ?? 0, 2).' MB</div>
+                            <div>• Archivos: '.round(($stats['storage_usage']['files_size_mb'] ?? 0), 2).' MB</div>
+                            <div>• Total: '.round(($stats['storage_usage']['total_size_mb'] ?? 0), 2).' MB</div>
                         </div>
                     </div>
                 </div>
-            </div>";
+            </div>';
 
             return $content;
 
@@ -1911,19 +1993,19 @@ class TenantResource extends Resource
         // Critical recommendations (score < 60)
         if ($score < 60) {
             // Subscription issues
-            if (!$record->activeSubscription) {
+            if (! $record->activeSubscription) {
                 $recommendations[] = [
                     'title' => 'Configurar Suscripción',
                     'description' => 'Este tenant no tiene una suscripción activa. Esto afecta el acceso al sistema y servicios.',
                     'action' => 'URGENTE',
-                    'priority' => 'high'
+                    'priority' => 'high',
                 ];
             } elseif ($record->activeSubscription->ends_at->isPast()) {
                 $recommendations[] = [
                     'title' => 'Renovar Suscripción Expirada',
                     'description' => 'La suscripción ha expirado. El tenant puede perder acceso al sistema.',
                     'action' => 'URGENTE',
-                    'priority' => 'high'
+                    'priority' => 'high',
                 ];
             }
 
@@ -1933,7 +2015,7 @@ class TenantResource extends Resource
                     'title' => 'Activar Usuarios',
                     'description' => 'No hay usuarios activos. Revisa que los usuarios puedan acceder al sistema.',
                     'action' => 'ALTA PRIORIDAD',
-                    'priority' => 'high'
+                    'priority' => 'high',
                 ];
             }
 
@@ -1943,7 +2025,7 @@ class TenantResource extends Resource
                     'title' => 'Problemas de Conexión a Base de Datos',
                     'description' => 'No se puede conectar a la base de datos del tenant. Esto es un problema crítico.',
                     'action' => 'URGENTE',
-                    'priority' => 'high'
+                    'priority' => 'high',
                 ];
             }
         }
@@ -1956,7 +2038,7 @@ class TenantResource extends Resource
                     'title' => 'Falta de Actividad Reciente',
                     'description' => 'No hay actividad desde hace más de 30 días. Considera contactar al cliente.',
                     'action' => 'REVISAR',
-                    'priority' => 'medium'
+                    'priority' => 'medium',
                 ];
             }
 
@@ -1966,7 +2048,7 @@ class TenantResource extends Resource
                     'title' => 'Pocos Productos Registrados',
                     'description' => 'El tenant tiene menos de 10 productos. Esto podría indicar configuración incompleta.',
                     'action' => 'SUGERENCIA',
-                    'priority' => 'medium'
+                    'priority' => 'medium',
                 ];
             }
 
@@ -1976,36 +2058,36 @@ class TenantResource extends Resource
                     'title' => 'Suscripción por Expirar',
                     'description' => 'La suscripción expira en menos de 7 días. Notifica al cliente.',
                     'action' => 'PRÓXIMO A EXPIRAR',
-                    'priority' => 'medium'
+                    'priority' => 'medium',
                 ];
             }
 
             // Backup issues
             try {
-                $latestBackup = \App\Models\BackupLog::where('tenant_id', $record->id)
+                $latestBackup = BackupLog::where('tenant_id', $record->id)
                     ->latest('created_at')
                     ->first();
 
-                if (!$latestBackup) {
+                if (! $latestBackup) {
                     $recommendations[] = [
                         'title' => 'Sin Backups Recientes',
                         'description' => 'No hay backups registrados. Los datos podrían estar en riesgo.',
                         'action' => 'RIESGO DE DATOS',
-                        'priority' => 'high'
+                        'priority' => 'high',
                     ];
                 } elseif ($latestBackup->status === 'failed') {
                     $recommendations[] = [
                         'title' => 'Backups Fallidos',
                         'description' => 'El último backup falló. Revisa la configuración de backups.',
                         'action' => 'ERROR CRÍTICO',
-                        'priority' => 'high'
+                        'priority' => 'high',
                     ];
                 } elseif ($latestBackup->created_at->diffInDays() > 2) {
                     $recommendations[] = [
                         'title' => 'Backups Antiguos',
                         'description' => 'El último backup tiene más de 2 días. Verifica el sistema de backups.',
                         'action' => 'MANTENIMIENTO',
-                        'priority' => 'medium'
+                        'priority' => 'medium',
                     ];
                 }
             } catch (\Exception $e) {
@@ -2019,7 +2101,7 @@ class TenantResource extends Resource
                 'title' => '¡Excelente Estado!',
                 'description' => 'El tenant está en excelente estado. Continúa monitoreando periódicamente.',
                 'action' => 'MANTENER',
-                'priority' => 'low'
+                'priority' => 'low',
             ];
         }
 
@@ -2029,11 +2111,10 @@ class TenantResource extends Resource
                 'title' => 'Optimizar Almacenamiento',
                 'description' => 'El tenant usa más de 1GB. Considera limpiar archivos antiguos o contratar más espacio.',
                 'action' => 'OPTIMIZACIÓN',
-                'priority' => 'medium'
+                'priority' => 'medium',
             ];
         }
 
         return $recommendations;
     }
-
-  }
+}

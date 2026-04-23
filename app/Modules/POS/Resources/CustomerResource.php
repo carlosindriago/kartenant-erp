@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,18 +12,16 @@
 namespace App\Modules\POS\Resources;
 
 use App\Filament\Actions\HasStandardActionGroup;
-use App\Modules\POS\Resources\CustomerResource\Pages;
 use App\Modules\POS\Models\Customer;
+use App\Modules\POS\Resources\CustomerResource\Pages;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class CustomerResource extends Resource
@@ -33,20 +31,20 @@ class CustomerResource extends Resource
     protected static ?string $model = Customer::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
-    
+
     protected static ?string $navigationLabel = 'Clientes';
-    
+
     protected static ?string $modelLabel = 'Cliente';
-    
+
     protected static ?string $pluralModelLabel = 'Clientes';
-    
+
     protected static ?string $navigationGroup = 'Punto de Venta';
-    
+
     protected static ?int $navigationSort = 1;
-    
+
     // Disable Filament's tenant scoping since we manage this manually
     protected static bool $isScopedToTenant = false;
-    
+
     public static function getEloquentQuery(): Builder
     {
         // En database-per-tenant, todos los registros ya son del tenant actual
@@ -65,7 +63,7 @@ class CustomerResource extends Resource
                             ->maxLength(255)
                             ->placeholder('Juan Pérez')
                             ->columnSpanFull(),
-                        
+
                         Forms\Components\Select::make('document_type')
                             ->label('Tipo de Documento')
                             ->options([
@@ -76,18 +74,18 @@ class CustomerResource extends Resource
                             ])
                             ->placeholder('Seleccionar tipo')
                             ->native(false),
-                        
+
                         Forms\Components\TextInput::make('document_number')
                             ->label('Número de Documento')
                             ->maxLength(255)
                             ->placeholder('12345678'),
-                        
+
                         Forms\Components\TextInput::make('email')
                             ->label('Email')
                             ->email()
                             ->maxLength(255)
                             ->placeholder('cliente@ejemplo.com'),
-                        
+
                         Forms\Components\TextInput::make('phone')
                             ->label('Teléfono')
                             ->tel()
@@ -95,7 +93,7 @@ class CustomerResource extends Resource
                             ->placeholder('+54 9 11 1234-5678'),
                     ])
                     ->columns(2),
-                
+
                 Forms\Components\Section::make('Dirección')
                     ->schema([
                         Forms\Components\Textarea::make('address')
@@ -104,17 +102,17 @@ class CustomerResource extends Resource
                             ->maxLength(500)
                             ->placeholder('Calle, Número, Piso, Departamento')
                             ->columnSpanFull(),
-                        
+
                         Forms\Components\TextInput::make('city')
                             ->label('Ciudad')
                             ->maxLength(255)
                             ->placeholder('Buenos Aires'),
-                        
+
                         Forms\Components\TextInput::make('state')
                             ->label('Provincia/Estado')
                             ->maxLength(255)
                             ->placeholder('CABA'),
-                        
+
                         Forms\Components\TextInput::make('postal_code')
                             ->label('Código Postal')
                             ->maxLength(255)
@@ -122,7 +120,7 @@ class CustomerResource extends Resource
                     ])
                     ->columns(3)
                     ->collapsible(),
-                
+
                 Forms\Components\Section::make('Información Adicional')
                     ->schema([
                         Forms\Components\Textarea::make('notes')
@@ -131,7 +129,7 @@ class CustomerResource extends Resource
                             ->maxLength(1000)
                             ->placeholder('Información adicional sobre el cliente')
                             ->columnSpanFull(),
-                        
+
                         Forms\Components\Toggle::make('is_active')
                             ->label('Cliente Activo')
                             ->default(true)
@@ -151,47 +149,47 @@ class CustomerResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
-                
+
                 Tables\Columns\TextColumn::make('document_type')
                     ->label('Tipo Doc.')
                     ->badge()
                     ->searchable()
                     ->toggleable(),
-                
+
                 Tables\Columns\TextColumn::make('document_number')
                     ->label('Número')
                     ->searchable()
                     ->toggleable(),
-                
+
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
                     ->searchable()
                     ->icon('heroicon-m-envelope')
                     ->toggleable(),
-                
+
                 Tables\Columns\TextColumn::make('phone')
                     ->label('Teléfono')
                     ->searchable()
                     ->icon('heroicon-m-phone')
                     ->toggleable(),
-                
+
                 Tables\Columns\TextColumn::make('city')
                     ->label('Ciudad')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Activo')
                     ->boolean()
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('sales_count')
                     ->label('Ventas')
                     ->counts('sales')
                     ->badge()
                     ->color('success')
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Fecha de Registro')
                     ->dateTime('d/m/Y')
@@ -212,7 +210,7 @@ class CustomerResource extends Resource
                     ->placeholder('Todos')
                     ->trueLabel('Solo Activos')
                     ->falseLabel('Solo Inactivos'),
-                
+
                 Tables\Filters\SelectFilter::make('document_type')
                     ->label('Tipo de Documento')
                     ->options([
@@ -253,7 +251,7 @@ class CustomerResource extends Resource
                     ->icon('heroicon-o-envelope')
                     ->color('primary')
                     ->tooltip('Enviar correo electrónico al cliente')
-                    ->visible(fn ($record) => !empty($record->email))
+                    ->visible(fn ($record) => ! empty($record->email))
                     ->form([
                         Forms\Components\TextInput::make('subject')
                             ->label('Asunto')
@@ -293,10 +291,10 @@ class CustomerResource extends Resource
                         ? "El cliente {$record->name} no podrá realizar compras."
                         : "El cliente {$record->name} podrá realizar compras nuevamente.")
                     ->action(function ($record) {
-                        $record->update(['is_active' => !$record->is_active]);
+                        $record->update(['is_active' => ! $record->is_active]);
                         Notification::make()
                             ->title($record->is_active ? 'Cliente Activado' : 'Cliente Desactivado')
-                            ->body("El cliente {$record->name} ha sido " . ($record->is_active ? 'activado' : 'desactivado'))
+                            ->body("El cliente {$record->name} ha sido ".($record->is_active ? 'activado' : 'desactivado'))
                             ->success()
                             ->send();
                     }),
@@ -336,7 +334,7 @@ class CustomerResource extends Resource
             'edit' => Pages\EditCustomer::route('/{record}/edit'),
         ];
     }
-    
+
     public static function getNavigationBadge(): ?string
     {
         try {
@@ -354,7 +352,9 @@ class CustomerResource extends Resource
     public static function calculateCustomerHealthScore($record): int
     {
         try {
-            if (!$record) return 0;
+            if (! $record) {
+                return 0;
+            }
 
             $cacheKey = "customer_health_{$record->id}";
 
@@ -362,7 +362,7 @@ class CustomerResource extends Resource
                 $score = 100;
 
                 // Status health
-                if (!$record->is_active) {
+                if (! $record->is_active) {
                     $score -= 40; // Cliente inactivo
                 }
 
@@ -383,7 +383,7 @@ class CustomerResource extends Resource
                 // Contact information completeness
                 if (empty($record->email)) {
                     $score -= 15; // Sin email
-                } elseif (!filter_var($record->email, FILTER_VALIDATE_EMAIL)) {
+                } elseif (! filter_var($record->email, FILTER_VALIDATE_EMAIL)) {
                     $score -= 5; // Email inválido
                 }
 
@@ -395,10 +395,18 @@ class CustomerResource extends Resource
                 $addressFields = 0;
                 $totalAddressFields = 4;
 
-                if (!empty($record->address)) $addressFields++;
-                if (!empty($record->city)) $addressFields++;
-                if (!empty($record->state)) $addressFields++;
-                if (!empty($record->postal_code)) $addressFields++;
+                if (! empty($record->address)) {
+                    $addressFields++;
+                }
+                if (! empty($record->city)) {
+                    $addressFields++;
+                }
+                if (! empty($record->state)) {
+                    $addressFields++;
+                }
+                if (! empty($record->postal_code)) {
+                    $addressFields++;
+                }
 
                 $addressCompleteness = ($addressFields / $totalAddressFields) * 100;
                 if ($addressCompleteness < 50) {
@@ -464,7 +472,7 @@ class CustomerResource extends Resource
                 }
 
                 // Notes completeness (customer engagement)
-                if (!empty($record->notes)) {
+                if (! empty($record->notes)) {
                     $score += 5; // Con notas (mejor servicio)
                 }
 
@@ -481,7 +489,9 @@ class CustomerResource extends Resource
     public static function getCustomerHealthTooltip($record): string
     {
         try {
-            if (!$record) return 'Error al calcular salud';
+            if (! $record) {
+                return 'Error al calcular salud';
+            }
 
             $cacheKey = "customer_health_tooltip_{$record->id}";
 
@@ -489,7 +499,7 @@ class CustomerResource extends Resource
                 $factors = [];
 
                 // Status analysis
-                if (!$record->is_active) {
+                if (! $record->is_active) {
                     $factors[] = '🔴 Cliente inactivo (-40)';
                 } else {
                     $factors[] = '🟢 Cliente activo';
@@ -516,7 +526,7 @@ class CustomerResource extends Resource
                 // Contact analysis
                 if (empty($record->email)) {
                     $factors[] = '🔴 Sin email (-15)';
-                } elseif (!filter_var($record->email, FILTER_VALIDATE_EMAIL)) {
+                } elseif (! filter_var($record->email, FILTER_VALIDATE_EMAIL)) {
                     $factors[] = '🟡 Email inválido (-5)';
                 } else {
                     $factors[] = '🟢 Email válido';
@@ -533,10 +543,22 @@ class CustomerResource extends Resource
                 $totalAddressFields = 4;
                 $fieldNames = [];
 
-                if (!empty($record->address)) { $addressFields++; $fieldNames[] = 'Dirección'; }
-                if (!empty($record->city)) { $addressFields++; $fieldNames[] = 'Ciudad'; }
-                if (!empty($record->state)) { $addressFields++; $fieldNames[] = 'Estado'; }
-                if (!empty($record->postal_code)) { $addressFields++; $fieldNames[] = 'CP'; }
+                if (! empty($record->address)) {
+                    $addressFields++;
+                    $fieldNames[] = 'Dirección';
+                }
+                if (! empty($record->city)) {
+                    $addressFields++;
+                    $fieldNames[] = 'Ciudad';
+                }
+                if (! empty($record->state)) {
+                    $addressFields++;
+                    $fieldNames[] = 'Estado';
+                }
+                if (! empty($record->postal_code)) {
+                    $addressFields++;
+                    $fieldNames[] = 'CP';
+                }
 
                 $addressCompleteness = ($addressFields / $totalAddressFields) * 100;
                 if ($addressCompleteness < 50) {
@@ -544,7 +566,7 @@ class CustomerResource extends Resource
                 } elseif ($addressCompleteness < 75) {
                     $factors[] = '🟡 Dirección parcial (-5)';
                 } else {
-                    $factors[] = "🟢 Dirección completa: " . implode(', ', $fieldNames);
+                    $factors[] = '🟢 Dirección completa: '.implode(', ', $fieldNames);
                 }
 
                 // Sales analysis
@@ -579,7 +601,7 @@ class CustomerResource extends Resource
                         } elseif ($daysSinceLastSale > 90) {
                             $factors[] = '🟡 Inactivo +3 meses (-5)';
                         } else {
-                            $factors[] = "🟢 Activo recientemente";
+                            $factors[] = '🟢 Activo recientemente';
                         }
                     } else {
                         $factors[] = "🟢 {$recentSales} compras en 90 días";
@@ -593,7 +615,7 @@ class CustomerResource extends Resource
                     } elseif ($salesCount > 0 && $totalSpent < 500) {
                         $factors[] = '🟡 Cliente bajo valor (-10)';
                     } else {
-                        $factors[] = "🟢 Gastado: $" . number_format($totalSpent, 2);
+                        $factors[] = '🟢 Gastado: $'.number_format($totalSpent, 2);
                     }
                 } catch (\Exception $e) {
                     $factors[] = '❓ Ventas: Error al verificar (-15)';
@@ -614,7 +636,7 @@ class CustomerResource extends Resource
                 }
 
                 // Notes analysis
-                if (!empty($record->notes)) {
+                if (! empty($record->notes)) {
                     $factors[] = '🟢 Con notas de servicio (+5)';
                 } else {
                     $factors[] = '🟡 Sin notas de servicio';
@@ -623,7 +645,7 @@ class CustomerResource extends Resource
                 $score = self::calculateCustomerHealthScore($record);
                 $color = $score >= 80 ? '🟢' : ($score >= 60 ? '🟡' : '🔴');
 
-                return $color . " Salud: {$score}/100\n\n" . implode("\n", $factors);
+                return $color." Salud: {$score}/100\n\n".implode("\n", $factors);
             });
         } catch (\Exception $e) {
             return 'Error al calcular detalles de salud';

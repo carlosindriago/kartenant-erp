@@ -1,14 +1,16 @@
 <?php
 
+use Illuminate\Contracts\Console\Kernel;
+
 /**
  * Debug Database Connections Script
  * Ayuda a identificar problemas de conexión y contexto tenant
  */
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__.'/../vendor/autoload.php';
 
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+$app = require_once __DIR__.'/../bootstrap/app.php';
+$app->make(Kernel::class)->bootstrap();
 
 echo "\n";
 echo "╔════════════════════════════════════════════════════╗\n";
@@ -20,10 +22,10 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "  1. CONFIGURATION\n";
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
 
-echo "Default Connection: " . config('database.default') . "\n";
-echo "Current DB Connection: " . DB::getDefaultConnection() . "\n";
-echo "Tenant Finder: " . (config('multitenancy.tenant_finder') ?? 'null') . "\n";
-echo "Switch Tenant Tasks: " . count(config('multitenancy.switch_tenant_tasks')) . "\n";
+echo 'Default Connection: '.config('database.default')."\n";
+echo 'Current DB Connection: '.DB::getDefaultConnection()."\n";
+echo 'Tenant Finder: '.(config('multitenancy.tenant_finder') ?? 'null')."\n";
+echo 'Switch Tenant Tasks: '.count(config('multitenancy.switch_tenant_tasks'))."\n";
 
 echo "\n";
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
@@ -34,9 +36,9 @@ $connections = ['landlord', 'tenant', 'pgsql'];
 foreach ($connections as $conn) {
     $config = config("database.connections.$conn");
     echo "\n[$conn]\n";
-    echo "  Driver: " . ($config['driver'] ?? 'N/A') . "\n";
-    echo "  Database: " . ($config['database'] ?? 'null') . "\n";
-    echo "  Host: " . ($config['host'] ?? 'N/A') . "\n";
+    echo '  Driver: '.($config['driver'] ?? 'N/A')."\n";
+    echo '  Database: '.($config['database'] ?? 'null')."\n";
+    echo '  Host: '.($config['host'] ?? 'N/A')."\n";
 }
 
 echo "\n";
@@ -48,9 +50,9 @@ $containerKey = config('multitenancy.current_tenant_container_key', 'currentTena
 if (app()->bound($containerKey)) {
     $currentTenant = app($containerKey);
     echo "⚠️  WARNING: Tenant is ACTIVE in container!\n";
-    echo "  Tenant ID: " . $currentTenant->id . "\n";
-    echo "  Tenant Name: " . $currentTenant->name . "\n";
-    echo "  Tenant Database: " . $currentTenant->database . "\n";
+    echo '  Tenant ID: '.$currentTenant->id."\n";
+    echo '  Tenant Name: '.$currentTenant->name."\n";
+    echo '  Tenant Database: '.$currentTenant->database."\n";
 } else {
     echo "✅ No tenant active in container\n";
 }
@@ -68,7 +70,7 @@ try {
     $usersCount = DB::connection('landlord')->table('users')->count();
     echo "✅ Users Count: $usersCount\n";
 } catch (Exception $e) {
-    echo "❌ ERROR: " . $e->getMessage() . "\n";
+    echo '❌ ERROR: '.$e->getMessage()."\n";
 }
 
 // Test tenant connection
@@ -82,7 +84,7 @@ try {
         echo "✅ Tenant Database: null (correct when no tenant active)\n";
     }
 } catch (Exception $e) {
-    echo "⚠️  Expected error (no tenant active): " . $e->getMessage() . "\n";
+    echo '⚠️  Expected error (no tenant active): '.$e->getMessage()."\n";
 }
 
 // Test default connection behavior
@@ -93,14 +95,14 @@ try {
     echo "Default connection name: $defaultConn\n";
     $defaultDb = DB::connection()->getDatabaseName();
     echo "Default database: $defaultDb\n";
-    
+
     if ($defaultConn === 'landlord') {
         echo "✅ Default connection is landlord (CORRECT for admin context)\n";
     } elseif ($defaultConn === 'tenant') {
         echo "❌ WARNING: Default connection is tenant! This will cause errors in admin!\n";
     }
 } catch (Exception $e) {
-    echo "❌ ERROR: " . $e->getMessage() . "\n";
+    echo '❌ ERROR: '.$e->getMessage()."\n";
 }
 
 echo "\n";
@@ -108,26 +110,26 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "  5. SPATIE PERMISSION CONFIG\n";
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
 
-echo "Permission Model: " . config('permission.models.permission') . "\n";
-echo "Role Model: " . config('permission.models.role') . "\n";
-echo "Default Guard: " . config('permission.default_guard') . "\n";
-echo "Cache Key: " . config('permission.cache.key') . "\n";
+echo 'Permission Model: '.config('permission.models.permission')."\n";
+echo 'Role Model: '.config('permission.models.role')."\n";
+echo 'Default Guard: '.config('permission.default_guard')."\n";
+echo 'Cache Key: '.config('permission.cache.key')."\n";
 
 // Test Permission model connection
 echo "\n[Permission Model Test]\n";
 try {
     $permissionModel = config('permission.models.permission');
-    $model = new $permissionModel();
+    $model = new $permissionModel;
     $connection = $model->getConnectionName();
-    echo "Permission model connection: " . ($connection ?? 'default') . "\n";
-    
+    echo 'Permission model connection: '.($connection ?? 'default')."\n";
+
     if ($connection === 'landlord') {
         echo "✅ Permission model uses landlord connection (CORRECT)\n";
     } else {
         echo "⚠️  Permission model connection: $connection\n";
     }
 } catch (Exception $e) {
-    echo "❌ ERROR: " . $e->getMessage() . "\n";
+    echo '❌ ERROR: '.$e->getMessage()."\n";
 }
 
 echo "\n";
@@ -138,15 +140,15 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 $issues = [];
 
 if (config('multitenancy.tenant_finder') !== null) {
-    $issues[] = "⚠️  Tenant finder is ENABLED - should be NULL for multi-panel setup";
+    $issues[] = '⚠️  Tenant finder is ENABLED - should be NULL for multi-panel setup';
 }
 
 if (DB::getDefaultConnection() !== 'landlord') {
-    $issues[] = "❌ Default connection is NOT landlord - will cause errors in admin!";
+    $issues[] = '❌ Default connection is NOT landlord - will cause errors in admin!';
 }
 
 if (app()->bound($containerKey)) {
-    $issues[] = "⚠️  Tenant is ACTIVE in container - should not be active in admin context";
+    $issues[] = '⚠️  Tenant is ACTIVE in container - should not be active in admin context';
 }
 
 if (empty($issues)) {

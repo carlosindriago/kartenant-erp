@@ -71,7 +71,7 @@ class UsageMetricsLog extends Model
     public function scopeForPeriod($query, int $year, int $month)
     {
         return $query->whereYear('created_at', $year)
-                    ->whereMonth('created_at', $month);
+            ->whereMonth('created_at', $month);
     }
 
     public function scopeCurrentPeriod($query)
@@ -158,7 +158,7 @@ class UsageMetricsLog extends Model
 
     public function getMetricDisplayName(): string
     {
-        return match($this->metric_type) {
+        return match ($this->metric_type) {
             'sale_created' => 'Venta Registrada',
             'product_created' => 'Producto Creado',
             'user_created' => 'Usuario Creado',
@@ -169,7 +169,7 @@ class UsageMetricsLog extends Model
 
     public function getSourceDisplayName(): string
     {
-        return match($this->source) {
+        return match ($this->source) {
             'system' => 'Sistema',
             'observer' => 'Automático',
             'manual' => 'Manual',
@@ -188,7 +188,7 @@ class UsageMetricsLog extends Model
     {
         if ($this->metric_type === 'storage_used') {
             // Convert bytes to MB for display
-            return number_format($this->value / 1024 / 1024, 2) . ' MB';
+            return number_format($this->value / 1024 / 1024, 2).' MB';
         }
 
         return number_format($this->value);

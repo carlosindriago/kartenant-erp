@@ -26,7 +26,7 @@ class UploadLogoRequest extends FormRequest
                 'image',
                 'mimes:jpeg,jpg,png,webp',
                 'max:2048', // 2MB
-                'dimensions:min_width=100,min_height=100,max_width=800,max_height=800'
+                'dimensions:min_width=100,min_height=100,max_width=800,max_height=800',
             ],
         ];
     }

@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\API\V1;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Models\PaymentProof;
+use App\Models\TenantSubscription;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
 
@@ -12,33 +14,29 @@ use Illuminate\Support\Facades\Auth;
  *
  * Validates payment proof updates for tenant billing API
  * Typically used for editing payment details before approval
- *
- * @package App\Http\Requests\API\V1
  */
 class UpdatePaymentProofRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
         // Must be authenticated as tenant user
-        if (!Auth::guard('tenant')->check() || !tenant()) {
+        if (! Auth::guard('tenant')->check() || ! tenant()) {
             return false;
         }
 
         // Get the payment proof to verify ownership and status
         $paymentProof = $this->route('payment_proof');
 
-        if (!$paymentProof) {
+        if (! $paymentProof) {
             return false;
         }
 
         // Only allow updating of pending payment proofs
         return $paymentProof->tenant_id === tenant()->id &&
-               $paymentProof->status === \App\Models\PaymentProof::STATUS_PENDING;
+               $paymentProof->status === PaymentProof::STATUS_PENDING;
     }
 
     /**
@@ -69,7 +67,7 @@ class UpdatePaymentProofRequest extends FormRequest
                 'required',
                 'date',
                 'before_or_equal:today',
-                'after_or_equal:' . now()->subDays(90)->toDateString(),
+                'after_or_equal:'.now()->subDays(90)->toDateString(),
             ],
             'reference_number' => [
                 'sometimes',
@@ -150,7 +148,6 @@ class UpdatePaymentProofRequest extends FormRequest
      * Configure the validator instance.
      *
      * @param  \Illuminate\Validation\Validator  $validator
-     * @return void
      */
     public function withValidator($validator): void
     {
@@ -166,13 +163,13 @@ class UpdatePaymentProofRequest extends FormRequest
     {
         $paymentProof = $this->route('payment_proof');
 
-        if (!$paymentProof) {
+        if (! $paymentProof) {
             return;
         }
 
         // Validate payment amount matches expected subscription price (if amount is being updated)
         if ($this->has('amount')) {
-            $subscription = \App\Models\TenantSubscription::on('landlord')
+            $subscription = TenantSubscription::on('landlord')
                 ->where('id', $paymentProof->subscription_id)
                 ->first();
 
@@ -192,7 +189,7 @@ class UpdatePaymentProofRequest extends FormRequest
         // Check for duplicate payment submissions (if key fields are being updated)
         $hasKeyFields = $this->has(['amount', 'payment_date', 'payment_method']);
         if ($hasKeyFields) {
-            $duplicateExists = \App\Models\PaymentProof::on('landlord')
+            $duplicateExists = PaymentProof::on('landlord')
                 ->where('tenant_id', tenant()->id)
                 ->where('amount', $this->input('amount', $paymentProof->amount))
                 ->where('payment_date', $this->input('payment_date', $paymentProof->payment_date))
@@ -211,10 +208,8 @@ class UpdatePaymentProofRequest extends FormRequest
     /**
      * Handle a failed validation attempt.
      *
-     * @param  \Illuminate\Contracts\Validation\Validator  $validator
-     * @return void
      *
-     * @throws \Illuminate\Http\Exceptions\HttpResponseException
+     * @throws HttpResponseException
      */
     protected function failedValidation(Validator $validator): void
     {
@@ -235,8 +230,6 @@ class UpdatePaymentProofRequest extends FormRequest
 
     /**
      * Prepare the data for validation.
-     *
-     * @return void
      */
     protected function prepareForValidation(): void
     {
@@ -268,8 +261,6 @@ class UpdatePaymentProofRequest extends FormRequest
 
     /**
      * Get the sanitized validated data.
-     *
-     * @return array
      */
     public function getValidatedData(): array
     {

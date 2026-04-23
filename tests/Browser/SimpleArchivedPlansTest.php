@@ -2,9 +2,9 @@
 
 namespace Tests\Browser;
 
+use App\Models\User;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
-use App\Models\User;
 
 class SimpleArchivedPlansTest extends DuskTestCase
 {
@@ -17,8 +17,9 @@ class SimpleArchivedPlansTest extends DuskTestCase
             // Get superadmin user
             $superadmin = User::where('email', 'admin@emporiodigital.com')->first();
 
-            if (!$superadmin) {
+            if (! $superadmin) {
                 $this->markTestSkipped('Superadmin user not found');
+
                 return;
             }
 
@@ -48,7 +49,7 @@ class SimpleArchivedPlansTest extends DuskTestCase
             $browser->screenshot('04-archived-plans-full-view');
 
             // If failed, try to check navigation
-            if (!str_contains($pageTitle, 'Archivados') && !str_contains($currentUrl, 'archived')) {
+            if (! str_contains($pageTitle, 'Archivados') && ! str_contains($currentUrl, 'archived')) {
                 $browser->screenshot('05-archived-access-failed')
                     ->visit('/admin/subscription-plans')
                     ->pause(2000)

@@ -8,7 +8,7 @@ use App\Modules\Inventory\Models\StockMovement;
 use App\Modules\POS\Models\CashRegister;
 use App\Modules\POS\Models\Sale;
 use App\Modules\POS\Models\SaleReturn;
-use App\Services\StockMovementService;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Spatie\Multitenancy\Models\Tenant;
@@ -19,7 +19,9 @@ class CrossDatabaseUserRelationsTest extends TestCase
     use RefreshDatabase;
 
     protected User $user1;
+
     protected User $user2;
+
     protected Tenant $tenant;
 
     protected function setUp(): void
@@ -457,6 +459,6 @@ class CrossDatabaseUserRelationsTest extends TestCase
         // aunque no devuelvan resultados correctos (por eso están deprecados)
         $relation = $cashRegister->openedBy();
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class, $relation);
+        $this->assertInstanceOf(BelongsTo::class, $relation);
     }
 }

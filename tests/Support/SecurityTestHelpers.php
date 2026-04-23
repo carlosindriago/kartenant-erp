@@ -2,14 +2,12 @@
 
 namespace Tests\Support;
 
-use App\Models\User;
 use App\Models\Tenant;
-use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Http\Request;
-use Illuminate\Foundation\Testing\TestResponse;
+use Illuminate\Support\Facades\Session;
 
 /**
  * Helper utilities for security testing
@@ -25,7 +23,7 @@ trait SecurityTestHelpers
         $tenant = Tenant::factory()->create($tenantData);
         $user = User::factory()->create(array_merge([
             'is_active' => true,
-            'password' => \Illuminate\Support\Facades\Hash::make('password123')
+            'password' => Hash::make('password123'),
         ], $userData));
 
         $tenant->users()->attach($user->id);
@@ -40,7 +38,7 @@ trait SecurityTestHelpers
     {
         $defaultIps = [
             '192.168.1.1', '192.168.1.2', '10.0.0.1',
-            '203.0.113.1', '198.51.100.1', '8.8.8.8'
+            '203.0.113.1', '198.51.100.1', '8.8.8.8',
         ];
 
         $attackIps = empty($ips) ? $defaultIps : $ips;
@@ -52,13 +50,13 @@ trait SecurityTestHelpers
             $response = $this->withServerVariables(['REMOTE_ADDR' => $ip])
                 ->post(route('tenant.login'), [
                     'email' => $email,
-                    'password' => $password
+                    'password' => $password,
                 ]);
 
             $responses[] = [
                 'ip' => $ip,
                 'response' => $response,
-                'attempt' => $index + 1
+                'attempt' => $index + 1,
             ];
         }
 
@@ -76,7 +74,7 @@ trait SecurityTestHelpers
 
         return [
             'result' => $result,
-            'time_ms' => ($endTime - $startTime) * 1000
+            'time_ms' => ($endTime - $startTime) * 1000,
         ];
     }
 
@@ -93,7 +91,7 @@ trait SecurityTestHelpers
 
             // SQL injection attempts
             ['email' => "' OR '1'='1", 'password' => $basePassword],
-            ['email' => $baseEmail . "' OR '1'='1", 'password' => $basePassword],
+            ['email' => $baseEmail."' OR '1'='1", 'password' => $basePassword],
 
             // XSS attempts
             ['email' => '<script>alert("xss")</script>@example.com', 'password' => $basePassword],
@@ -102,13 +100,13 @@ trait SecurityTestHelpers
             ['email' => '../../../etc/passwd', 'password' => $basePassword],
 
             // Buffer overflow attempts
-            ['email' => str_repeat('A', 1000) . '@example.com', 'password' => $basePassword],
+            ['email' => str_repeat('A', 1000).'@example.com', 'password' => $basePassword],
 
             // Special characters
-            ['email' => $baseEmail . '!@#$%^&*()', 'password' => $basePassword],
+            ['email' => $baseEmail.'!@#$%^&*()', 'password' => $basePassword],
 
             // Unicode attacks
-            ['email' => $baseEmail . '💀', 'password' => $basePassword],
+            ['email' => $baseEmail.'💀', 'password' => $basePassword],
         ];
     }
 
@@ -119,17 +117,17 @@ trait SecurityTestHelpers
     {
         $lowerEmail = strtolower($email);
 
-        $key = 'auth_attempt:' . $lowerEmail . ':' . $ip;
-        $globalKey = 'auth_attempts_global:' . $lowerEmail;
+        $key = 'auth_attempt:'.$lowerEmail.':'.$ip;
+        $globalKey = 'auth_attempts_global:'.$lowerEmail;
 
         expect(Cache::has($key))->toBeTrue("Rate limit key should exist for IP: {$ip}");
-        expect(Cache::has($globalKey))->toBeTrue("Global rate limit key should exist");
+        expect(Cache::has($globalKey))->toBeTrue('Global rate limit key should exist');
 
         return [
             'ip_key' => $key,
             'global_key' => $globalKey,
             'ip_attempts' => Cache::get($key),
-            'global_attempts' => Cache::get($globalKey)
+            'global_attempts' => Cache::get($globalKey),
         ];
     }
 
@@ -138,7 +136,7 @@ trait SecurityTestHelpers
      */
     protected function assertAccountLocked($email)
     {
-        $lockoutKey = 'auth_lockout:' . strtolower($email);
+        $lockoutKey = 'auth_lockout:'.strtolower($email);
         expect(Cache::has($lockoutKey))->toBeTrue("Account should be locked for: {$email}");
 
         return Cache::get($lockoutKey);
@@ -149,7 +147,7 @@ trait SecurityTestHelpers
      */
     protected function assertGenericErrorResponse($response, $field = 'email')
     {
-        $genericError = "Estas credenciales no coinciden con nuestros registros";
+        $genericError = 'Estas credenciales no coinciden con nuestros registros';
         $response->assertSessionHasErrors([$field => $genericError]);
     }
 
@@ -160,7 +158,7 @@ trait SecurityTestHelpers
     {
         $response->assertStatus($expectedStatus);
         $response->assertJson([
-            'success' => $expectedSuccess
+            'success' => $expectedSuccess,
         ]);
 
         // Ensure no sensitive information is leaked
@@ -180,13 +178,13 @@ trait SecurityTestHelpers
 
         for ($i = 0; $i < $concurrency; $i++) {
             $password = $passwords[$i % count($passwords)];
-            $ip = "192.168.1." . ($i + 1);
+            $ip = '192.168.1.'.($i + 1);
 
-            $result = $this->measureResponseTime(function() use ($email, $password, $ip) {
+            $result = $this->measureResponseTime(function () use ($email, $password, $ip) {
                 return $this->withServerVariables(['REMOTE_ADDR' => $ip])
                     ->post(route('tenant.login'), [
                         'email' => $email,
-                        'password' => $password
+                        'password' => $password,
                     ]);
             });
 
@@ -208,8 +206,8 @@ trait SecurityTestHelpers
         if ($email) {
             // Clear specific email-related cache entries
             $lowerEmail = strtolower($email);
-            Cache::forget('auth_attempts_global:' . $lowerEmail);
-            Cache::forget('auth_lockout:' . $lowerEmail);
+            Cache::forget('auth_attempts_global:'.$lowerEmail);
+            Cache::forget('auth_lockout:'.$lowerEmail);
         }
     }
 
@@ -219,13 +217,13 @@ trait SecurityTestHelpers
     protected function assertSessionSecurity($sessionIdBefore, $sessionIdAfter)
     {
         expect($sessionIdAfter)->not->toBe($sessionIdBefore,
-            "Session ID should change after authentication");
+            'Session ID should change after authentication');
 
         expect(Session::get('tenant_authenticated'))->toBeTrue(
-            "Tenant authenticated flag should be set");
+            'Tenant authenticated flag should be set');
 
         expect(Session::token())->not->toBeEmpty(
-            "CSRF token should be generated");
+            'CSRF token should be generated');
     }
 
     /**
@@ -238,7 +236,7 @@ trait SecurityTestHelpers
 
         $response = $this->post(route('tenant.login'), [
             'email' => $user->email,
-            'password' => 'password123'
+            'password' => 'password123',
         ]);
 
         $this->assertAuthenticatedAs($user, 'tenant');
@@ -249,7 +247,7 @@ trait SecurityTestHelpers
 
         $response = $this->post(route('tenant.login'), [
             'email' => $user->email,
-            'password' => 'password123'
+            'password' => 'password123',
         ]);
 
         $this->assertGuest('tenant');
@@ -287,8 +285,8 @@ trait SecurityTestHelpers
                 'emails' => [
                     $targetEmail,
                     'nonexistent@example.com',
-                    'admin@' . config('app.url'),
-                    'test@' . config('app.url'),
+                    'admin@'.config('app.url'),
+                    'test@'.config('app.url'),
                 ],
             ],
         ];
@@ -304,17 +302,17 @@ trait SecurityTestHelpers
         foreach ($expectedEvents as $event) {
             switch ($event) {
                 case 'failed_attempts':
-                    $key = 'auth_attempts_global:' . $lowerEmail;
+                    $key = 'auth_attempts_global:'.$lowerEmail;
                     expect(Cache::get($key))->toBeGreaterThan(0);
                     break;
 
                 case 'account_locked':
-                    $key = 'auth_lockout:' . $lowerEmail;
+                    $key = 'auth_lockout:'.$lowerEmail;
                     expect(Cache::has($key))->toBeTrue();
                     break;
 
                 case 'successful_login':
-                    $key = 'auth_success:' . $lowerEmail;
+                    $key = 'auth_success:'.$lowerEmail;
                     expect(Cache::has($key))->toBeTrue();
 
                     $data = Cache::get($key);
@@ -337,13 +335,13 @@ trait SecurityTestHelpers
         expect($averageTime)->toBeLessThan($maxResponseTime,
             "Average response time should be under {$maxResponseTime}ms");
         expect($maxTime)->toBeLessThan($maxResponseTime * 2,
-            "Maximum response time should be reasonable");
+            'Maximum response time should be reasonable');
 
         return [
             'average_ms' => round($averageTime, 2),
             'max_ms' => round($maxTime, 2),
             'min_ms' => round($minTime, 2),
-            'total_attempts' => count($responses)
+            'total_attempts' => count($responses),
         ];
     }
 }

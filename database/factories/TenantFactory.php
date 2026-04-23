@@ -4,16 +4,17 @@ namespace Database\Factories;
 
 use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant>
+ * @extends Factory<Tenant>
  */
 class TenantFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
-     * @var class-string<\Illuminate\Database\Eloquent\Model>
+     * @var class-string<Model>
      */
     protected $model = Tenant::class;
 
@@ -25,12 +26,12 @@ class TenantFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->company();
-        $domain = $this->faker->unique()->slug(2) . '.test.com';
+        $domain = $this->faker->unique()->slug(2).'.test.com';
 
         return [
             'name' => $name,
             'domain' => $domain,
-            'database' => 'tenant_' . str_replace('.', '_', str_replace('-', '_', $domain)),
+            'database' => 'tenant_'.str_replace('.', '_', str_replace('-', '_', $domain)),
             'address' => $this->faker->address(),
             'phone' => $this->faker->phoneNumber(),
             'cuit' => $this->faker->numerify('#############'),

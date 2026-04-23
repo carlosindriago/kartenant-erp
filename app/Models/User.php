@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,26 +12,29 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\PasswordResetNotification;
+use Database\Factories\UserFactory;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasTenants;
+use Filament\Panel;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-use App\Models\Tenant; 
-use Filament\Models\Contracts\HasTenants; 
-use Filament\Panel;
-use Illuminate\Database\Eloquent\Collection; 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Yebor974\Filament\RenewPassword\Contracts\RenewPasswordContract;
 use Yebor974\Filament\RenewPassword\Traits\RenewPassword;
-use Filament\Models\Contracts\FilamentUser;
 
-class User extends Authenticatable implements HasTenants, RenewPasswordContract, FilamentUser
+class User extends Authenticatable implements FilamentUser, HasTenants, RenewPasswordContract
 {
     // Fuerza que TODOS los usuarios residan en la DB landlord
     protected $connection = 'landlord';
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles, RenewPassword;
+
+    /** @use HasFactory<UserFactory> */
+    use HasFactory, HasRoles, Notifiable, RenewPassword;
 
     /**
      * The attributes that are mass assignable.
@@ -126,15 +129,17 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
         // Si está vacío, establecer como null
         if (empty($value)) {
             $this->attributes['password'] = null;
+
             return;
         }
-        
+
         // Verificar si ya es un hash válido (bcrypt, Argon2, etc.)
         if (str_starts_with($value, '$2y$') || str_starts_with($value, '$2a$') || str_starts_with($value, '$2b$')) {
             $this->attributes['password'] = $value;
+
             return;
         }
-        
+
         // Hashear nuevo valor solo si no es un hash existente
         $this->attributes['password'] = \Hash::make($value);
     }
@@ -143,6 +148,7 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
     {
         return $this->belongsToMany(Tenant::class);
     }
+
     public function getTenants(Panel $panel): Collection
     {
         return $this->tenants;
@@ -163,7 +169,7 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
     {
         return $this->userSecurityAnswers()->exists();
     }
-    
+
     /**
      * Usuario que desactivó este usuario
      */
@@ -171,7 +177,7 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
     {
         return $this->belongsTo(User::class, 'deactivated_by');
     }
-    
+
     /**
      * Usuario que reactivó este usuario
      */
@@ -179,51 +185,51 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
     {
         return $this->belongsTo(User::class, 'reactivated_by');
     }
-    
+
     /**
      * Historial completo de cambios de estado
      */
     public function statusChanges()
     {
-        return $this->hasMany(\App\Models\UserStatusChange::class, 'user_id')
+        return $this->hasMany(UserStatusChange::class, 'user_id')
             ->orderBy('changed_at', 'desc');
     }
-    
+
     /**
      * Historial de desactivaciones
      */
     public function deactivationHistory()
     {
-        return $this->hasMany(\App\Models\UserStatusChange::class, 'user_id')
+        return $this->hasMany(UserStatusChange::class, 'user_id')
             ->where('action', 'deactivated')
             ->orderBy('changed_at', 'desc');
     }
-    
+
     /**
      * Historial de reactivaciones
      */
     public function activationHistory()
     {
-        return $this->hasMany(\App\Models\UserStatusChange::class, 'user_id')
+        return $this->hasMany(UserStatusChange::class, 'user_id')
             ->where('action', 'activated')
             ->orderBy('changed_at', 'desc');
     }
-    
+
     /**
      * Generar código de seguridad para desactivación/reactivación
      */
     public function generateSecurityCode(): string
     {
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        
+
         $this->update([
             'reactivation_code' => $code,
             'reactivation_code_expires_at' => now()->addMinutes(10),
         ]);
-        
+
         return $code;
     }
-    
+
     /**
      * Generar código de reactivación (alias para compatibilidad)
      */
@@ -231,23 +237,23 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
     {
         return $this->generateSecurityCode();
     }
-    
+
     /**
      * Verificar código de seguridad
      */
     public function verifySecurityCode(string $code): bool
     {
-        if (!$this->reactivation_code || !$this->reactivation_code_expires_at) {
+        if (! $this->reactivation_code || ! $this->reactivation_code_expires_at) {
             return false;
         }
-        
+
         if ($this->reactivation_code_expires_at->isPast()) {
             return false;
         }
-        
+
         return $this->reactivation_code === $code;
     }
-    
+
     /**
      * Verificar código de reactivación (alias para compatibilidad)
      */
@@ -262,12 +268,12 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
     public function generateEmail2FACode(): string
     {
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        
+
         $this->update([
             'email_2fa_code' => $code,
             'email_2fa_expires_at' => now()->addMinutes(10),
         ]);
-        
+
         return $code;
     }
 
@@ -276,14 +282,14 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
      */
     public function verifyEmail2FACode(string $code): bool
     {
-        if (!$this->email_2fa_code || !$this->email_2fa_expires_at) {
+        if (! $this->email_2fa_code || ! $this->email_2fa_expires_at) {
             return false;
         }
-        
+
         if ($this->email_2fa_expires_at->isPast()) {
             return false;
         }
-        
+
         return hash_equals($this->email_2fa_code, $code);
     }
 
@@ -304,12 +310,12 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
     public function generatePasswordChangeCode(): string
     {
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        
+
         $this->update([
             'password_change_code' => $code,
             'password_change_code_expires_at' => now()->addMinutes(10),
         ]);
-        
+
         return $code;
     }
 
@@ -318,14 +324,14 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
      */
     public function verifyPasswordChangeCode(string $code): bool
     {
-        if (!$this->password_change_code || !$this->password_change_code_expires_at) {
+        if (! $this->password_change_code || ! $this->password_change_code_expires_at) {
             return false;
         }
-        
+
         if ($this->password_change_code_expires_at->isPast()) {
             return false;
         }
-        
+
         return hash_equals($this->password_change_code, $code);
     }
 
@@ -357,17 +363,17 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
     public function updateSuperAdminStatus(bool $isSuperAdmin, ?User $authorizedBy = null): bool
     {
         // Validate authorization
-        if (!$authorizedBy || !$authorizedBy->is_super_admin) {
-            throw new \Illuminate\Auth\Access\AuthorizationException('Only superadmins can modify superadmin status.');
+        if (! $authorizedBy || ! $authorizedBy->is_super_admin) {
+            throw new AuthorizationException('Only superadmins can modify superadmin status.');
         }
 
         // Prevent self-modification
         if ($authorizedBy->id === $this->id) {
-            throw new \Illuminate\Auth\Access\AuthorizationException('Cannot modify your own superadmin status.');
+            throw new AuthorizationException('Cannot modify your own superadmin status.');
         }
 
         // Prevent removing last superadmin
-        if ($this->is_super_admin && !$isSuperAdmin) {
+        if ($this->is_super_admin && ! $isSuperAdmin) {
             $superadminCount = static::where('is_super_admin', true)->count();
             if ($superadminCount <= 1) {
                 throw new \InvalidArgumentException('Cannot remove superadmin status from the last superadmin.');
@@ -378,7 +384,7 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
         $this->forceFill(['is_super_admin' => $isSuperAdmin])->saveQuietly();
 
         // Log the change for audit
-        \App\Models\UserAuditLog::create([
+        UserAuditLog::create([
             'user_id' => $this->id,
             'performed_by' => $authorizedBy->id,
             'action' => 'super_admin_status_changed',
@@ -394,20 +400,20 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
     /**
      * SECURE: Update user active status with proper authorization
      */
-    public function updateActiveStatus(bool $isActive, string $reason = null, ?User $authorizedBy = null): bool
+    public function updateActiveStatus(bool $isActive, ?string $reason = null, ?User $authorizedBy = null): bool
     {
         // Validate authorization
-        if (!$authorizedBy || (!$authorizedBy->is_super_admin && !$authorizedBy->hasPermissionTo('admin.users.update', 'superadmin'))) {
-            throw new \Illuminate\Auth\Access\AuthorizationException('Insufficient permissions to modify user status.');
+        if (! $authorizedBy || (! $authorizedBy->is_super_admin && ! $authorizedBy->hasPermissionTo('admin.users.update', 'superadmin'))) {
+            throw new AuthorizationException('Insufficient permissions to modify user status.');
         }
 
         // Prevent self-deactivation
-        if ($authorizedBy->id === $this->id && !$isActive) {
-            throw new \Illuminate\Auth\Access\AuthorizationException('Cannot deactivate your own account.');
+        if ($authorizedBy->id === $this->id && ! $isActive) {
+            throw new AuthorizationException('Cannot deactivate your own account.');
         }
 
         // Prevent deactivating last superadmin
-        if ($this->is_super_admin && $this->is_active && !$isActive) {
+        if ($this->is_super_admin && $this->is_active && ! $isActive) {
             $activeSuperadminCount = static::where('is_super_admin', true)
                 ->where('is_active', true)
                 ->count();
@@ -421,7 +427,7 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
             'is_active' => $isActive,
         ];
 
-        if (!$isActive && $reason) {
+        if (! $isActive && $reason) {
             $updateData['deactivation_reason'] = $reason;
             $updateData['deactivated_at'] = now();
             $updateData['deactivated_by'] = $authorizedBy->id;
@@ -436,7 +442,7 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
         $this->forceFill($updateData)->saveQuietly();
 
         // Log the change for audit
-        \App\Models\UserAuditLog::create([
+        UserAuditLog::create([
             'user_id' => $this->id,
             'performed_by' => $authorizedBy->id,
             'action' => $isActive ? 'user_activated' : 'user_deactivated',
@@ -456,8 +462,8 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
     public function updateSecuritySettings(array $settings, ?User $authorizedBy = null): bool
     {
         // Validate authorization
-        if (!$authorizedBy || !$authorizedBy->is_super_admin) {
-            throw new \Illuminate\Auth\Access\AuthorizationException('Only superadmins can modify user security settings.');
+        if (! $authorizedBy || ! $authorizedBy->is_super_admin) {
+            throw new AuthorizationException('Only superadmins can modify user security settings.');
         }
 
         // Define allowed security settings
@@ -471,7 +477,7 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
         // Filter and validate settings
         $updateData = [];
         foreach ($settings as $key => $value) {
-            if (!in_array($key, $allowedSettings)) {
+            if (! in_array($key, $allowedSettings)) {
                 throw new \InvalidArgumentException("Setting '{$key}' is not allowed.");
             }
             $updateData[$key] = $value;
@@ -491,7 +497,7 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
         $this->forceFill($updateData)->saveQuietly();
 
         // Log the changes for audit
-        \App\Models\UserAuditLog::create([
+        UserAuditLog::create([
             'user_id' => $this->id,
             'performed_by' => $authorizedBy->id,
             'action' => 'security_settings_updated',
@@ -509,8 +515,8 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
      */
     public function secureUpdate(array $data, ?User $authorizedBy = null): bool
     {
-        if (!$authorizedBy) {
-            throw new \Illuminate\Auth\Access\AuthorizationException('Authorization required for updates.');
+        if (! $authorizedBy) {
+            throw new AuthorizationException('Authorization required for updates.');
         }
 
         // Separate safe fields from administrative fields
@@ -519,9 +525,9 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
 
         // Handle safe fields (users can update their own)
         $safeData = array_intersect_key($data, array_flip($safeFields));
-        if (!empty($safeData)) {
-            if ($authorizedBy->id !== $this->id && !$authorizedBy->is_super_admin) {
-                throw new \Illuminate\Auth\Access\AuthorizationException('Cannot modify other users basic information.');
+        if (! empty($safeData)) {
+            if ($authorizedBy->id !== $this->id && ! $authorizedBy->is_super_admin) {
+                throw new AuthorizationException('Cannot modify other users basic information.');
             }
 
             $this->update($safeData);
@@ -529,9 +535,9 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
 
         // Handle administrative fields
         $adminData = array_intersect_key($data, array_flip($adminFields));
-        if (!empty($adminData)) {
-            if (!$authorizedBy->is_super_admin) {
-                throw new \Illuminate\Auth\Access\AuthorizationException('Only superadmins can modify administrative fields.');
+        if (! empty($adminData)) {
+            if (! $authorizedBy->is_super_admin) {
+                throw new AuthorizationException('Only superadmins can modify administrative fields.');
             }
 
             // Process each administrative field with its security method
@@ -549,7 +555,7 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
                 unset($adminData['is_active'], $adminData['deactivation_reason']);
             }
 
-            if (!empty($adminData)) {
+            if (! empty($adminData)) {
                 $this->updateSecuritySettings($adminData, $authorizedBy);
             }
         }
@@ -575,12 +581,12 @@ class User extends Authenticatable implements HasTenants, RenewPasswordContract,
     /**
      * Send the password reset notification.
      *
-     * @param string $token
+     * @param  string  $token
      * @return void
      */
     public function sendPasswordResetNotification($token)
     {
         // Usar nuestra notificación personalizada que evita el problema de MailChannel
-        $this->notify(new \App\Notifications\PasswordResetNotification($token));
+        $this->notify(new PasswordResetNotification($token));
     }
 }

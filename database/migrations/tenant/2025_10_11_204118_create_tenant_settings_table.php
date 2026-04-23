@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tenant_settings', function (Blueprint $table) {
             $table->id();
-            
+
             // POS Policies - Return & Void Sales
             $table->boolean('allow_cashier_void_last_sale')->default(true)
                 ->comment('Permite a cajeros anular su última venta');
@@ -23,12 +23,12 @@ return new class extends Migration
                 ->comment('Cajeros solo pueden anular ventas del mismo día');
             $table->boolean('cashier_void_requires_own_sale')->default(true)
                 ->comment('Cajeros solo pueden anular sus propias ventas');
-                
+
             // Future: otras políticas del negocio
             // $table->boolean('require_customer_for_sales')->default(false);
             // $table->decimal('max_discount_percentage', 5, 2)->default(0);
             // etc.
-            
+
             $table->timestamps();
         });
     }

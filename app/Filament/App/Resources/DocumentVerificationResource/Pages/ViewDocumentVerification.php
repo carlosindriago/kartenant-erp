@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,13 +13,13 @@ namespace App\Filament\App\Resources\DocumentVerificationResource\Pages;
 
 use App\Filament\App\Resources\DocumentVerificationResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ViewRecord;
 use Filament\Forms;
+use Filament\Resources\Pages\ViewRecord;
 
 class ViewDocumentVerification extends ViewRecord
 {
     protected static string $resource = DocumentVerificationResource::class;
-    
+
     protected function getHeaderActions(): array
     {
         return [
@@ -29,7 +29,7 @@ class ViewDocumentVerification extends ViewRecord
                 ->url(fn ($record) => route('verify.hash', ['hash' => $record->hash]))
                 ->openUrlInNewTab()
                 ->color('primary'),
-                
+
             Actions\Action::make('copy_hash')
                 ->label('Copiar Hash')
                 ->icon('heroicon-o-clipboard-document')
@@ -38,9 +38,9 @@ class ViewDocumentVerification extends ViewRecord
                 })
                 ->color('gray')
                 ->extraAttributes([
-                    'x-on:click' => 'window.navigator.clipboard.writeText("' . $this->record->hash . '"); $tooltip("Hash copiado")',
+                    'x-on:click' => 'window.navigator.clipboard.writeText("'.$this->record->hash.'"); $tooltip("Hash copiado")',
                 ]),
-                
+
             Actions\Action::make('invalidate')
                 ->label('Invalidar Documento')
                 ->icon('heroicon-o-x-circle')
@@ -61,7 +61,7 @@ class ViewDocumentVerification extends ViewRecord
                 ->visible(fn ($record) => $record->is_valid),
         ];
     }
-    
+
     protected function getFooterWidgets(): array
     {
         return [

@@ -12,20 +12,20 @@ return new class extends Migration
     public function up()
     {
         Schema::connection('landlord')->table('tenants', function (Blueprint $table) {
-            if (!Schema::connection('landlord')->hasColumn('tenants', 'status')) {
+            if (! Schema::connection('landlord')->hasColumn('tenants', 'status')) {
                 $table->string('status', 20)->default('active')->after('database');
             }
 
-            if (!Schema::connection('landlord')->hasColumn('tenants', 'deleted_at')) {
+            if (! Schema::connection('landlord')->hasColumn('tenants', 'deleted_at')) {
                 $table->softDeletes();
             }
 
             // Add indexes for performance (only if they don't exist)
-            if (!Schema::connection('landlord')->hasIndex('tenants', 'tenants_status_index')) {
+            if (! Schema::connection('landlord')->hasIndex('tenants', 'tenants_status_index')) {
                 $table->index('status');
             }
 
-            if (!Schema::connection('landlord')->hasIndex('tenants', 'tenants_status_deleted_at_index')) {
+            if (! Schema::connection('landlord')->hasIndex('tenants', 'tenants_status_deleted_at_index')) {
                 $table->index(['status', 'deleted_at']);
             }
         });

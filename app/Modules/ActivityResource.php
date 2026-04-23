@@ -2,39 +2,42 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Modules;
 
-use App\Modules\ActivityResource\Pages;
-use Spatie\Activitylog\Models\Activity;
+use App\Models\User;
+use App\Modules\ActivityResource\Pages\ListActivities;
+use App\Modules\ActivityResource\Pages\ViewActivity;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Spatie\Activitylog\Models\Activity;
 
 class ActivityResource extends Resource
 {
     protected static ?string $model = Activity::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shield-check';
-    
+
     protected static ?string $navigationLabel = 'Registro de Actividad';
-    
+
     protected static ?string $modelLabel = 'Actividad';
-    
+
     protected static ?string $pluralModelLabel = 'Registro de Actividad';
-    
+
     protected static ?string $navigationGroup = 'Sistema';
-    
+
     protected static ?int $navigationSort = 1;
-    
+
     // Activity log no usa tenant scoping de Filament
     protected static bool $isScopedToTenant = false;
 
@@ -55,14 +58,14 @@ class ActivityResource extends Resource
                     ->dateTime('d/m/Y H:i:s')
                     ->sortable()
                     ->searchable(),
-                
+
                 Tables\Columns\TextColumn::make('causer.name')
                     ->label('Usuario')
                     ->searchable()
                     ->sortable()
                     ->default('Sistema')
                     ->description(fn ($record) => $record->causer?->email),
-                
+
                 Tables\Columns\TextColumn::make('description')
                     ->label('Acción')
                     ->badge()
@@ -79,26 +82,25 @@ class ActivityResource extends Resource
                         default => ucfirst($state),
                     })
                     ->searchable(),
-                
+
                 Tables\Columns\TextColumn::make('subject_type')
                     ->label('Recurso')
-                    ->formatStateUsing(fn (?string $state): string => 
-                        $state ? class_basename($state) : 'N/A'
+                    ->formatStateUsing(fn (?string $state): string => $state ? class_basename($state) : 'N/A'
                     )
                     ->badge()
                     ->color('info')
                     ->searchable(),
-                
+
                 Tables\Columns\TextColumn::make('subject_id')
                     ->label('ID')
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('log_name')
                     ->label('Categoría')
                     ->badge()
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 Tables\Columns\TextColumn::make('event')
                     ->label('Evento')
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -111,7 +113,7 @@ class ActivityResource extends Resource
                         'updated' => 'Actualizado',
                         'deleted' => 'Eliminado',
                     ]),
-                
+
                 Tables\Filters\SelectFilter::make('subject_type')
                     ->label('Tipo de Recurso')
                     ->options(function () {
@@ -125,7 +127,7 @@ class ActivityResource extends Resource
                             ->sort()
                             ->toArray();
                     }),
-                
+
                 Tables\Filters\SelectFilter::make('causer_id')
                     ->label('Usuario')
                     ->options(function () {
@@ -133,20 +135,20 @@ class ActivityResource extends Resource
                             ->whereNotNull('causer_id')
                             ->distinct()
                             ->pluck('causer_id');
-                        
-                        return \App\Models\User::query()
+
+                        return User::query()
                             ->whereIn('id', $causerIds)
                             ->pluck('name', 'id')
                             ->toArray();
                     })
                     ->searchable(),
-                
+
                 Tables\Filters\Filter::make('date_range')
                     ->label('Rango de Fechas')
                     ->form([
-                        \Filament\Forms\Components\DatePicker::make('from')
+                        DatePicker::make('from')
                             ->label('Desde'),
-                        \Filament\Forms\Components\DatePicker::make('until')
+                        DatePicker::make('until')
                             ->label('Hasta'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
@@ -177,8 +179,8 @@ class ActivityResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => \App\Modules\ActivityResource\Pages\ListActivities::route('/'),
-            'view' => \App\Modules\ActivityResource\Pages\ViewActivity::route('/{record}'),
+            'index' => ListActivities::route('/'),
+            'view' => ViewActivity::route('/{record}'),
         ];
     }
 

@@ -4,10 +4,18 @@ namespace App\Filament\Resources\ArchivedTenantResource\Pages;
 
 use App\Filament\Resources\ArchivedTenantResource;
 use App\Filament\Resources\TenantResource;
+use App\Filament\Widgets\ArchivedTenantDetailsWidget;
+use App\Models\Tenant;
+use App\Services\TenantBackupService;
 use Filament\Actions;
-use Filament\Resources\Pages\ViewRecord;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 
 class ViewArchivedTenant extends ViewRecord
 {
@@ -22,9 +30,8 @@ class ViewArchivedTenant extends ViewRecord
      * CRITICAL: Must include withTrashed() to find soft-deleted tenants.
      *
      * @param  int | string  $key
-     * @return \Illuminate\Database\Eloquent\Model
      */
-    protected function resolveRecord($key): \Illuminate\Database\Eloquent\Model
+    protected function resolveRecord($key): Model
     {
         return static::getResource()::getEloquentQuery()
             ->withTrashed() // <--- CRITICAL FIX: Include soft-deleted records
@@ -81,7 +88,7 @@ class ViewArchivedTenant extends ViewRecord
                 })
                 ->action(function ($record) {
                     try {
-                        $backupService = app(\App\Services\TenantBackupService::class);
+                        $backupService = app(TenantBackupService::class);
 
                         Notification::make()
                             ->title('Iniciando Backup')
@@ -94,7 +101,7 @@ class ViewArchivedTenant extends ViewRecord
                         if ($result['success']) {
                             Notification::make()
                                 ->title('✅ Backup Creado Exitosamente')
-                                ->body("Backup completado: " . round($result['file_size'] / 1024 / 1024, 2) . " MB")
+                                ->body('Backup completado: '.round($result['file_size'] / 1024 / 1024, 2).' MB')
                                 ->success()
                                 ->duration(10000)
                                 ->send();
@@ -123,41 +130,41 @@ class ViewArchivedTenant extends ViewRecord
                 ->requiresConfirmation()
                 ->modalHeading('🔄 Restaurar Tenant')
                 ->modalDescription(function ($record) {
-                    return "**¿Confirmas la restauración del tenant '{$record->name}'?**\n\n" .
-                           "Esta acción:\n" .
-                           "• Reactivará el tenant y restaurará el acceso\n" .
-                           "• Cambiará el estado de 'archived' a 'active'\n" .
-                           "• Permitirá que los usuarios accedan nuevamente\n" .
-                           "• Generará un backup previo a la restauración";
+                    return "**¿Confirmas la restauración del tenant '{$record->name}'?**\n\n".
+                           "Esta acción:\n".
+                           "• Reactivará el tenant y restaurará el acceso\n".
+                           "• Cambiará el estado de 'archived' a 'active'\n".
+                           "• Permitirá que los usuarios accedan nuevamente\n".
+                           '• Generará un backup previo a la restauración';
                 })
                 ->modalSubmitActionLabel('Restaurar Tenant')
                 ->form([
-                    \Filament\Forms\Components\Textarea::make('restore_reason')
+                    Textarea::make('restore_reason')
                         ->label('Motivo de la Restauración')
                         ->required()
                         ->rows(3)
                         ->placeholder('Describe por qué necesitas restaurar este tenant...'),
 
-                    \Filament\Forms\Components\TextInput::make('admin_password')
+                    TextInput::make('admin_password')
                         ->label('Contraseña de Administrador')
                         ->required()
                         ->password()
                         ->revealable()
                         ->helperText('Ingresa tu contraseña para confirmar esta acción.'),
 
-                    \Filament\Forms\Components\TextInput::make('confirm_tenant_name')
+                    TextInput::make('confirm_tenant_name')
                         ->label('Confirmar Nombre del Tenant')
                         ->required()
                         ->placeholder(function ($record) {
-                            return "Escribe exactamente: " . $record->name;
+                            return 'Escribe exactamente: '.$record->name;
                         })
                         ->helperText('Escribe el nombre exacto del tenant para confirmar.'),
 
-                    \Filament\Forms\Components\Checkbox::make('backup_before_restore')
+                    Checkbox::make('backup_before_restore')
                         ->label('Crear backup antes de restaurar (recomendado)')
                         ->default(true),
 
-                    \Filament\Forms\Components\Checkbox::make('understand_consequences')
+                    Checkbox::make('understand_consequences')
                         ->label('Entiendo las consecuencias de esta restauración.')
                         ->required(),
                 ])
@@ -166,12 +173,13 @@ class ViewArchivedTenant extends ViewRecord
                         $admin = auth('superadmin')->user();
 
                         // Validate admin password
-                        if (!\Illuminate\Support\Facades\Hash::check($data['admin_password'], $admin->password)) {
+                        if (! Hash::check($data['admin_password'], $admin->password)) {
                             Notification::make()
                                 ->title('Error de Autenticación')
                                 ->body('La contraseña de administrador es incorrecta.')
                                 ->danger()
                                 ->send();
+
                             return;
                         }
 
@@ -182,21 +190,22 @@ class ViewArchivedTenant extends ViewRecord
                                 ->body('El nombre del tenant no coincide. Restauración cancelada.')
                                 ->danger()
                                 ->send();
+
                             return;
                         }
 
                         // Create backup before restore if requested
                         if ($data['backup_before_restore']) {
-                            $backupService = app(\App\Services\TenantBackupService::class);
+                            $backupService = app(TenantBackupService::class);
                             $backupResult = $backupService->backupDatabase($record->database, $record->id, 'pre_restore');
 
-                            if (!$backupResult['success']) {
+                            if (! $backupResult['success']) {
                                 throw new \Exception('No se pudo crear el backup previo a la restauración.');
                             }
                         }
 
                         // Restore the tenant
-                        $record->status = \App\Models\Tenant::STATUS_ACTIVE;
+                        $record->status = Tenant::STATUS_ACTIVE;
                         $record->restore();
 
                         // Log the restoration
@@ -289,7 +298,7 @@ class ViewArchivedTenant extends ViewRecord
     protected function getFooterWidgets(): array
     {
         return [
-            \App\Filament\Widgets\ArchivedTenantDetailsWidget::class,
+            ArchivedTenantDetailsWidget::class,
         ];
     }
 }

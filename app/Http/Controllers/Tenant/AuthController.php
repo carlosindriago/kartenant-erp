@@ -3,28 +3,31 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
-use App\Services\TwoFactorAuthService;
-use App\Models\User;
-use App\Models\Tenant;
 use App\Models\StoreSetting;
+use App\Models\Tenant;
+use App\Models\User;
+use App\Services\TwoFactorAuthService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
-use Exception;
 
 class AuthController extends Controller
 {
     // Generic error message for all authentication failures to prevent user enumeration
-    private const GENERIC_AUTH_ERROR = "Estas credenciales no coinciden con nuestros registros";
+    private const GENERIC_AUTH_ERROR = 'Estas credenciales no coinciden con nuestros registros';
 
     // Rate limiting configuration
     private const MAX_ATTEMPTS = 5;
+
     private const LOCKOUT_DURATION = 60; // seconds
+
     private const ATTEMPT_DECAY = 300; // 5 minutes
 
     public function __construct(
@@ -48,7 +51,7 @@ class AuthController extends Controller
 
         return view('tenant.auth.login', [
             'settings' => $settings,
-            'tenant' => \App\Models\Tenant::current(),
+            'tenant' => Tenant::current(),
         ]);
     }
 
@@ -61,8 +64,8 @@ class AuthController extends Controller
 
         \Log::info('Tenant login attempt', [
             'email' => $request->email,
-            'tenant_domain' => \App\Models\Tenant::current()?->domain,
-            'ip' => $request->ip()
+            'tenant_domain' => Tenant::current()?->domain,
+            'ip' => $request->ip(),
         ]);
 
         // Validate request with generic error messages
@@ -83,7 +86,7 @@ class AuthController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => self::GENERIC_AUTH_ERROR,
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], 422);
             }
 
@@ -105,20 +108,20 @@ class AuthController extends Controller
         $loginSuccess = false;
         $failureReason = null;
 
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             $failureReason = 'invalid_credentials';
-        } elseif (!$user->is_active) {
+        } elseif (! $user->is_active) {
             $failureReason = 'inactive_account';
-        } elseif (!$this->validateTenantMembershipCritical($user, \App\Models\Tenant::current())) {
+        } elseif (! $this->validateTenantMembershipCritical($user, Tenant::current())) {
             $failureReason = 'unauthorized_tenant';
 
             // CRITICAL SECURITY LOG: Cross-tenant access attempt
             \Log::critical('SECURITY BREACH: Cross-tenant authentication attempt blocked', [
                 'user_id' => $user->id,
                 'user_email' => $user->email,
-                'attempted_tenant_id' => \App\Models\Tenant::current()?->id,
-                'attempted_tenant_domain' => \App\Models\Tenant::current()?->domain,
-                'attempted_tenant_database' => \App\Models\Tenant::current()?->database,
+                'attempted_tenant_id' => Tenant::current()?->id,
+                'attempted_tenant_domain' => Tenant::current()?->domain,
+                'attempted_tenant_database' => Tenant::current()?->database,
                 'request_host' => $request->getHost(),
                 'request_path' => $request->path(),
                 'request_ip' => $request->ip(),
@@ -126,12 +129,12 @@ class AuthController extends Controller
                 'session_id' => Session::getId(),
                 'timestamp' => now()->toISOString(),
                 'security_context' => [
-                    'tenant_context' => \App\Models\Tenant::current() ? [
-                        'id' => \App\Models\Tenant::current()->id,
-                        'name' => \App\Models\Tenant::current()->name,
-                        'domain' => \App\Models\Tenant::current()->domain,
-                        'status' => \App\Models\Tenant::current()->status,
-                        'database' => \App\Models\Tenant::current()->database,
+                    'tenant_context' => Tenant::current() ? [
+                        'id' => Tenant::current()->id,
+                        'name' => Tenant::current()->name,
+                        'domain' => Tenant::current()->domain,
+                        'status' => Tenant::current()->status,
+                        'database' => Tenant::current()->database,
                     ] : null,
                     'user_context' => [
                         'id' => $user->id,
@@ -140,19 +143,19 @@ class AuthController extends Controller
                         'created_at' => $user->created_at->toISOString(),
                     ],
                     'validation_attempt' => 'tenant_user_relationship_check',
-                ]
+                ],
             ]);
         } elseif ($this->twoFactorAuthService->isAccountLocked($user)) {
             $remainingHours = ceil($this->twoFactorAuthService->getRemainingLockoutTime($user) / 3600);
-            $failureReason = 'account_locked_' . $remainingHours;
+            $failureReason = 'account_locked_'.$remainingHours;
         } else {
             $loginSuccess = true;
         }
 
         // Handle login failure
-        if (!$loginSuccess) {
+        if (! $loginSuccess) {
             // Don't apply rate limiting for locked accounts (already handled)
-            if (!str_starts_with($failureReason, 'account_locked')) {
+            if (! str_starts_with($failureReason, 'account_locked')) {
                 $this->handleLoginFailure($request, $email);
             }
             $this->applyTimingAttackPrevention($startTime);
@@ -167,7 +170,7 @@ class AuthController extends Controller
                         'success' => false,
                         'message' => $message,
                         'account_locked' => true,
-                        'remaining_hours' => (int)$remainingHours
+                        'remaining_hours' => (int) $remainingHours,
                     ], 423); // 423 Locked
                 }
 
@@ -179,7 +182,7 @@ class AuthController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => self::GENERIC_AUTH_ERROR
+                    'message' => self::GENERIC_AUTH_ERROR,
                 ], 401);
             }
 
@@ -210,7 +213,7 @@ class AuthController extends Controller
                     return response()->json([
                         'success' => true,
                         'message' => 'Se ha enviado un código de verificación a tu correo',
-                        'redirect' => route('tenant.2fa')
+                        'redirect' => route('tenant.2fa'),
                     ]);
                 }
 
@@ -224,7 +227,7 @@ class AuthController extends Controller
                 if ($request->expectsJson()) {
                     return response()->json([
                         'success' => false,
-                        'message' => self::GENERIC_AUTH_ERROR
+                        'message' => self::GENERIC_AUTH_ERROR,
                     ], 500);
                 }
 
@@ -241,7 +244,7 @@ class AuthController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => '¡Inicio de sesión exitoso!',
-                'redirect' => route('tenant.dashboard')
+                'redirect' => route('tenant.dashboard'),
             ]);
         }
 
@@ -255,19 +258,19 @@ class AuthController extends Controller
     public function showTwoFactorForm(Request $request)
     {
         // Check if 2FA session is valid
-        if (!$this->twoFactorAuthService->isValidTwoFactorSession()) {
+        if (! $this->twoFactorAuthService->isValidTwoFactorSession()) {
             return redirect()->route('tenant.login')
                 ->with('error', 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
         }
 
         // Get user from session
         $user = $this->twoFactorAuthService->getUserFromSession();
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('tenant.login')
                 ->with('error', 'Sesión inválida. Por favor inicia sesión nuevamente.');
         }
 
-        $tenant = \App\Models\Tenant::current();
+        $tenant = Tenant::current();
         $email = Session::get('user_email');
         $remainingTime = $this->twoFactorAuthService->getRemainingSessionTime();
 
@@ -296,7 +299,7 @@ class AuthController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => self::GENERIC_AUTH_ERROR,
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], 422);
             }
 
@@ -306,14 +309,14 @@ class AuthController extends Controller
         }
 
         // Check if 2FA session is valid
-        if (!$this->twoFactorAuthService->isValidTwoFactorSession()) {
+        if (! $this->twoFactorAuthService->isValidTwoFactorSession()) {
             $this->applyTimingAttackPrevention($startTime);
 
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => self::GENERIC_AUTH_ERROR,
-                    'redirect' => route('tenant.login')
+                    'redirect' => route('tenant.login'),
                 ], 419);
             }
 
@@ -323,14 +326,14 @@ class AuthController extends Controller
 
         // Get user from session
         $user = $this->twoFactorAuthService->getUserFromSession();
-        if (!$user) {
+        if (! $user) {
             $this->applyTimingAttackPrevention($startTime);
 
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => self::GENERIC_AUTH_ERROR,
-                    'redirect' => route('tenant.login')
+                    'redirect' => route('tenant.login'),
                 ], 419);
             }
 
@@ -359,7 +362,7 @@ class AuthController extends Controller
                     return response()->json([
                         'success' => true,
                         'message' => '¡Verificación exitosa!',
-                        'redirect' => route('tenant.dashboard')
+                        'redirect' => route('tenant.dashboard'),
                     ]);
                 }
 
@@ -373,7 +376,7 @@ class AuthController extends Controller
                 if ($request->expectsJson()) {
                     return response()->json([
                         'success' => false,
-                        'message' => self::GENERIC_AUTH_ERROR
+                        'message' => self::GENERIC_AUTH_ERROR,
                     ], 401);
                 }
 
@@ -389,7 +392,7 @@ class AuthController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => self::GENERIC_AUTH_ERROR
+                    'message' => self::GENERIC_AUTH_ERROR,
                 ], 429);
             }
 
@@ -405,12 +408,12 @@ class AuthController extends Controller
     public function resendTwoFactorCode(Request $request)
     {
         // Check if 2FA session is valid
-        if (!$this->twoFactorAuthService->isValidTwoFactorSession()) {
+        if (! $this->twoFactorAuthService->isValidTwoFactorSession()) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.',
-                    'redirect' => route('tenant.login')
+                    'redirect' => route('tenant.login'),
                 ], 419);
             }
 
@@ -420,12 +423,12 @@ class AuthController extends Controller
 
         // Get user from session
         $user = $this->twoFactorAuthService->getUserFromSession();
-        if (!$user) {
+        if (! $user) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Sesión inválida. Por favor inicia sesión nuevamente.',
-                    'redirect' => route('tenant.login')
+                    'redirect' => route('tenant.login'),
                 ], 419);
             }
 
@@ -434,13 +437,13 @@ class AuthController extends Controller
         }
 
         // Check if user can request new code
-        if (!$this->twoFactorAuthService->canRequestNewCode($user)) {
+        if (! $this->twoFactorAuthService->canRequestNewCode($user)) {
             $waitTime = $this->twoFactorAuthService->getTimeUntilNewCode($user);
 
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Por favor espera {$waitTime} segundos antes de solicitar un nuevo código."
+                    'message' => "Por favor espera {$waitTime} segundos antes de solicitar un nuevo código.",
                 ], 429);
             }
 
@@ -457,7 +460,7 @@ class AuthController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Código de verificación reenviado correctamente'
+                    'message' => 'Código de verificación reenviado correctamente',
                 ]);
             }
 
@@ -466,7 +469,7 @@ class AuthController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => $e->getMessage()
+                    'message' => $e->getMessage(),
                 ], 500);
             }
 
@@ -493,7 +496,7 @@ class AuthController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Sesión cerrada correctamente',
-                'redirect' => route('tenant.login')
+                'redirect' => route('tenant.login'),
             ]);
         }
 
@@ -509,10 +512,10 @@ class AuthController extends Controller
     {
         $email = strtolower($request->input('email', ''));
         $ip = $request->ip();
-        $key = 'auth_attempt:' . $email . ':' . $ip;
+        $key = 'auth_attempt:'.$email.':'.$ip;
 
         // Check if account is locked
-        $lockoutKey = 'auth_lockout:' . $email;
+        $lockoutKey = 'auth_lockout:'.$email;
         if (Cache::has($lockoutKey)) {
             $remainingTime = Cache::get($lockoutKey);
             throw ValidationException::withMessages([
@@ -534,14 +537,14 @@ class AuthController extends Controller
     private function handleLoginFailure(Request $request, string $email): void
     {
         $ip = $request->ip();
-        $key = 'auth_attempt:' . $email . ':' . $ip;
+        $key = 'auth_attempt:'.$email.':'.$ip;
 
         // Increment attempt counter
         $attempts = Cache::increment($key, 1);
         Cache::put($key, $attempts, self::ATTEMPT_DECAY);
 
         // Track failed attempts per email across all IPs
-        $globalAttemptKey = 'auth_attempts_global:' . $email;
+        $globalAttemptKey = 'auth_attempts_global:'.$email;
         $globalAttempts = Cache::increment($globalAttemptKey, 1);
         Cache::put($globalAttemptKey, $globalAttempts, self::ATTEMPT_DECAY);
 
@@ -560,10 +563,10 @@ class AuthController extends Controller
         $this->clearAllAuthAttempts($email);
 
         // Log successful authentication for audit purposes
-        Cache::put('auth_success:' . $email, [
+        Cache::put('auth_success:'.$email, [
             'user_id' => $user->id,
             'ip' => $request->ip(),
-            'timestamp' => now()
+            'timestamp' => now(),
         ], 3600); // Keep for 1 hour
     }
 
@@ -575,7 +578,7 @@ class AuthController extends Controller
         $exponent = min($attempts - self::MAX_ATTEMPTS, 5); // Cap at 5 levels
         $lockoutDuration = self::LOCKOUT_DURATION * (2 ** $exponent); // 60s, 120s, 240s, 480s, 960s
 
-        $lockoutKey = 'auth_lockout:' . $email;
+        $lockoutKey = 'auth_lockout:'.$email;
         Cache::put($lockoutKey, $lockoutDuration, $lockoutDuration);
 
         throw ValidationException::withMessages([
@@ -589,10 +592,10 @@ class AuthController extends Controller
     private function clearAllAuthAttempts(string $email): void
     {
         // Clear specific IP-based attempts
-        $pattern = 'auth_attempt:' . $email . ':*';
+        $pattern = 'auth_attempt:'.$email.':*';
         // Note: In production, you might want to use a more efficient pattern clearing method
-        Cache::forget('auth_attempts_global:' . $email);
-        Cache::forget('auth_lockout:' . $email);
+        Cache::forget('auth_attempts_global:'.$email);
+        Cache::forget('auth_lockout:'.$email);
     }
 
     /**
@@ -600,7 +603,7 @@ class AuthController extends Controller
      */
     private function checkTwoFactorRateLimit(Request $request, User $user): void
     {
-        $key = '2fa_attempt:' . $user->id . ':' . $request->ip();
+        $key = '2fa_attempt:'.$user->id.':'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($key, 10)) { // Max 10 attempts per minute
             $seconds = RateLimiter::availableIn($key);
@@ -615,7 +618,7 @@ class AuthController extends Controller
      */
     private function hitTwoFactorRateLimit(Request $request, User $user): void
     {
-        $key = '2fa_attempt:' . $user->id . ':' . $request->ip();
+        $key = '2fa_attempt:'.$user->id.':'.$request->ip();
         RateLimiter::hit($key, 60); // 1 minute decay
     }
 
@@ -624,7 +627,7 @@ class AuthController extends Controller
      */
     private function clearTwoFactorRateLimit(Request $request, User $user): void
     {
-        $key = '2fa_attempt:' . $user->id . ':' . $request->ip();
+        $key = '2fa_attempt:'.$user->id.':'.$request->ip();
         RateLimiter::clear($key);
     }
 
@@ -640,73 +643,77 @@ class AuthController extends Controller
      * - Problem: This query executed in tenant context, causing false positives
      * - Solution: Explicit landlord DB query for validation
      *
-     * @param User $user User attempting authentication
-     * @param Tenant|null $currentTenant Current tenant context
+     * @param  User  $user  User attempting authentication
+     * @param  Tenant|null  $currentTenant  Current tenant context
      * @return bool True if user belongs to tenant, false otherwise
      */
     private function validateTenantMembershipCritical(User $user, ?Tenant $currentTenant): bool
     {
-        if (!$currentTenant) {
+        if (! $currentTenant) {
             \Log::error('CRITICAL: No tenant context during authentication', [
                 'user_id' => $user->id,
                 'user_email' => $user->email,
-                'timestamp' => now()->toISOString()
+                'timestamp' => now()->toISOString(),
             ]);
+
             return false;
         }
 
         try {
             // CRITICAL SECURITY FIX: Force landlord database connection
             // This prevents tenant context contamination and ensures accurate validation
-            $membership = \Illuminate\Support\Facades\DB::connection('landlord')
+            $membership = DB::connection('landlord')
                 ->table('tenant_user')
                 ->where('user_id', $user->id)
                 ->where('tenant_id', $currentTenant->id)
                 ->exists();
 
-            if (!$membership) {
+            if (! $membership) {
                 \Log::warning('SECURITY: User does not belong to tenant', [
                     'user_id' => $user->id,
                     'user_email' => $user->email,
                     'attempted_tenant_id' => $currentTenant->id,
                     'attempted_tenant_domain' => $currentTenant->domain,
-                    'timestamp' => now()->toISOString()
+                    'timestamp' => now()->toISOString(),
                 ]);
+
                 return false;
             }
 
             // Additional validation: Ensure tenant exists and is active
-            $tenantExists = \Illuminate\Support\Facades\DB::connection('landlord')
+            $tenantExists = DB::connection('landlord')
                 ->table('tenants')
                 ->where('id', $currentTenant->id)
                 ->where('status', 'active')
                 ->exists();
 
-            if (!$tenantExists) {
+            if (! $tenantExists) {
                 \Log::warning('SECURITY: Tenant does not exist or is inactive', [
                     'user_id' => $user->id,
                     'user_email' => $user->email,
                     'attempted_tenant_id' => $currentTenant->id,
                     'attempted_tenant_domain' => $currentTenant->domain,
-                    'timestamp' => now()->toISOString()
+                    'timestamp' => now()->toISOString(),
                 ]);
+
                 return false;
             }
 
             // CRITICAL SECURITY: Additional validation using User model with landlord connection
-            $userExistsInLandlord = \App\Models\User::on('landlord')
+            $userExistsInLandlord = User::on('landlord')
                 ->where('id', $user->id)
                 ->where('is_active', true)
                 ->exists();
 
-            if (!$userExistsInLandlord) {
+            if (! $userExistsInLandlord) {
                 \Log::critical('SECURITY BREACH: User does not exist in landlord database', [
                     'user_id' => $user->id,
                     'user_email' => $user->email,
                     'attempted_tenant_id' => $currentTenant->id,
                     'attempted_tenant_domain' => $currentTenant->domain,
-                    'timestamp' => now()->toISOString()
+                    'timestamp' => now()->toISOString(),
                 ]);
+
                 return false;
             }
 
@@ -716,12 +723,12 @@ class AuthController extends Controller
                 'user_email' => $user->email,
                 'validated_tenant_id' => $currentTenant->id,
                 'validated_tenant_domain' => $currentTenant->domain,
-                'timestamp' => now()->toISOString()
+                'timestamp' => now()->toISOString(),
             ]);
 
             return true;
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // CRITICAL: On any validation error, deny access to be safe
             \Log::critical('SECURITY ERROR: Tenant membership validation failed', [
                 'user_id' => $user->id,
@@ -730,7 +737,7 @@ class AuthController extends Controller
                 'attempted_tenant_domain' => $currentTenant->domain,
                 'error' => $e->getMessage(),
                 'error_trace' => $e->getTraceAsString(),
-                'timestamp' => now()->toISOString()
+                'timestamp' => now()->toISOString(),
             ]);
 
             // FAIL SECURE: Deny access on validation errors

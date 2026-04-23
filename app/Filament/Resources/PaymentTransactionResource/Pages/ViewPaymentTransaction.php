@@ -4,9 +4,9 @@ namespace App\Filament\Resources\PaymentTransactionResource\Pages;
 
 use App\Filament\Resources\PaymentTransactionResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Filament\Resources\Pages\ViewRecord;
 
 class ViewPaymentTransaction extends ViewRecord
 {
@@ -35,7 +35,7 @@ class ViewPaymentTransaction extends ViewRecord
                                     ->label('Gateway')
                                     ->badge(),
                             ]),
-                        
+
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('amount')
@@ -53,17 +53,17 @@ class ViewPaymentTransaction extends ViewRecord
                                         default => 'gray',
                                     }),
                             ]),
-                        
+
                         Infolists\Components\TextEntry::make('transaction_id')
                             ->label('ID de Transacción')
                             ->placeholder('N/A'),
-                        
+
                         Infolists\Components\ImageEntry::make('proof_of_payment')
                             ->label('Comprobante de Pago')
                             ->height(200)
                             ->visibility('private'),
                     ]),
-                
+
                 Infolists\Components\Section::make('Información de Aprobación')
                     ->schema([
                         Infolists\Components\Grid::make(2)
@@ -78,7 +78,7 @@ class ViewPaymentTransaction extends ViewRecord
                             ]),
                     ])
                     ->visible(fn ($record) => $record->approved_at !== null),
-                
+
                 Infolists\Components\Section::make('Metadatos')
                     ->schema([
                         Infolists\Components\TextEntry::make('metadata')
@@ -87,8 +87,8 @@ class ViewPaymentTransaction extends ViewRecord
                             ->formatStateUsing(fn ($state) => json_encode($state, JSON_PRETTY_PRINT)),
                     ])
                     ->collapsible()
-                    ->visible(fn ($record) => !empty($record->metadata)),
-                
+                    ->visible(fn ($record) => ! empty($record->metadata)),
+
                 Infolists\Components\Section::make('Fechas')
                     ->schema([
                         Infolists\Components\Grid::make(2)

@@ -2,26 +2,28 @@
 
 namespace App\Console\Commands;
 
-use App\Services\TenantUsageService;
 use App\Models\Tenant;
 use App\Models\TenantUsage;
 use App\Models\User;
+use App\Services\TenantUsageService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 
 class SoftLimitsSystemTestCommand extends Command
 {
     protected $signature = 'soft-limits:test {--scenario= : Run specific scenario (1,2,3,4,5,business)}';
+
     protected $description = 'Comprehensive test suite for Soft Limits system';
 
     private TenantUsageService $usageService;
+
     private array $results = [];
 
     public function handle(TenantUsageService $usageService): int
     {
         $this->usageService = $usageService;
-        $this->info("🧪 Starting Soft Limits System Test Suite");
-        $this->info("=========================================");
+        $this->info('🧪 Starting Soft Limits System Test Suite');
+        $this->info('=========================================');
 
         try {
             // Setup test environment
@@ -42,21 +44,22 @@ class SoftLimitsSystemTestCommand extends Command
             return Command::SUCCESS;
 
         } catch (\Exception $e) {
-            $this->error("❌ Test failed: " . $e->getMessage());
+            $this->error('❌ Test failed: '.$e->getMessage());
+
             return Command::FAILURE;
         }
     }
 
     private function setupTestEnvironment(): void
     {
-        $this->info("🔧 Setting up test environment...");
+        $this->info('🔧 Setting up test environment...');
 
         // Clear all caches
         Cache::flush();
 
         // Create test tenant
         $this->testTenant = Tenant::where('domain', 'test-soft-limits')->first();
-        if (!$this->testTenant) {
+        if (! $this->testTenant) {
             $this->testTenant = Tenant::factory()->create([
                 'name' => 'Test Tenant - Soft Limits',
                 'domain' => 'test-soft-limits',
@@ -66,7 +69,7 @@ class SoftLimitsSystemTestCommand extends Command
         // Reset or create usage record
         $this->resetUsage();
 
-        $this->info("✅ Test environment ready");
+        $this->info('✅ Test environment ready');
         $this->info("   Tenant ID: {$this->testTenant->id}");
         $this->info("   Tenant Domain: {$this->testTenant->domain}");
     }
@@ -77,7 +80,7 @@ class SoftLimitsSystemTestCommand extends Command
             ->forPeriod(now()->year, now()->month)
             ->first();
 
-        if (!$usage) {
+        if (! $usage) {
             $usage = TenantUsage::create([
                 'tenant_id' => $this->testTenant->id,
                 'year' => now()->year,
@@ -141,6 +144,7 @@ class SoftLimitsSystemTestCommand extends Command
                 break;
             default:
                 $this->error("Invalid scenario: {$scenario}");
+
                 return;
         }
     }
@@ -148,7 +152,7 @@ class SoftLimitsSystemTestCommand extends Command
     private function runScenario1(): void
     {
         $this->info("\n📊 Scenario 1: Normal Operation (0-80%)");
-        $this->info("------------------------------------");
+        $this->info('------------------------------------');
 
         try {
             $this->resetUsage();
@@ -161,24 +165,24 @@ class SoftLimitsSystemTestCommand extends Command
 
             // Assertions
             $this->assertTrue($status['status'] === 'normal', 'Status should be normal');
-            $this->assertTrue(!$status['upgrade_required'], 'Upgrade should not be required');
+            $this->assertTrue(! $status['upgrade_required'], 'Upgrade should not be required');
             $this->assertTrue($this->usageService->canPerformAction($this->testTenant->id, 'create_product'), 'Should allow product creation');
             $this->assertTrue($this->usageService->canPerformAction($this->testTenant->id, 'create_user'), 'Should allow user creation');
             $this->assertTrue($this->usageService->canPerformAction($this->testTenant->id, 'make_sale'), 'Should allow sales');
 
             $this->results['scenario1'] = '✅ PASSED';
-            $this->info("✅ All assertions passed");
+            $this->info('✅ All assertions passed');
 
         } catch (\Exception $e) {
-            $this->results['scenario1'] = '❌ FAILED: ' . $e->getMessage();
-            $this->error("❌ Scenario 1 failed: " . $e->getMessage());
+            $this->results['scenario1'] = '❌ FAILED: '.$e->getMessage();
+            $this->error('❌ Scenario 1 failed: '.$e->getMessage());
         }
     }
 
     private function runScenario2(): void
     {
         $this->info("\n⚠️  Scenario 2: Warning Zone (80-100%)");
-        $this->info("------------------------------------");
+        $this->info('------------------------------------');
 
         try {
             $this->resetUsage();
@@ -206,26 +210,26 @@ class SoftLimitsSystemTestCommand extends Command
             $this->info("   Debug: Overall status: {$status['status']}");
 
             // Assertions
-            $this->assertTrue($status['status'] === 'warning', 'Status should be warning, got: ' . $status['status']);
-            $this->assertTrue($status['metrics']['products']['zone'] === 'warning', 'Products should be in warning zone, got: ' . $status['metrics']['products']['zone']);
-            $this->assertTrue($status['metrics']['users']['zone'] === 'warning', 'Users should be in warning zone, got: ' . $status['metrics']['users']['zone']);
+            $this->assertTrue($status['status'] === 'warning', 'Status should be warning, got: '.$status['status']);
+            $this->assertTrue($status['metrics']['products']['zone'] === 'warning', 'Products should be in warning zone, got: '.$status['metrics']['products']['zone']);
+            $this->assertTrue($status['metrics']['users']['zone'] === 'warning', 'Users should be in warning zone, got: '.$status['metrics']['users']['zone']);
             $this->assertTrue($this->usageService->canPerformAction($this->testTenant->id, 'create_product'), 'Should still allow product creation');
             $this->assertTrue($this->usageService->canPerformAction($this->testTenant->id, 'create_user'), 'Should still allow user creation');
             $this->assertTrue($this->usageService->canPerformAction($this->testTenant->id, 'make_sale'), 'Should allow sales');
 
             $this->results['scenario2'] = '✅ PASSED';
-            $this->info("✅ All assertions passed");
+            $this->info('✅ All assertions passed');
 
         } catch (\Exception $e) {
-            $this->results['scenario2'] = '❌ FAILED: ' . $e->getMessage();
-            $this->error("❌ Scenario 2 failed: " . $e->getMessage());
+            $this->results['scenario2'] = '❌ FAILED: '.$e->getMessage();
+            $this->error('❌ Scenario 2 failed: '.$e->getMessage());
         }
     }
 
     private function runScenario3(): void
     {
         $this->info("\n📈 Scenario 3: Overdraft Zone (100-120%)");
-        $this->info("---------------------------------------");
+        $this->info('---------------------------------------');
 
         try {
             $this->resetUsage();
@@ -257,18 +261,18 @@ class SoftLimitsSystemTestCommand extends Command
             $this->assertTrue($this->usageService->canPerformAction($this->testTenant->id, 'create_user'), 'Should still allow user creation');
 
             $this->results['scenario3'] = '✅ PASSED';
-            $this->info("✅ All assertions passed");
+            $this->info('✅ All assertions passed');
 
         } catch (\Exception $e) {
-            $this->results['scenario3'] = '❌ FAILED: ' . $e->getMessage();
-            $this->error("❌ Scenario 3 failed: " . $e->getMessage());
+            $this->results['scenario3'] = '❌ FAILED: '.$e->getMessage();
+            $this->error('❌ Scenario 3 failed: '.$e->getMessage());
         }
     }
 
     private function runScenario4(): void
     {
         $this->info("\n🚨 Scenario 4: Hard Stop (>120%)");
-        $this->info("---------------------------------");
+        $this->info('---------------------------------');
 
         try {
             $this->resetUsage();
@@ -299,27 +303,27 @@ class SoftLimitsSystemTestCommand extends Command
 
             // New creations should be blocked
             $this->assertTrue(
-                !$this->usageService->canPerformAction($this->testTenant->id, 'create_product'),
+                ! $this->usageService->canPerformAction($this->testTenant->id, 'create_product'),
                 'Product creation should be blocked in critical zone'
             );
             $this->assertTrue(
-                !$this->usageService->canPerformAction($this->testTenant->id, 'create_user'),
+                ! $this->usageService->canPerformAction($this->testTenant->id, 'create_user'),
                 'User creation should be blocked in critical zone'
             );
 
             $this->results['scenario4'] = '✅ PASSED';
-            $this->info("✅ All assertions passed - Business continuity maintained!");
+            $this->info('✅ All assertions passed - Business continuity maintained!');
 
         } catch (\Exception $e) {
-            $this->results['scenario4'] = '❌ FAILED: ' . $e->getMessage();
-            $this->error("❌ Scenario 4 failed: " . $e->getMessage());
+            $this->results['scenario4'] = '❌ FAILED: '.$e->getMessage();
+            $this->error('❌ Scenario 4 failed: '.$e->getMessage());
         }
     }
 
     private function runScenario5(): void
     {
         $this->info("\n🔄 Scenario 5: Recovery Testing");
-        $this->info("-------------------------------");
+        $this->info('-------------------------------');
 
         try {
             $this->resetUsage();
@@ -350,7 +354,7 @@ class SoftLimitsSystemTestCommand extends Command
             // Verify recovery
             $newStatus = $this->usageService->getUsageStatus($this->testTenant->id);
             $this->assertTrue($newStatus['status'] === 'normal', 'Should return to normal');
-            $this->assertTrue(!$newStatus['upgrade_required'], 'Upgrade should not be required after plan upgrade');
+            $this->assertTrue(! $newStatus['upgrade_required'], 'Upgrade should not be required after plan upgrade');
 
             // All actions should be allowed
             $this->assertTrue($this->usageService->canPerformAction($this->testTenant->id, 'create_product'), 'Should allow product creation');
@@ -358,18 +362,18 @@ class SoftLimitsSystemTestCommand extends Command
             $this->assertTrue($this->usageService->canPerformAction($this->testTenant->id, 'make_sale'), 'Should allow sales');
 
             $this->results['scenario5'] = '✅ PASSED';
-            $this->info("✅ Recovery test passed");
+            $this->info('✅ Recovery test passed');
 
         } catch (\Exception $e) {
-            $this->results['scenario5'] = '❌ FAILED: ' . $e->getMessage();
-            $this->error("❌ Scenario 5 failed: " . $e->getMessage());
+            $this->results['scenario5'] = '❌ FAILED: '.$e->getMessage();
+            $this->error('❌ Scenario 5 failed: '.$e->getMessage());
         }
     }
 
     private function runBusinessContinuityTest(): void
     {
         $this->info("\n💰 Business Continuity Test - Sales Never Fail");
-        $this->info("==============================================");
+        $this->info('==============================================');
 
         try {
             $zones = [
@@ -402,18 +406,18 @@ class SoftLimitsSystemTestCommand extends Command
             }
 
             $this->results['business_continuity'] = '✅ PASSED';
-            $this->info("✅ Business continuity maintained across all zones");
+            $this->info('✅ Business continuity maintained across all zones');
 
         } catch (\Exception $e) {
-            $this->results['business_continuity'] = '❌ FAILED: ' . $e->getMessage();
-            $this->error("❌ Business continuity test failed: " . $e->getMessage());
+            $this->results['business_continuity'] = '❌ FAILED: '.$e->getMessage();
+            $this->error('❌ Business continuity test failed: '.$e->getMessage());
         }
     }
 
     private function runPerformanceTest(): void
     {
         $this->info("\n⚡ Performance Test - Usage Tracking Speed");
-        $this->info("=========================================");
+        $this->info('=========================================');
 
         try {
             $this->resetUsage();
@@ -428,8 +432,8 @@ class SoftLimitsSystemTestCommand extends Command
             $totalTime = $endTime - $startTime;
             $avgTime = ($totalTime / $iterations) * 1000; // Convert to milliseconds
 
-            $this->info("   Total time for {$iterations} increments: " . number_format($totalTime, 4) . "s");
-            $this->info("   Average time per increment: " . number_format($avgTime, 2) . "ms");
+            $this->info("   Total time for {$iterations} increments: ".number_format($totalTime, 4).'s');
+            $this->info('   Average time per increment: '.number_format($avgTime, 2).'ms');
 
             $this->assertTrue($avgTime < 5, "Usage increments should be fast (< 5ms avg, got {$avgTime}ms)");
 
@@ -438,18 +442,18 @@ class SoftLimitsSystemTestCommand extends Command
             $this->assertTrue($redisCounters['sales'] === $iterations, "Should track all {$iterations} increments");
 
             $this->results['performance'] = '✅ PASSED';
-            $this->info("✅ Performance test passed - Redis tracking is fast and accurate");
+            $this->info('✅ Performance test passed - Redis tracking is fast and accurate');
 
         } catch (\Exception $e) {
-            $this->results['performance'] = '❌ FAILED: ' . $e->getMessage();
-            $this->error("❌ Performance test failed: " . $e->getMessage());
+            $this->results['performance'] = '❌ FAILED: '.$e->getMessage();
+            $this->error('❌ Performance test failed: '.$e->getMessage());
         }
     }
 
     private function runRedisTest(): void
     {
         $this->info("\n🔴 Redis Real-time Tracking Test");
-        $this->info("===============================");
+        $this->info('===============================');
 
         try {
             $this->resetUsage();
@@ -459,8 +463,8 @@ class SoftLimitsSystemTestCommand extends Command
             $this->usageService->incrementUsage($this->testTenant->id, 'products', 3);
 
             $redisCounters = $this->usageService->getAllRedisCounters($this->testTenant->id);
-            $this->assertTrue($redisCounters['products'] === 8, "Redis should track 8 products");
-            $this->assertTrue($this->usageService->getRedisCounter($this->testTenant->id, 'products') === 8, "Direct Redis counter should be 8");
+            $this->assertTrue($redisCounters['products'] === 8, 'Redis should track 8 products');
+            $this->assertTrue($this->usageService->getRedisCounter($this->testTenant->id, 'products') === 8, 'Direct Redis counter should be 8');
 
             // Test caching performance
             $startTime = microtime(true);
@@ -471,41 +475,41 @@ class SoftLimitsSystemTestCommand extends Command
             $secondCall = $this->usageService->getUsageStatus($this->testTenant->id);
             $secondCallTime = microtime(true) - $startTime;
 
-            $this->assertTrue($secondCallTime < $firstCallTime * 0.5, "Cached call should be significantly faster");
+            $this->assertTrue($secondCallTime < $firstCallTime * 0.5, 'Cached call should be significantly faster');
 
             $this->results['redis'] = '✅ PASSED';
-            $this->info("✅ Redis real-time tracking works correctly");
+            $this->info('✅ Redis real-time tracking works correctly');
 
         } catch (\Exception $e) {
-            $this->results['redis'] = '❌ FAILED: ' . $e->getMessage();
-            $this->error("❌ Redis test failed: " . $e->getMessage());
+            $this->results['redis'] = '❌ FAILED: '.$e->getMessage();
+            $this->error('❌ Redis test failed: '.$e->getMessage());
         }
     }
 
     private function displayResults(): void
     {
         $this->info("\n📋 TEST RESULTS SUMMARY");
-        $this->info("=======================");
+        $this->info('=======================');
 
         foreach ($this->results as $test => $result) {
             $this->info($result);
         }
 
-        $passed = count(array_filter($this->results, fn($r) => str_starts_with($r, '✅')));
+        $passed = count(array_filter($this->results, fn ($r) => str_starts_with($r, '✅')));
         $total = count($this->results);
 
         $this->info("\n📊 Overall: {$passed}/{$total} tests passed");
 
         if ($passed === $total) {
-            $this->info("🎉 ALL TESTS PASSED - Soft Limits System is ready for production!");
+            $this->info('🎉 ALL TESTS PASSED - Soft Limits System is ready for production!');
         } else {
-            $this->error("⚠️  Some tests failed - Please review the issues above");
+            $this->error('⚠️  Some tests failed - Please review the issues above');
         }
     }
 
     private function assertTrue($condition, $message): void
     {
-        if (!$condition) {
+        if (! $condition) {
             throw new \Exception($message);
         }
     }

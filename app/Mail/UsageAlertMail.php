@@ -22,7 +22,7 @@ class UsageAlertMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $subject = match($this->alert->alert_type) {
+        $subject = match ($this->alert->alert_type) {
             'warning' => '⚠️ Advertencia de Uso - Emporio Digital',
             'overdraft' => '🔴 Límites Excedidos - Emporio Digital',
             'critical' => '🚨 Uso Crítico - Emporio Digital',

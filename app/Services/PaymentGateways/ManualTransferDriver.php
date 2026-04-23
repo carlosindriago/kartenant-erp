@@ -3,8 +3,8 @@
 namespace App\Services\PaymentGateways;
 
 use App\Contracts\PaymentGatewayInterface;
-use App\Models\TenantSubscription;
 use App\Models\PaymentTransaction;
+use App\Models\TenantSubscription;
 use Illuminate\Http\Request;
 
 class ManualTransferDriver implements PaymentGatewayInterface
@@ -28,7 +28,7 @@ class ManualTransferDriver implements PaymentGatewayInterface
 
     public function isConfigured(): bool
     {
-        return !empty($this->config['bank_name']) && !empty($this->config['account_number']);
+        return ! empty($this->config['bank_name']) && ! empty($this->config['account_number']);
     }
 
     public function createCheckoutSession(TenantSubscription $subscription): array

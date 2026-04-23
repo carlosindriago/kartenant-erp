@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\User;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -17,11 +19,11 @@ class UserUpdateRequest extends FormRequest
         $targetUser = $this->route('user');
 
         // User must be authenticated and have admin users update permission
-        if (!$user || !$targetUser) {
+        if (! $user || ! $targetUser) {
             return false;
         }
 
-        if (!$user->is_super_admin && !$user->hasPermissionTo('admin.users.update', 'superadmin')) {
+        if (! $user->is_super_admin && ! $user->hasPermissionTo('admin.users.update', 'superadmin')) {
             return false;
         }
 
@@ -31,7 +33,7 @@ class UserUpdateRequest extends FormRequest
         }
 
         // Only superadmins can modify other superadmins
-        if ($targetUser->is_super_admin && !$user->is_super_admin) {
+        if ($targetUser->is_super_admin && ! $user->is_super_admin) {
             return false;
         }
 
@@ -41,7 +43,7 @@ class UserUpdateRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -60,73 +62,73 @@ class UserUpdateRequest extends FormRequest
 
             // HIGHLY RESTRICTED: Super admin status - only superadmins can modify
             'is_super_admin' => [
-                $isSuperAdmin && !$isSelf ? 'sometimes' : 'prohibited',
+                $isSuperAdmin && ! $isSelf ? 'sometimes' : 'prohibited',
                 'boolean',
                 function ($attribute, $value, $fail) use ($user, $isSelf) {
                     if ($isSelf && $value !== $user->is_super_admin) {
                         $fail('No puedes modificar tu propio estado de Super Admin.');
                     }
-                    if (!$user?->is_super_admin && $value) {
+                    if (! $user?->is_super_admin && $value) {
                         $fail('No tienes permisos para asignar privilegios de Super Admin.');
                     }
-                }
+                },
             ],
 
             // Administrative fields - restricted access
             'is_active' => [
-                $isSuperAdmin && !$isSelf ? 'sometimes' : 'prohibited',
+                $isSuperAdmin && ! $isSelf ? 'sometimes' : 'prohibited',
                 'boolean',
                 function ($attribute, $value, $fail) use ($isSelf) {
-                    if ($isSelf && !$value) {
+                    if ($isSelf && ! $value) {
                         $fail('No puedes desactivar tu propia cuenta.');
                     }
-                }
+                },
             ],
 
             'deactivation_reason' => [
-                $isSuperAdmin && !$isSelf ? 'required_if:is_active,false' : 'prohibited',
-                'string', 'max:500'
+                $isSuperAdmin && ! $isSelf ? 'required_if:is_active,false' : 'prohibited',
+                'string', 'max:500',
             ],
 
             'force_renew_password' => [
-                $isSuperAdmin && !$isSelf ? 'sometimes' : 'prohibited',
-                'boolean'
+                $isSuperAdmin && ! $isSelf ? 'sometimes' : 'prohibited',
+                'boolean',
             ],
 
             'must_change_password' => [
                 'sometimes',
-                'boolean'
+                'boolean',
             ],
 
             // Security fields - only superadmins can modify
             'email_2fa_code' => [
                 $isSuperAdmin ? 'sometimes' : 'prohibited',
-                'string', 'size:6'
+                'string', 'size:6',
             ],
 
             'email_2fa_expires_at' => [
                 $isSuperAdmin ? 'sometimes' : 'prohibited',
-                'date'
+                'date',
             ],
 
             // Role and permission assignments - only for authorized users
             'roles' => [
                 $isSuperAdmin ? 'sometimes' : 'prohibited',
                 'array',
-                'exists:roles,id'
+                'exists:roles,id',
             ],
 
             'permissions' => [
                 $isSuperAdmin ? 'sometimes' : 'prohibited',
                 'array',
-                'exists:permissions,id'
+                'exists:permissions,id',
             ],
 
             // Tenant assignments - only for authorized users
             'tenants' => [
                 $isSuperAdmin ? 'sometimes' : 'prohibited',
                 'array',
-                'exists:tenants,id'
+                'exists:tenants,id',
             ],
         ];
     }
@@ -176,14 +178,14 @@ class UserUpdateRequest extends FormRequest
                 if ($oldValue != $newValue) {
                     $changes[$field] = [
                         'old' => $oldValue,
-                        'new' => $newValue
+                        'new' => $newValue,
                     ];
                 }
             }
         }
 
         // Add audit trail data
-        if (!empty($changes)) {
+        if (! empty($changes)) {
             $data['_audit_changes'] = $changes;
             $data['_audit_user_id'] = $user?->id;
             $data['_audit_ip'] = request()->ip();
@@ -202,10 +204,10 @@ class UserUpdateRequest extends FormRequest
             $targetUser = $this->route('user');
 
             // Prevent last superadmin from being deactivated
-            if ($this->has('is_active') && !$this->input('is_active') &&
+            if ($this->has('is_active') && ! $this->input('is_active') &&
                 $targetUser?->is_super_admin) {
 
-                $superadminCount = \App\Models\User::where('is_super_admin', true)
+                $superadminCount = User::where('is_super_admin', true)
                     ->where('is_active', true)
                     ->count();
 
@@ -215,10 +217,10 @@ class UserUpdateRequest extends FormRequest
             }
 
             // Prevent removing superadmin status from last superadmin
-            if ($this->has('is_super_admin') && !$this->input('is_super_admin') &&
+            if ($this->has('is_super_admin') && ! $this->input('is_super_admin') &&
                 $targetUser?->is_super_admin) {
 
-                $superadminCount = \App\Models\User::where('is_super_admin', true)->count();
+                $superadminCount = User::where('is_super_admin', true)->count();
 
                 if ($superadminCount <= 1) {
                     $validator->errors()->add('is_super_admin', 'No se puede remover el estatus de Super Admin del último administrador del sistema.');

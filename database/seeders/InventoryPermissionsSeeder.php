@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class InventoryPermissionsSeeder extends Seeder
 {
@@ -15,18 +16,18 @@ class InventoryPermissionsSeeder extends Seeder
     {
         // Usar guard 'web' (el guard por defecto en tenant según arquitectura)
         $guard = 'web';
-        
+
         // Verificar que estamos usando la conexión tenant
         $connection = config('database.default');
         if ($connection !== 'tenant') {
             $this->command->warn("⚠️  Conexión actual: {$connection}. Se esperaba 'tenant'.");
         }
-        
+
         // Forzar conexión tenant en Spatie
         config([
             'permission.database_connection' => 'tenant',
         ]);
-        
+
         // Crear permisos de inventario con verificación
         $permissions = [
             // Movimientos de Stock
@@ -36,13 +37,13 @@ class InventoryPermissionsSeeder extends Seeder
             'inventory.authorize_exit' => 'Autorizar salidas importantes',
             'inventory.download_certificates' => 'Descargar comprobantes verificables',
             'inventory.verify_movements' => 'Verificar autenticidad de movimientos',
-            
+
             // Productos
             'inventory.view_products' => 'Ver productos',
             'inventory.create_products' => 'Crear productos',
             'inventory.edit_products' => 'Editar productos',
             'inventory.delete_products' => 'Eliminar productos',
-            
+
             // Reportes
             'inventory.view_reports' => 'Ver reportes de inventario',
             'inventory.export_reports' => 'Exportar reportes',
@@ -50,7 +51,7 @@ class InventoryPermissionsSeeder extends Seeder
 
         $this->command->info('📝 Creando permisos de inventario...');
         foreach ($permissions as $name => $description) {
-            $permission = new Permission();
+            $permission = new Permission;
             $permission->setConnection('tenant');
             $permission = Permission::on('tenant')->firstOrCreate(
                 ['name' => $name, 'guard_name' => $guard],
@@ -58,15 +59,15 @@ class InventoryPermissionsSeeder extends Seeder
             );
             $this->command->info("  ✓ {$name}");
         }
-        
+
         // NO limpiar caché aún, necesitamos los permisos cargados
         $this->command->info('👥 Asignando permisos a roles...');
 
         // Asignar permisos a roles
         $this->assignPermissionsToRoles($guard);
-        
+
         // Limpiar caché de permisos AL FINAL
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
         $this->command->info('🔄 Caché de permisos limpiado');
     }
 
@@ -93,14 +94,15 @@ class InventoryPermissionsSeeder extends Seeder
                 'inventory.export_reports',
             ])
             ->get();
-            
+
         if ($allPermissions->count() === 0) {
             $this->command->error('⚠️  No se encontraron permisos para asignar');
+
             return;
         }
-        
+
         $this->command->info("✓ Se encontraron {$allPermissions->count()} permisos");
-        
+
         // Admin: Acceso total
         $adminRole = Role::on('tenant')->where('name', 'Admin')->where('guard_name', $guard)->first();
         if ($adminRole) {

@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\Tenant;
+use App\Models\User;
 use App\Services\TenantSecurityService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -14,7 +14,9 @@ class TenantArchiveOTPSecurityTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private Tenant $tenant;
+
     private TenantSecurityService $securityService;
 
     protected function setUp(): void

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('verification_hash', 64)->nullable()->after('notes')->index();
             $table->timestamp('verification_generated_at')->nullable()->after('verification_hash');
         });
-        
+
         // Agregar campos de verificación a la tabla sale_returns (tenant)
         Schema::connection('tenant')->table('sale_returns', function (Blueprint $table) {
             $table->string('verification_hash', 64)->nullable()->after('processed_at')->index();
@@ -32,7 +32,7 @@ return new class extends Migration
         Schema::connection('tenant')->table('sales', function (Blueprint $table) {
             $table->dropColumn(['verification_hash', 'verification_generated_at']);
         });
-        
+
         Schema::connection('tenant')->table('sale_returns', function (Blueprint $table) {
             $table->dropColumn(['verification_hash', 'verification_generated_at']);
         });

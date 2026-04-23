@@ -1,7 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\V1\AuthController;
+use App\Http\Controllers\API\V1\TenantBillingController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -140,14 +141,14 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'tenant.api'])->group(function 
     |--------------------------------------------------------------------------
     */
     Route::prefix('billing')->group(function () {
-        Route::get('/', [App\Http\Controllers\API\V1\TenantBillingController::class, 'index'])->name('api.v1.billing.index');
-        Route::post('/', [App\Http\Controllers\API\V1\TenantBillingController::class, 'store'])->name('api.v1.billing.store');
-        Route::get('/history', [App\Http\Controllers\API\V1\TenantBillingController::class, 'history'])->name('api.v1.billing.history');
-        Route::get('/payment-proofs/{id}', [App\Http\Controllers\API\V1\TenantBillingController::class, 'show'])->name('api.v1.billing.show');
-        Route::delete('/payment-proofs/{id}', [App\Http\Controllers\API\V1\TenantBillingController::class, 'destroy'])->name('api.v1.billing.destroy');
+        Route::get('/', [TenantBillingController::class, 'index'])->name('api.v1.billing.index');
+        Route::post('/', [TenantBillingController::class, 'store'])->name('api.v1.billing.store');
+        Route::get('/history', [TenantBillingController::class, 'history'])->name('api.v1.billing.history');
+        Route::get('/payment-proofs/{id}', [TenantBillingController::class, 'show'])->name('api.v1.billing.show');
+        Route::delete('/payment-proofs/{id}', [TenantBillingController::class, 'destroy'])->name('api.v1.billing.destroy');
 
         // Download payment proof file
-        Route::get('/payment-proofs/{id}/files/{file_path}', [App\Http\Controllers\API\V1\TenantBillingController::class, 'downloadFile'])
+        Route::get('/payment-proofs/{id}/files/{file_path}', [TenantBillingController::class, 'downloadFile'])
             ->where('file_path', '.*')
             ->name('api.v1.billing.download-file');
     });

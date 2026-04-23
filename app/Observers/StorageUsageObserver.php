@@ -16,11 +16,11 @@ class StorageUsageObserver
      */
     public function fileUploaded(string $path, int $size, ?int $tenantId = null): void
     {
-        if (!$tenantId) {
+        if (! $tenantId) {
             $tenantId = $this->getCurrentTenantId();
         }
 
-        if (!$tenantId) {
+        if (! $tenantId) {
             return;
         }
 
@@ -33,11 +33,11 @@ class StorageUsageObserver
      */
     public function fileDeleted(string $path, ?int $tenantId = null): void
     {
-        if (!$tenantId) {
+        if (! $tenantId) {
             $tenantId = $this->getCurrentTenantId();
         }
 
-        if (!$tenantId) {
+        if (! $tenantId) {
             return;
         }
 
@@ -134,7 +134,7 @@ class StorageUsageObserver
             $tenantPath = "tenants/{$tenantId}";
             $breakdown = [];
 
-            if (!Storage::disk($disk)->exists($tenantPath)) {
+            if (! Storage::disk($disk)->exists($tenantPath)) {
                 return $breakdown;
             }
 
@@ -145,7 +145,7 @@ class StorageUsageObserver
                 $size = Storage::disk($disk)->size($file);
                 $extension = pathinfo($file, PATHINFO_EXTENSION) ?: 'unknown';
 
-                if (!isset($breakdown[$extension])) {
+                if (! isset($breakdown[$extension])) {
                     $breakdown[$extension] = [
                         'count' => 0,
                         'size' => 0,

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->unsignedBigInteger('changed_by'); // Quien hizo el cambio
             $table->timestamp('changed_at'); // Cuándo se hizo
             $table->timestamps();
-            
+
             $table->index('user_id');
             $table->index('action');
             $table->index('changed_at');

@@ -8,9 +8,10 @@ use App\Http\Requests\UploadBackgroundRequest;
 use App\Http\Requests\UploadLogoRequest;
 use App\Models\StoreSetting;
 use App\Services\ImageUploadService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class StoreSettingController extends Controller
@@ -66,31 +67,31 @@ class StoreSettingController extends Controller
 
             Log::info('Store settings updated', [
                 'tenant_id' => tenant()->id,
-                'updated_fields' => array_keys($validated)
+                'updated_fields' => array_keys($validated),
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Configuración actualizada correctamente.',
-                'settings' => $settings->fresh()
+                'settings' => $settings->fresh(),
             ]);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Hay errores en el formulario.',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
 
         } catch (\Exception $e) {
             Log::error('Error updating store settings', [
                 'tenant_id' => tenant()->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error al actualizar la configuración. Intente nuevamente.'
+                'message' => 'Error al actualizar la configuración. Intente nuevamente.',
             ], 500);
         }
     }
@@ -110,26 +111,26 @@ class StoreSettingController extends Controller
             Log::info('Logo uploaded successfully', [
                 'tenant_id' => tenant()->id,
                 'path' => $logoPath,
-                'original_name' => $file->getClientOriginalName()
+                'original_name' => $file->getClientOriginalName(),
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Logo subido correctamente.',
                 'logo_url' => $settings->getLogoPublicUrl(),
-                'logo_size' => $settings->getLogoSize()
+                'logo_size' => $settings->getLogoSize(),
             ]);
 
         } catch (\Exception $e) {
             Log::error('Error uploading logo', [
                 'tenant_id' => tenant()->id,
                 'error' => $e->getMessage(),
-                'file' => $request->file('logo')?->getClientOriginalName()
+                'file' => $request->file('logo')?->getClientOriginalName(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage() ?: 'Error al subir el logo. Intente con otro archivo.'
+                'message' => $e->getMessage() ?: 'Error al subir el logo. Intente con otro archivo.',
             ], 422);
         }
     }
@@ -149,26 +150,26 @@ class StoreSettingController extends Controller
             Log::info('Background uploaded successfully', [
                 'tenant_id' => tenant()->id,
                 'path' => $backgroundPath,
-                'original_name' => $file->getClientOriginalName()
+                'original_name' => $file->getClientOriginalName(),
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Imagen de fondo subida correctamente.',
                 'background_url' => $settings->getBackgroundPublicUrl(),
-                'background_size' => $settings->getBackgroundSize()
+                'background_size' => $settings->getBackgroundSize(),
             ]);
 
         } catch (\Exception $e) {
             Log::error('Error uploading background', [
                 'tenant_id' => tenant()->id,
                 'error' => $e->getMessage(),
-                'file' => $request->file('background')?->getClientOriginalName()
+                'file' => $request->file('background')?->getClientOriginalName(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage() ?: 'Error al subir la imagen de fondo. Intente con otro archivo.'
+                'message' => $e->getMessage() ?: 'Error al subir la imagen de fondo. Intente con otro archivo.',
             ], 422);
         }
     }
@@ -195,24 +196,24 @@ class StoreSettingController extends Controller
             Log::info('Image deleted successfully', [
                 'tenant_id' => tenant()->id,
                 'type' => $type,
-                'path' => $oldPath
+                'path' => $oldPath,
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => $message
+                'message' => $message,
             ]);
 
         } catch (\Exception $e) {
             Log::error('Error deleting image', [
                 'tenant_id' => tenant()->id,
                 'type' => $request->input('type'),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error al eliminar la imagen. Intente nuevamente.'
+                'message' => 'Error al eliminar la imagen. Intente nuevamente.',
             ], 500);
         }
     }
@@ -237,18 +238,18 @@ class StoreSettingController extends Controller
 
             return response()->json([
                 'success' => true,
-                'stats' => $stats
+                'stats' => $stats,
             ]);
 
         } catch (\Exception $e) {
             Log::error('Error getting storage stats', [
                 'tenant_id' => tenant()->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error al obtener estadísticas de almacenamiento.'
+                'message' => 'Error al obtener estadísticas de almacenamiento.',
             ], 500);
         }
     }
@@ -283,18 +284,18 @@ class StoreSettingController extends Controller
                     'logo_size' => $settings->getLogoSize(),
                     'background_size' => $settings->getBackgroundSize(),
                     'whatsapp_url' => $settings->whatsapp_url,
-                ]
+                ],
             ]);
 
         } catch (\Exception $e) {
             Log::error('Error getting current settings', [
                 'tenant_id' => tenant()->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error al obtener configuración actual.'
+                'message' => 'Error al obtener configuración actual.',
             ], 500);
         }
     }

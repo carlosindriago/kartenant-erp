@@ -3,7 +3,7 @@
 use App\Models\PaymentProof;
 
 test('payment proof can be instantiated', function () {
-    $paymentProof = new PaymentProof();
+    $paymentProof = new PaymentProof;
 
     expect($paymentProof)->toBeInstanceOf(PaymentProof::class);
     expect($paymentProof->getConnectionName())->toBe('landlord');
@@ -11,7 +11,7 @@ test('payment proof can be instantiated', function () {
 });
 
 test('payment proof has correct fillable attributes', function () {
-    $paymentProof = new PaymentProof();
+    $paymentProof = new PaymentProof;
     $fillable = $paymentProof->getFillable();
 
     $expectedFillable = [
@@ -42,7 +42,7 @@ test('payment proof has correct fillable attributes', function () {
 });
 
 test('payment proof has correct casts', function () {
-    $paymentProof = new PaymentProof();
+    $paymentProof = new PaymentProof;
     $casts = $paymentProof->getCasts();
 
     expect($casts)->toHaveKey('amount');
@@ -61,7 +61,7 @@ test('payment proof has correct casts', function () {
 });
 
 test('payment proof uses landlord connection', function () {
-    $paymentProof = new PaymentProof();
+    $paymentProof = new PaymentProof;
 
     expect($paymentProof->getConnectionName())->toBe('landlord');
 });
@@ -79,7 +79,7 @@ test('payment proof constants are defined', function () {
 });
 
 test('payment proof status helper methods work', function () {
-    $paymentProof = new PaymentProof();
+    $paymentProof = new PaymentProof;
 
     // Test pending status
     $paymentProof->status = PaymentProof::STATUS_PENDING;
@@ -111,7 +111,7 @@ test('payment proof status helper methods work', function () {
 });
 
 test('payment proof status color attribute works', function () {
-    $paymentProof = new PaymentProof();
+    $paymentProof = new PaymentProof;
 
     $paymentProof->status = PaymentProof::STATUS_PENDING;
     expect($paymentProof->status_color)->toBe('warning');
@@ -130,7 +130,7 @@ test('payment proof status color attribute works', function () {
 });
 
 test('payment proof payment method display attribute works', function () {
-    $paymentProof = new PaymentProof();
+    $paymentProof = new PaymentProof;
 
     $paymentProof->payment_method = PaymentProof::PAYMENT_METHOD_BANK_TRANSFER;
     expect($paymentProof->payment_method_display)->toBe('Transferencia Bancaria');
@@ -149,7 +149,7 @@ test('payment proof payment method display attribute works', function () {
 });
 
 test('payment proof handles empty file paths', function () {
-    $paymentProof = new PaymentProof();
+    $paymentProof = new PaymentProof;
     $paymentProof->file_paths = null;
 
     $formatted = $paymentProof->formatted_file_paths;
@@ -159,7 +159,7 @@ test('payment proof handles empty file paths', function () {
 });
 
 test('payment proof handles empty file paths array', function () {
-    $paymentProof = new PaymentProof();
+    $paymentProof = new PaymentProof;
     $paymentProof->file_paths = [];
 
     $formatted = $paymentProof->formatted_file_paths;
@@ -169,7 +169,7 @@ test('payment proof handles empty file paths array', function () {
 });
 
 test('payment proof formats file paths correctly', function () {
-    $paymentProof = new PaymentProof();
+    $paymentProof = new PaymentProof;
     $paymentProof->file_paths = [
         'payment_proofs/test1.jpg',
         'payment_proofs/test2.pdf',
@@ -184,7 +184,7 @@ test('payment proof formats file paths correctly', function () {
 });
 
 test('payment proof soft delete trait is loaded', function () {
-    $paymentProof = new PaymentProof();
+    $paymentProof = new PaymentProof;
 
     // Check if SoftDeletes trait is used
     $traits = class_uses($paymentProof);

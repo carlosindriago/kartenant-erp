@@ -2,27 +2,27 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Models;
 
+use App\Services\TimeFormattingService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon;
-use App\Services\TimeFormattingService;
 
 class TenantSubscription extends Model
 {
     use SoftDeletes;
 
     protected $connection = 'landlord';
+
     protected $table = 'tenant_subscriptions';
 
     protected $fillable = [
@@ -112,7 +112,7 @@ class TenantSubscription extends Model
     // Status checks
     public function isActive(): bool
     {
-        return $this->status === 'active' && !$this->isExpired();
+        return $this->status === 'active' && ! $this->isExpired();
     }
 
     public function isExpired(): bool
@@ -142,7 +142,7 @@ class TenantSubscription extends Model
 
     public function daysUntilExpiration(): ?int
     {
-        if (!$this->ends_at) {
+        if (! $this->ends_at) {
             return null;
         }
 
@@ -154,7 +154,7 @@ class TenantSubscription extends Model
      */
     public function getFormattedRemainingTime(): string
     {
-        if (!$this->ends_at) {
+        if (! $this->ends_at) {
             return 'Sin fecha de vencimiento';
         }
 
@@ -167,11 +167,11 @@ class TenantSubscription extends Model
      */
     public function getExpiredTimeFormatted(): string
     {
-        if (!$this->ends_at) {
+        if (! $this->ends_at) {
             return 'Sin fecha de vencimiento';
         }
 
-        if (!$this->ends_at->isPast()) {
+        if (! $this->ends_at->isPast()) {
             return $this->getFormattedRemainingTime();
         }
 
@@ -189,13 +189,13 @@ class TenantSubscription extends Model
 
         if ($days === 0) {
             return $hours === 1
-                ? "Vencido hace 1 hora"
+                ? 'Vencido hace 1 hora'
                 : "Vencido hace {$hours} horas";
         }
 
         if ($hours === 0) {
             return $days === 1
-                ? "Vencido hace 1 día"
+                ? 'Vencido hace 1 día'
                 : "Vencido hace {$days} días";
         }
 
@@ -206,7 +206,7 @@ class TenantSubscription extends Model
 
     public function daysOfTrialRemaining(): ?int
     {
-        if (!$this->isOnTrial()) {
+        if (! $this->isOnTrial()) {
             return 0;
         }
 
@@ -218,7 +218,7 @@ class TenantSubscription extends Model
      */
     public function getFormattedTrialTime(): string
     {
-        if (!$this->isOnTrial()) {
+        if (! $this->isOnTrial()) {
             return 'Sin trial activo';
         }
 
@@ -249,7 +249,7 @@ class TenantSubscription extends Model
 
     public function resume(): bool
     {
-        if (!$this->isSuspended()) {
+        if (! $this->isSuspended()) {
             return false;
         }
 
@@ -293,7 +293,7 @@ class TenantSubscription extends Model
 
     public function switchBillingCycle(string $cycle): bool
     {
-        if (!in_array($cycle, ['monthly', 'yearly'])) {
+        if (! in_array($cycle, ['monthly', 'yearly'])) {
             return false;
         }
 
@@ -310,12 +310,12 @@ class TenantSubscription extends Model
     // Helper methods
     public function getFormattedPrice(): string
     {
-        return $this->currency . ' ' . number_format((float) $this->price, 2);
+        return $this->currency.' '.number_format((float) $this->price, 2);
     }
 
     public function getStatusBadgeColor(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'active' => 'success',
             'trial' => 'info',
             'cancelled' => 'danger',

@@ -3,13 +3,14 @@
 namespace App\Services;
 
 use App\Models\Module;
+use App\Models\ModuleUsageLog;
 use App\Models\Tenant;
 use App\Models\TenantModule;
-use App\Models\ModuleUsageLog;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ModuleService
 {
@@ -21,9 +22,9 @@ class ModuleService
         return DB::connection('landlord')->transaction(function () use ($tenant, $module, $options) {
             // Validate installation requirements
             $validationIssues = $module->canBeInstalledBy($tenant);
-            if (!empty($validationIssues)) {
+            if (! empty($validationIssues)) {
                 throw new \InvalidArgumentException(
-                    'No se puede instalar el módulo: ' . implode(', ', $validationIssues)
+                    'No se puede instalar el módulo: '.implode(', ', $validationIssues)
                 );
             }
 
@@ -36,6 +37,7 @@ class ModuleService
 
                 // Reactivate existing module
                 $existingTenantModule->activate();
+
                 return $existingTenantModule;
             }
 
@@ -66,14 +68,14 @@ class ModuleService
         return DB::connection('landlord')->transaction(function () use ($tenant, $module, $reason) {
             // Validate uninstallation requirements
             $validationIssues = $module->canBeRemovedFrom($tenant);
-            if (!empty($validationIssues)) {
+            if (! empty($validationIssues)) {
                 throw new \InvalidArgumentException(
-                    'No se puede desinstalar el módulo: ' . implode(', ', $validationIssues)
+                    'No se puede desinstalar el módulo: '.implode(', ', $validationIssues)
                 );
             }
 
             $tenantModule = $tenant->getTenantModule($module->slug);
-            if (!$tenantModule) {
+            if (! $tenantModule) {
                 throw new \InvalidArgumentException('El módulo no está instalado para este tenant.');
             }
 
@@ -107,7 +109,7 @@ class ModuleService
     ): TenantModule {
         return DB::connection('landlord')->transaction(function () use ($tenant, $module, $configuration, $user) {
             $tenantModule = $tenant->getTenantModule($module->slug);
-            if (!$tenantModule) {
+            if (! $tenantModule) {
                 throw new \InvalidArgumentException('El módulo no está instalado para este tenant.');
             }
 
@@ -145,15 +147,15 @@ class ModuleService
     ): TenantModule {
         return DB::connection('landlord')->transaction(function () use ($tenant, $module, $limits, $user) {
             $tenantModule = $tenant->getTenantModule($module->slug);
-            if (!$tenantModule) {
+            if (! $tenantModule) {
                 throw new \InvalidArgumentException('El módulo no está instalado para este tenant.');
             }
 
             // Validate limits
             $validationErrors = $this->validateLimits($module, $limits);
-            if (!empty($validationErrors)) {
+            if (! empty($validationErrors)) {
                 throw new \InvalidArgumentException(
-                    'Límites inválidos: ' . implode(', ', $validationErrors)
+                    'Límites inválidos: '.implode(', ', $validationErrors)
                 );
             }
 
@@ -196,7 +198,7 @@ class ModuleService
         ?string $feature = null
     ): void {
         $tenantModule = $tenant->getTenantModule($module->slug);
-        if (!$tenantModule || !$tenantModule->isActive()) {
+        if (! $tenantModule || ! $tenantModule->isActive()) {
             return;
         }
 
@@ -236,7 +238,7 @@ class ModuleService
     /**
      * Get available modules for tenant
      */
-    public function getAvailableModulesForTenant(Tenant $tenant): \Illuminate\Database\Eloquent\Collection
+    public function getAvailableModulesForTenant(Tenant $tenant): Collection
     {
         $installedModules = $tenant->activeModules()->pluck('id');
 
@@ -250,10 +252,10 @@ class ModuleService
     /**
      * Get recommended modules for tenant based on subscription plan
      */
-    public function getRecommendedModulesForTenant(Tenant $tenant): \Illuminate\Database\Eloquent\Collection
+    public function getRecommendedModulesForTenant(Tenant $tenant): Collection
     {
         $activeSubscription = $tenant->activeSubscription();
-        if (!$activeSubscription) {
+        if (! $activeSubscription) {
             return collect();
         }
 
@@ -271,7 +273,7 @@ class ModuleService
                 $moduleFeatures = $module->getFeatureFlags();
                 $missingFeatures = array_diff($moduleFeatures, array_keys($planFeatures));
 
-                return !empty($missingFeatures);
+                return ! empty($missingFeatures);
             })
             ->values();
     }
@@ -279,7 +281,7 @@ class ModuleService
     /**
      * Process module renewals (scheduled task)
      */
-    public function processModuleRenewals(Carbon $date = null): array
+    public function processModuleRenewals(?Carbon $date = null): array
     {
         $date = $date ?? now();
         $results = [
@@ -434,12 +436,13 @@ class ModuleService
         $availableMetrics = array_keys($module->getLimits());
 
         foreach ($limits as $metric => $value) {
-            if (!in_array($metric, $availableMetrics)) {
+            if (! in_array($metric, $availableMetrics)) {
                 $errors[$metric] = "Métrica no válida para este módulo: {$metric}";
+
                 continue;
             }
 
-            if ($value !== null && !is_numeric($value) && $value !== 'unlimited') {
+            if ($value !== null && ! is_numeric($value) && $value !== 'unlimited') {
                 $errors[$metric] = "El valor debe ser numérico o 'unlimited'";
             }
         }
@@ -456,7 +459,7 @@ class ModuleService
         $limits = $tenantModule->getEffectiveLimits();
 
         foreach ($usageData as $metric => $value) {
-            if (!is_numeric($value)) {
+            if (! is_numeric($value)) {
                 continue;
             }
 
@@ -478,7 +481,7 @@ class ModuleService
      */
     private function renewModule(TenantModule $tenantModule): void
     {
-        $newExpiryDate = match($tenantModule->billing_cycle) {
+        $newExpiryDate = match ($tenantModule->billing_cycle) {
             'monthly' => $tenantModule->expires_at->addMonth(),
             'yearly' => $tenantModule->expires_at->addYear(),
             default => $tenantModule->expires_at->addMonth(),

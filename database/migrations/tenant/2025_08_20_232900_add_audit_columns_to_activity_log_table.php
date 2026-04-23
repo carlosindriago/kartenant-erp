@@ -24,7 +24,7 @@ return new class extends Migration
             // Drop index first if it exists
             try {
                 $table->dropIndex('activity_created_idx');
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // ignore
             }
 

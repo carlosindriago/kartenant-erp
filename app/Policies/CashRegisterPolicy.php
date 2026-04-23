@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -17,7 +17,7 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 
 /**
  * CashRegisterPolicy
- * 
+ *
  * Define las políticas de acceso para las cajas registradoras
  * Soporta control granular por usuario y rol
  */
@@ -31,7 +31,7 @@ class CashRegisterPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('pos.view_all_registers') || 
+        return $user->can('pos.view_all_registers') ||
                $user->can('pos.access');
     }
 
@@ -45,7 +45,7 @@ class CashRegisterPolicy
         if ($user->can('pos.view_all_registers')) {
             return true;
         }
-        
+
         // Usuarios pueden ver su propia caja
         return $cashRegister->belongsToUser($user->id);
     }
@@ -56,12 +56,12 @@ class CashRegisterPolicy
     public function create(User $user): bool
     {
         // Debe tener permiso básico de POS y apertura de caja
-        if (!$user->can('pos.open_register')) {
+        if (! $user->can('pos.open_register')) {
             return false;
         }
-        
+
         // No puede tener ya una caja abierta
-        return !CashRegister::userHasOpenRegister($user->id);
+        return ! CashRegister::userHasOpenRegister($user->id);
     }
 
     /**
@@ -74,7 +74,7 @@ class CashRegisterPolicy
         if ($user->can('pos.close_any_register')) {
             return true;
         }
-        
+
         // Usuarios solo pueden actualizar su propia caja si está abierta
         return $cashRegister->isOpen() && $cashRegister->belongsToUser($user->id);
     }
@@ -85,17 +85,17 @@ class CashRegisterPolicy
     public function close(User $user, CashRegister $cashRegister): bool
     {
         // La caja debe estar abierta
-        if (!$cashRegister->isOpen()) {
+        if (! $cashRegister->isOpen()) {
             return false;
         }
-        
+
         // Supervisores pueden cerrar cualquier caja
         if ($user->can('pos.close_any_register')) {
             return true;
         }
-        
+
         // Usuarios solo pueden cerrar su propia caja
-        return $user->can('pos.close_register') && 
+        return $user->can('pos.close_register') &&
                $cashRegister->belongsToUser($user->id);
     }
 
@@ -105,7 +105,7 @@ class CashRegisterPolicy
      */
     public function forceClose(User $user, CashRegister $cashRegister): bool
     {
-        return $user->can('pos.close_any_register') && 
+        return $user->can('pos.close_any_register') &&
                $cashRegister->isOpen();
     }
 
@@ -116,12 +116,12 @@ class CashRegisterPolicy
     public function delete(User $user, CashRegister $cashRegister): bool
     {
         // Solo superadmin
-        if (!$user->is_super_admin) {
+        if (! $user->is_super_admin) {
             return false;
         }
-        
+
         // Solo si está cerrada y no tiene ventas
-        return $cashRegister->isClosed() && 
+        return $cashRegister->isClosed() &&
                $cashRegister->sales()->count() === 0;
     }
 
@@ -146,7 +146,7 @@ class CashRegisterPolicy
      */
     public function viewHistory(User $user): bool
     {
-        return $user->can('pos.view_all_registers') || 
+        return $user->can('pos.view_all_registers') ||
                $user->can('pos.view_reports');
     }
 
@@ -155,7 +155,7 @@ class CashRegisterPolicy
      */
     public function viewOthersReports(User $user): bool
     {
-        return $user->can('pos.view_all_registers') || 
+        return $user->can('pos.view_all_registers') ||
                $user->can('pos.view_reports');
     }
 

@@ -67,13 +67,13 @@ class WelcomeController extends Controller
     {
         $storeSettings = StoreSetting::current();
 
-        $path = match($type) {
+        $path = match ($type) {
             'logo' => $storeSettings->logo_path,
             'background' => $storeSettings->background_image_path,
             default => null,
         };
 
-        if (!$path || !\Storage::disk('public')->exists($path)) {
+        if (! $path || ! \Storage::disk('public')->exists($path)) {
             abort(404);
         }
 

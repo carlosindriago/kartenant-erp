@@ -17,9 +17,13 @@ class SaleTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Tenant $tenant;
+
     protected CashRegister $cashRegister;
+
     protected Customer $customer;
+
     protected Product $product;
 
     protected function setUp(): void

@@ -2,19 +2,20 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Filament\Pages\Auth;
 
-use App\Mail\TwoFactorCodeMail;
-use Filament\Facades\Filament;
 use App\Http\Responses\Auth\TwoFactorChallengeResponse;
+use App\Mail\TwoFactorCodeMail;
 use App\Services\AuditLogger;
+use Filament\Actions\Action;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -24,6 +25,10 @@ use Filament\Pages\Auth\Login as BaseLogin;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Exceptions\GuardDoesNotMatch;
+use Spatie\Permission\Exceptions\PermissionDoesNotExist;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class Login extends BaseLogin
 {
@@ -63,9 +68,9 @@ class Login extends BaseLogin
             ->label('Recordarme');
     }
 
-    protected function getAuthenticateFormAction(): \Filament\Actions\Action
+    protected function getAuthenticateFormAction(): Action
     {
-        return \Filament\Actions\Action::make('authenticate')
+        return Action::make('authenticate')
             ->label('Iniciar Sesión')
             ->submit('authenticate')
             ->color('danger')
@@ -99,7 +104,7 @@ class Login extends BaseLogin
                 try {
                     // Chequeo explícito por guard 'superadmin'
                     $allowed = $user->hasPermissionTo('admin.access', 'superadmin');
-                } catch (\Spatie\Permission\Exceptions\PermissionDoesNotExist|\Spatie\Permission\Exceptions\GuardDoesNotMatch $e) {
+                } catch (PermissionDoesNotExist|GuardDoesNotMatch $e) {
                     $allowed = false;
                 }
             }
@@ -129,6 +134,7 @@ class Login extends BaseLogin
                 properties: ['locked_until' => $user->locked_until]
             );
             Notification::make()->title('Tu cuenta está bloqueada temporalmente.')->danger()->send();
+
             return null;
         }
 
@@ -137,7 +143,7 @@ class Login extends BaseLogin
             // Asegurar que el guard sea 'superadmin' en este contexto
             config()->set('permission.default_guard', 'superadmin');
             config()->set('auth.defaults.guard', 'superadmin');
-            $permModelClass = config('permission.models.permission') ?? \Spatie\Permission\Models\Permission::class;
+            $permModelClass = config('permission.models.permission') ?? Permission::class;
             try {
                 $allPermModels = $permModelClass::query()
                     ->where('guard_name', 'superadmin')
@@ -146,7 +152,7 @@ class Login extends BaseLogin
                     // Usar modelos en lugar de nombres para evitar problemas de guard al resolver permisos
                     $user->syncPermissions($allPermModels);
                     // Refrescar caché de permisos
-                    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+                    app(PermissionRegistrar::class)->forgetCachedPermissions();
                 }
             } catch (\Throwable $e) {
                 // No bloquear el login por fallos de sincronización; se puede ejecutar el comando manual luego
@@ -161,7 +167,7 @@ class Login extends BaseLogin
         ])->save();
 
         try {
-            Mail::to($user->email)->send(new TwoFactorCodeMail((string)$code));
+            Mail::to($user->email)->send(new TwoFactorCodeMail((string) $code));
 
             AuditLogger::log(
                 subject: $user,
@@ -180,7 +186,7 @@ class Login extends BaseLogin
             \Log::info('Two factor code sent to admin', [
                 'email' => $user->email,
                 'code' => $code,
-                'expires_at' => $user->two_factor_expires_at
+                'expires_at' => $user->two_factor_expires_at,
             ]);
 
         } catch (\Exception $e) {
@@ -188,7 +194,7 @@ class Login extends BaseLogin
             \Log::error('Failed to send 2FA email, showing code in logs', [
                 'email' => $user->email,
                 'code' => $code,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             // En desarrollo, permitir continuar con el código en los logs

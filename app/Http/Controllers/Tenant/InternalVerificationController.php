@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,17 +12,15 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
-use App\Models\Tenancy\CashRegister\CashRegisterOpening;
 use App\Models\Tenancy\CashRegister\CashRegisterClosing;
+use App\Models\Tenancy\CashRegister\CashRegisterOpening;
 use App\Modules\POS\Models\CashRegister;
-use App\Models\Tenancy\Sale;
-use App\Models\Tenancy\SaleReturn;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Controlador de Verificación Interna
- * 
+ *
  * Maneja la verificación de documentos internos que requieren
  * autenticación y permisos específicos.
  */
@@ -50,7 +48,7 @@ class InternalVerificationController extends Controller
         // Buscar el documento por hash en todos los modelos verificables
         $document = $this->findDocumentByHash($hash);
 
-        if (!$document) {
+        if (! $document) {
             return view('tenant.verification.not-found', [
                 'hash' => $hash,
                 'message' => 'Documento no encontrado o hash inválido.',
@@ -58,7 +56,7 @@ class InternalVerificationController extends Controller
         }
 
         // Verificar que el modelo implemente HasInternalVerification
-        if (!method_exists($document, 'canBeVerifiedBy')) {
+        if (! method_exists($document, 'canBeVerifiedBy')) {
             Log::error('Modelo no implementa HasInternalVerification', [
                 'model' => get_class($document),
                 'hash' => $hash,
@@ -67,7 +65,7 @@ class InternalVerificationController extends Controller
         }
 
         // Verificar permisos del usuario
-        if (!$document->canBeVerifiedBy($user)) {
+        if (! $document->canBeVerifiedBy($user)) {
             return view('tenant.verification.forbidden', [
                 'document' => $document,
                 'required_permission' => $document->getVerificationPermission(),
@@ -101,12 +99,12 @@ class InternalVerificationController extends Controller
     private function findDocumentByHash(string $hash)
     {
         foreach ($this->verifiableModels as $type => $modelClass) {
-            if (!class_exists($modelClass)) {
+            if (! class_exists($modelClass)) {
                 continue;
             }
 
             $document = $modelClass::where('verification_hash', $hash)->first();
-            
+
             if ($document) {
                 return $document;
             }
@@ -194,12 +192,12 @@ class InternalVerificationController extends Controller
         // Buscar el documento
         $document = $this->findDocumentByHash($hash);
 
-        if (!$document) {
+        if (! $document) {
             abort(404, 'Documento no encontrado');
         }
 
         // Verificar permisos
-        if (!$document->canBeVerifiedBy($user)) {
+        if (! $document->canBeVerifiedBy($user)) {
             abort(403, 'No tiene permisos para descargar este documento');
         }
 
@@ -227,14 +225,14 @@ class InternalVerificationController extends Controller
 
         $document = $this->findDocumentByHash($hash);
 
-        if (!$document) {
+        if (! $document) {
             return response()->json([
                 'success' => false,
                 'message' => 'Documento no encontrado',
             ], 404);
         }
 
-        if (!$document->canBeVerifiedBy($user)) {
+        if (! $document->canBeVerifiedBy($user)) {
             return response()->json([
                 'success' => false,
                 'message' => 'No tiene permisos para verificar este documento',

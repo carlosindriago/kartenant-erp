@@ -1,13 +1,13 @@
 <?php
 
-use App\Models\User;
 use App\Models\Tenant;
+use App\Models\User;
+use App\Services\TwoFactorAuthService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Session;
 
 /**
  * OPERACIÓN FORTRESS - SECURITY VALIDATION TESTING
@@ -25,17 +25,17 @@ beforeEach(function () {
     // Create test users for security testing
     $this->activeUser = User::factory()->create([
         'is_active' => true,
-        'password' => Hash::make('password123')
+        'password' => Hash::make('password123'),
     ]);
 
     $this->inactiveUser = User::factory()->create([
         'is_active' => false,
-        'password' => Hash::make('password123')
+        'password' => Hash::make('password123'),
     ]);
 
     $this->unauthorizedUser = User::factory()->create([
         'is_active' => true,
-        'password' => Hash::make('password123')
+        'password' => Hash::make('password123'),
     ]);
 
     // Associate active user with current tenant
@@ -72,7 +72,7 @@ test('rate limiting prevents ip rotation bypass', function () {
         $response = $this->withServerVariables(['REMOTE_ADDR' => $ip])
             ->post(route('tenant.login'), [
                 'email' => $attackedEmail,
-                'password' => 'wrong-password-' . $index
+                'password' => 'wrong-password-'.$index,
             ]);
 
         // First 5 attempts should fail with generic error
@@ -83,14 +83,14 @@ test('rate limiting prevents ip rotation bypass', function () {
     $finalResponse = $this->withServerVariables(['REMOTE_ADDR' => '8.8.8.8'])
         ->post(route('tenant.login'), [
             'email' => $attackedEmail,
-            'password' => 'wrong-password-final'
+            'password' => 'wrong-password-final',
         ]);
 
     // Should be blocked with lockout message
     $finalResponse->assertSessionHasErrors(['email']);
 
     // Verify lockout is in place
-    $lockoutKey = 'auth_lockout:' . strtolower($attackedEmail);
+    $lockoutKey = 'auth_lockout:'.strtolower($attackedEmail);
     expect(Cache::has($lockoutKey))->toBeTrue();
 });
 
@@ -104,20 +104,20 @@ test('rate limiting tracks attempts globally per email', function () {
             $this->withServerVariables(['REMOTE_ADDR' => $ip])
                 ->post(route('tenant.login'), [
                     'email' => $attackedEmail,
-                    'password' => "wrong-password-from-{$ip}-attempt-{$i}"
+                    'password' => "wrong-password-from-{$ip}-attempt-{$i}",
                 ]);
         }
     }
 
     // Should have 6 total attempts across all IPs (3 IPs × 2 attempts each)
-    $globalKey = 'auth_attempts_global:' . strtolower($attackedEmail);
+    $globalKey = 'auth_attempts_global:'.strtolower($attackedEmail);
     expect(Cache::get($globalKey))->toBe(6);
 
     // 6th attempt should trigger lockout regardless of which IP makes it
     $response = $this->withServerVariables(['REMOTE_ADDR' => '8.8.8.8'])
         ->post(route('tenant.login'), [
             'email' => $attackedEmail,
-            'password' => 'final-attempt-after-6-previous'
+            'password' => 'final-attempt-after-6-previous',
         ]);
 
     $response->assertSessionHasErrors(['email']);
@@ -134,7 +134,7 @@ test('session id changes after successful login', function () {
     // Perform successful authentication
     $response = $this->post(route('tenant.login'), [
         'email' => $this->activeUser->email,
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
 
     // Session ID should have changed after successful login
@@ -148,7 +148,7 @@ test('session properly invalidated on logout', function () {
     // Login first
     $this->post(route('tenant.login'), [
         'email' => $this->activeUser->email,
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
 
     $originalSessionId = Session::getId();
@@ -172,30 +172,30 @@ test('session properly invalidated on logout', function () {
  * ANTI-ENUMERATION PROTECTION TESTS
  */
 test('generic error messages prevent user enumeration', function () {
-    $genericError = "Estas credenciales no coinciden con nuestros registros";
+    $genericError = 'Estas credenciales no coinciden con nuestros registros';
 
     // Test 1: Valid email + wrong password
     $response1 = $this->post(route('tenant.login'), [
         'email' => $this->activeUser->email,
-        'password' => 'wrong-password'
+        'password' => 'wrong-password',
     ]);
 
     // Test 2: Invalid email + any password
     $response2 = $this->post(route('tenant.login'), [
         'email' => 'nonexistent@example.com',
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
 
     // Test 3: Non-existent email
     $response3 = $this->post(route('tenant.login'), [
         'email' => 'completelyfake@fake.com',
-        'password' => 'random'
+        'password' => 'random',
     ]);
 
     // Test 4: Valid email but inactive user
     $response4 = $this->post(route('tenant.login'), [
         'email' => $this->inactiveUser->email,
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
 
     // All should return identical generic error messages
@@ -213,7 +213,7 @@ test('consistent response times prevent timing attacks', function () {
     $start1 = microtime(true);
     $this->post(route('tenant.login'), [
         'email' => 'nonexistent@example.com',
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
     $responseTimes['invalid_email'] = (microtime(true) - $start1) * 1000;
 
@@ -221,7 +221,7 @@ test('consistent response times prevent timing attacks', function () {
     $start2 = microtime(true);
     $this->post(route('tenant.login'), [
         'email' => $this->activeUser->email,
-        'password' => 'wrong-password'
+        'password' => 'wrong-password',
     ]);
     $responseTimes['valid_email_wrong_pass'] = (microtime(true) - $start2) * 1000;
 
@@ -229,7 +229,7 @@ test('consistent response times prevent timing attacks', function () {
     $start3 = microtime(true);
     $this->post(route('tenant.login'), [
         'email' => $this->inactiveUser->email,
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
     $responseTimes['valid_email_inactive'] = (microtime(true) - $start3) * 1000;
 
@@ -237,7 +237,7 @@ test('consistent response times prevent timing attacks', function () {
     $start4 = microtime(true);
     $this->post(route('tenant.login'), [
         'email' => $this->unauthorizedUser->email,
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
     $responseTimes['valid_email_unauthorized'] = (microtime(true) - $start4) * 1000;
 
@@ -262,7 +262,7 @@ test('account locks out after 5 failed attempts', function () {
     for ($i = 1; $i <= 5; $i++) {
         $response = $this->post(route('tenant.login'), [
             'email' => $email,
-            'password' => "wrong-password-{$i}"
+            'password' => "wrong-password-{$i}",
         ]);
 
         if ($i < 5) {
@@ -277,13 +277,13 @@ test('account locks out after 5 failed attempts', function () {
     // 6th attempt should be blocked with lockout message
     $lockoutResponse = $this->post(route('tenant.login'), [
         'email' => $email,
-        'password' => 'correct-password'
+        'password' => 'correct-password',
     ]);
 
     $lockoutResponse->assertSessionHasErrors(['email']);
 
     // Verify lockout key exists
-    $lockoutKey = 'auth_lockout:' . strtolower($email);
+    $lockoutKey = 'auth_lockout:'.strtolower($email);
     expect(Cache::has($lockoutKey))->toBeTrue();
 
     // Even correct password should be blocked
@@ -302,12 +302,13 @@ test('exponential lockout durations increase correctly', function () {
         for ($i = 1; $i <= 5; $i++) {
             $this->post(route('tenant.login'), [
                 'email' => $email,
-                'password' => "wrong-password-{$i}"
+                'password' => "wrong-password-{$i}",
             ]);
         }
 
         // Get lockout duration
-        $lockoutKey = 'auth_lockout:' . strtolower($email);
+        $lockoutKey = 'auth_lockout:'.strtolower($email);
+
         return Cache::get($lockoutKey);
     };
 
@@ -317,17 +318,17 @@ test('exponential lockout durations increase correctly', function () {
 
     // Wait a bit and trigger again for second lockout
     sleep(1); // Small delay to ensure different timestamp
-    Cache::forget('auth_lockout:' . strtolower($email));
+    Cache::forget('auth_lockout:'.strtolower($email));
 
     // Simulate additional attempts beyond 5 to trigger exponential backoff
     for ($i = 6; $i <= 10; $i++) {
         $this->post(route('tenant.login'), [
             'email' => $email,
-            'password' => "wrong-password-{$i}"
+            'password' => "wrong-password-{$i}",
         ]);
     }
 
-    $lockoutKey = 'auth_lockout:' . strtolower($email);
+    $lockoutKey = 'auth_lockout:'.strtolower($email);
     $secondLockoutDuration = Cache::get($lockoutKey);
 
     // Second lockout should be longer (exponential backoff)
@@ -339,7 +340,7 @@ test('exponential lockout durations increase correctly', function () {
  */
 test('2fa has separate rate limiting from login', function () {
     // Skip this test if 2FA is not enabled for the user
-    if (!$this->twoFactorAuthService->isTwoFactorEnabled($this->activeUser)) {
+    if (! $this->twoFactorAuthService->isTwoFactorEnabled($this->activeUser)) {
         $this->markTestSkipped('2FA not enabled for test user');
     }
 
@@ -347,14 +348,14 @@ test('2fa has separate rate limiting from login', function () {
     for ($i = 1; $i <= 6; $i++) {
         $this->post(route('tenant.login'), [
             'email' => $this->activeUser->email,
-            'password' => "wrong-password-{$i}"
+            'password' => "wrong-password-{$i}",
         ]);
     }
 
     // Login should now be rate limited
     $loginResponse = $this->post(route('tenant.login'), [
         'email' => $this->activeUser->email,
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
     $loginResponse->assertSessionHasErrors(['email']);
 
@@ -365,7 +366,7 @@ test('2fa has separate rate limiting from login', function () {
     // Test 2FA attempts
     for ($i = 1; $i <= 5; $i++) {
         $twoFaResponse = $this->post(route('tenant.2fa.verify'), [
-            'code' => '000000' // Wrong code
+            'code' => '000000', // Wrong code
         ]);
 
         if ($i < 10) {
@@ -377,7 +378,7 @@ test('2fa has separate rate limiting from login', function () {
 
 test('2fa maintains anti-enumeration protection', function () {
     // Skip if 2FA not available
-    if (!class_exists(\App\Services\TwoFactorAuthService::class)) {
+    if (! class_exists(TwoFactorAuthService::class)) {
         $this->markTestSkipped('2FA service not available');
     }
 
@@ -385,19 +386,19 @@ test('2fa maintains anti-enumeration protection', function () {
     Session::put('2fa_user_id', $this->activeUser->id);
     Session::put('2fa_session_expires', now()->addMinutes(5));
 
-    $genericError = "Estas credenciales no coinciden con nuestros registros";
+    $genericError = 'Estas credenciales no coinciden con nuestros registros';
 
     // Test with invalid codes
     $response1 = $this->post(route('tenant.2fa.verify'), [
-        'code' => '111111'
+        'code' => '111111',
     ]);
 
     $response2 = $this->post(route('tenant.2fa.verify'), [
-        'code' => 'abcdef'
+        'code' => 'abcdef',
     ]);
 
     $response3 = $this->post(route('tenant.2fa.verify'), [
-        'code' => '12345'
+        'code' => '12345',
     ]);
 
     // All should return generic error messages
@@ -413,7 +414,7 @@ test('authentication respects tenant isolation', function () {
     // Test unauthorized user (belongs to different tenant)
     $response = $this->post(route('tenant.login'), [
         'email' => $this->unauthorizedUser->email,
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
 
     // Should be blocked with generic error (not revealing it's a tenant issue)
@@ -430,7 +431,7 @@ test('user cannot access another tenant with same credentials', function () {
 
     $response = $this->post(route('tenant.login'), [
         'email' => $this->activeUser->email,
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
 
     expect(Auth::guard('tenant')->check())->toBeTrue();
@@ -441,7 +442,7 @@ test('user cannot access another tenant with same credentials', function () {
 
     $response = $this->post(route('tenant.login'), [
         'email' => $this->activeUser->email,
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
 
     // Should be blocked - user doesn't belong to this tenant
@@ -456,7 +457,7 @@ test('successful login flow works with security fixes', function () {
     // Test complete successful login flow
     $response = $this->post(route('tenant.login'), [
         'email' => $this->activeUser->email,
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
 
     // Should be authenticated
@@ -477,28 +478,28 @@ test('ajax requests handle security correctly', function () {
     $response = $this->withHeaders(['Accept' => 'application/json'])
         ->post(route('tenant.login'), [
             'email' => $this->activeUser->email,
-            'password' => 'wrong-password'
+            'password' => 'wrong-password',
         ]);
 
     $response->assertStatus(401)
-             ->assertJson([
-                 'success' => false,
-                 'message' => "Estas credenciales no coinciden con nuestros registros"
-             ]);
+        ->assertJson([
+            'success' => false,
+            'message' => 'Estas credenciales no coinciden con nuestros registros',
+        ]);
 
     // Test AJAX successful login
     $response = $this->withHeaders(['Accept' => 'application/json'])
         ->post(route('tenant.login'), [
             'email' => $this->activeUser->email,
-            'password' => 'password123'
+            'password' => 'password123',
         ]);
 
     $response->assertStatus(200)
-             ->assertJson([
-                 'success' => true,
-                 'message' => '¡Inicio de sesión exitoso!',
-                 'redirect' => route('tenant.dashboard')
-             ]);
+        ->assertJson([
+            'success' => true,
+            'message' => '¡Inicio de sesión exitoso!',
+            'redirect' => route('tenant.dashboard'),
+        ]);
 });
 
 test('csrf protection works for authentication', function () {
@@ -507,7 +508,7 @@ test('csrf protection works for authentication', function () {
 
     $response = $this->post(route('tenant.login'), [
         'email' => $this->activeUser->email,
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
 
     // Should fail due to CSRF protection
@@ -522,32 +523,32 @@ test('invalid input formats are handled securely', function () {
         [
             'email' => '',
             'password' => 'password123',
-            'description' => 'empty email'
+            'description' => 'empty email',
         ],
         [
             'email' => 'invalid-email',
             'password' => 'password123',
-            'description' => 'invalid email format'
+            'description' => 'invalid email format',
         ],
         [
             'email' => $this->activeUser->email,
             'password' => '',
-            'description' => 'empty password'
+            'description' => 'empty password',
         ],
         [
             'email' => $this->activeUser->email,
             'password' => '123',
-            'description' => 'password too short'
-        ]
+            'description' => 'password too short',
+        ],
     ];
 
     foreach ($testCases as $case) {
         $response = $this->post(route('tenant.login'), [
             'email' => $case['email'],
-            'password' => $case['password']
+            'password' => $case['password'],
         ]);
 
-        $response->assertSessionHasErrors(['email' => "Estas credenciales no coinciden con nuestros registros"]);
+        $response->assertSessionHasErrors(['email' => 'Estas credenciales no coinciden con nuestros registros']);
     }
 });
 
@@ -555,7 +556,7 @@ test('email case insensitivity is maintained securely', function () {
     // Test login with uppercase email
     $response = $this->post(route('tenant.login'), [
         'email' => strtoupper($this->activeUser->email),
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
 
     // Should work normally
@@ -571,12 +572,12 @@ test('email case insensitivity is maintained securely', function () {
     for ($i = 1; $i <= 3; $i++) {
         $this->post(route('tenant.login'), [
             'email' => $mixedCaseEmail,
-            'password' => "wrong-password-{$i}"
+            'password' => "wrong-password-{$i}",
         ]);
     }
 
     // Should be tracking attempts correctly despite case variations
-    $globalKey = 'auth_attempts_global:' . strtolower($mixedCaseEmail);
+    $globalKey = 'auth_attempts_global:'.strtolower($mixedCaseEmail);
     expect(Cache::get($globalKey))->toBe(3);
 });
 
@@ -593,7 +594,7 @@ test('security controls work under load simulation', function () {
 
         $response = $this->post(route('tenant.login'), [
             'email' => $this->activeUser->email,
-            'password' => "wrong-password-{$i}"
+            'password' => "wrong-password-{$i}",
         ]);
 
         $endTime = microtime(true);
@@ -602,7 +603,7 @@ test('security controls work under load simulation', function () {
         $responses[] = [
             'status' => $response->getStatusCode(),
             'time' => $responseTime,
-            'has_errors' => $response->getSession()->has('errors')
+            'has_errors' => $response->getSession()->has('errors'),
         ];
     }
 
@@ -623,22 +624,22 @@ test('audit trail is maintained for security events', function () {
     for ($i = 1; $i <= 3; $i++) {
         $this->post(route('tenant.login'), [
             'email' => $email,
-            'password' => "wrong-password-{$i}"
+            'password' => "wrong-password-{$i}",
         ]);
     }
 
     // Verify failed attempts are tracked
-    $globalKey = 'auth_attempts_global:' . strtolower($email);
+    $globalKey = 'auth_attempts_global:'.strtolower($email);
     expect(Cache::get($globalKey))->toBe(3);
 
     // Make successful login
     $this->post(route('tenant.login'), [
         'email' => $email,
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
 
     // Verify success is logged
-    $successKey = 'auth_success:' . strtolower($email);
+    $successKey = 'auth_success:'.strtolower($email);
     expect(Cache::has($successKey))->toBeTrue();
 
     $successData = Cache::get($successKey);

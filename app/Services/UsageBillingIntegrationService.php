@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Events\SalesTaskCreated;
+use App\Mail\PlanUpgradeConfirmationMail;
+use App\Mail\PlanUpgradeRequiredMail;
+use App\Models\Notification;
+use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\TenantUsage;
-use App\Models\TenantSubscription;
-use App\Models\SubscriptionPlan;
-use Carbon\Carbon;
 
 class UsageBillingIntegrationService
 {
@@ -35,7 +37,7 @@ class UsageBillingIntegrationService
         // Get current usage record
         $currentUsage = TenantUsage::getCurrentUsage($tenant->id);
 
-        if (!$currentUsage) {
+        if (! $currentUsage) {
             return;
         }
 
@@ -93,7 +95,7 @@ class UsageBillingIntegrationService
 
         // Send email notification
         \Mail::to($tenant->owner?->email)->send(
-            new \App\Mail\PlanUpgradeRequiredMail($notificationData)
+            new PlanUpgradeRequiredMail($notificationData)
         );
 
         // Send in-app notification
@@ -121,7 +123,7 @@ class UsageBillingIntegrationService
 
         // Create task in your task management system
         // This would integrate with whatever task system you use
-        event(new \App\Events\SalesTaskCreated($taskData));
+        event(new SalesTaskCreated($taskData));
     }
 
     /**
@@ -148,10 +150,10 @@ class UsageBillingIntegrationService
         }
 
         $description = "**Cliente:** {$tenant->name}\n\n";
-        $description .= "**Métricas Excedidas:**\n" . implode("\n", $exceededMetrics) . "\n\n";
+        $description .= "**Métricas Excedidas:**\n".implode("\n", $exceededMetrics)."\n\n";
         $description .= "**Estado Actual:** {$usage->status}\n\n";
         $description .= "**Acción Requerida:** Contactar cliente para upgrade de plan.\n\n";
-        $description .= "**Urgencia:** " . ($usage->status === 'critical' ? 'ALTA' : 'MEDIA');
+        $description .= '**Urgencia:** '.($usage->status === 'critical' ? 'ALTA' : 'MEDIA');
 
         return $description;
     }
@@ -162,12 +164,12 @@ class UsageBillingIntegrationService
     private function getRecommendedPlan(Tenant $tenant, TenantUsage $usage): ?SubscriptionPlan
     {
         $currentSubscription = $tenant->subscription;
-        if (!$currentSubscription) {
+        if (! $currentSubscription) {
             return null;
         }
 
         $currentPlan = $currentSubscription->plan;
-        if (!$currentPlan) {
+        if (! $currentPlan) {
             return null;
         }
 
@@ -185,19 +187,19 @@ class UsageBillingIntegrationService
                 $query
                     ->where(function ($q) use ($requiredLimits) {
                         $q->whereNull('max_sales_per_month')
-                          ->orWhere('max_sales_per_month', '>=', $requiredLimits['max_sales_per_month']);
+                            ->orWhere('max_sales_per_month', '>=', $requiredLimits['max_sales_per_month']);
                     })
                     ->where(function ($q) use ($requiredLimits) {
                         $q->whereNull('max_products')
-                          ->orWhere('max_products', '>=', $requiredLimits['max_products']);
+                            ->orWhere('max_products', '>=', $requiredLimits['max_products']);
                     })
                     ->where(function ($q) use ($requiredLimits) {
                         $q->whereNull('max_users')
-                          ->orWhere('max_users', '>=', $requiredLimits['max_users']);
+                            ->orWhere('max_users', '>=', $requiredLimits['max_users']);
                     })
                     ->where(function ($q) use ($requiredLimits) {
                         $q->whereNull('max_storage_mb')
-                          ->orWhere('max_storage_mb', '>=', $requiredLimits['max_storage_mb']);
+                            ->orWhere('max_storage_mb', '>=', $requiredLimits['max_storage_mb']);
                     });
             })
             ->orderBy('price_monthly')
@@ -230,7 +232,7 @@ class UsageBillingIntegrationService
     private function createInAppNotification(Tenant $tenant, array $data): void
     {
         // This would integrate with your notification system
-        \App\Models\Notification::create([
+        Notification::create([
             'tenant_id' => $tenant->id,
             'user_id' => $tenant->owner?->id,
             'type' => 'plan_upgrade_required',
@@ -289,7 +291,7 @@ class UsageBillingIntegrationService
     private function sendUpgradeConfirmation(Tenant $tenant, SubscriptionPlan $newPlan): void
     {
         \Mail::to($tenant->owner?->email)->send(
-            new \App\Mail\PlanUpgradeConfirmationMail($tenant, $newPlan)
+            new PlanUpgradeConfirmationMail($tenant, $newPlan)
         );
     }
 

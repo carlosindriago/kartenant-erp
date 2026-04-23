@@ -2,14 +2,14 @@
 
 namespace Tests\Feature\Security;
 
-use App\Models\User;
 use App\Models\Tenant;
+use App\Models\User;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Tests\TestCase;
-use Exception;
 
 /**
  * CRITICAL SECURITY TEST - Multi-Tenant Isolation
@@ -34,8 +34,11 @@ class MultiTenantIsolationTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Tenant $tenant1;
+
     private Tenant $tenant2;
+
     private Tenant $inactiveTenant;
 
     protected function setUp(): void
@@ -127,7 +130,7 @@ class MultiTenantIsolationTest extends TestCase
         Log::info('MultiTenantIsolationTest: Cross-tenant authentication blocked - SUCCESS', [
             'user_id' => $this->user->id,
             'attempted_tenant_id' => $this->tenant2->id,
-            'test_result' => 'BLOCKED_AS_EXPECTED'
+            'test_result' => 'BLOCKED_AS_EXPECTED',
         ]);
     }
 
@@ -168,7 +171,7 @@ class MultiTenantIsolationTest extends TestCase
         Log::info('MultiTenantIsolationTest: Valid tenant authentication succeeded - SUCCESS', [
             'user_id' => $this->user->id,
             'authenticated_tenant_id' => $this->tenant1->id,
-            'test_result' => 'AUTHENTICATED_AS_EXPECTED'
+            'test_result' => 'AUTHENTICATED_AS_EXPECTED',
         ]);
     }
 
@@ -205,7 +208,7 @@ class MultiTenantIsolationTest extends TestCase
         Log::info('MultiTenantIsolationTest: Inactive tenant authentication blocked - SUCCESS', [
             'user_id' => $this->user->id,
             'attempted_tenant_id' => $this->inactiveTenant->id,
-            'test_result' => 'BLOCKED_AS_EXPECTED'
+            'test_result' => 'BLOCKED_AS_EXPECTED',
         ]);
     }
 
@@ -246,7 +249,7 @@ class MultiTenantIsolationTest extends TestCase
             'user_id' => $this->user->id,
             'original_tenant_id' => $this->tenant1->id,
             'switched_tenant_id' => $this->tenant2->id,
-            'test_result' => 'BLOCKED_AS_EXPECTED'
+            'test_result' => 'BLOCKED_AS_EXPECTED',
         ]);
     }
 
@@ -289,7 +292,7 @@ class MultiTenantIsolationTest extends TestCase
         Log::info('MultiTenantIsolationTest: Direct database bypass blocked - SUCCESS', [
             'user_id' => $this->user->id,
             'attempted_tenant_id' => $this->tenant2->id,
-            'test_result' => 'BLOCKED_AS_EXPECTED'
+            'test_result' => 'BLOCKED_AS_EXPECTED',
         ]);
     }
 
@@ -345,7 +348,7 @@ class MultiTenantIsolationTest extends TestCase
         Log::info('MultiTenantIsolationTest: Edge cases handled securely - SUCCESS', [
             'user_id' => $this->user->id,
             'test_cases_covered' => ['null_tenant', 'nonexistent_tenant', 'malformed_credentials'],
-            'test_result' => 'HANDLED_SECURELY'
+            'test_result' => 'HANDLED_SECURELY',
         ]);
     }
 
@@ -391,7 +394,7 @@ class MultiTenantIsolationTest extends TestCase
 
         Log::info('MultiTenantIsolationTest: Performance impact assessment - SUCCESS', [
             'execution_time_ms' => $executionTime,
-            'test_result' => 'PERFORMANCE_ACCEPTABLE'
+            'test_result' => 'PERFORMANCE_ACCEPTABLE',
         ]);
     }
 }

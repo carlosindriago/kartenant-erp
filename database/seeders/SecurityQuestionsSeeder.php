@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\SecurityQuestion;
+use Illuminate\Database\Seeder;
 
 class SecurityQuestionsSeeder extends Seeder
 {
@@ -27,7 +27,7 @@ class SecurityQuestionsSeeder extends Seeder
                 ['question' => $question['question']],
                 [
                     'is_active' => true,
-                    'sort_order' => $question['sort_order']
+                    'sort_order' => $question['sort_order'],
                 ]
             );
         }

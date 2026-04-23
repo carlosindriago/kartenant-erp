@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\User;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,11 +18,11 @@ class UserDestroyRequest extends FormRequest
         $targetUser = $this->route('user');
 
         // User must be authenticated and have admin users delete permission
-        if (!$user || !$targetUser) {
+        if (! $user || ! $targetUser) {
             return false;
         }
 
-        if (!$user->is_super_admin && !$user->hasPermissionTo('admin.users.delete', 'superadmin')) {
+        if (! $user->is_super_admin && ! $user->hasPermissionTo('admin.users.delete', 'superadmin')) {
             return false;
         }
 
@@ -30,7 +32,7 @@ class UserDestroyRequest extends FormRequest
         }
 
         // Only superadmins can delete other superadmins
-        if ($targetUser->is_super_admin && !$user->is_super_admin) {
+        if ($targetUser->is_super_admin && ! $user->is_super_admin) {
             return false;
         }
 
@@ -40,7 +42,7 @@ class UserDestroyRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -75,7 +77,7 @@ class UserDestroyRequest extends FormRequest
 
             // Prevent deletion of last superadmin
             if ($targetUser?->is_super_admin) {
-                $superadminCount = \App\Models\User::where('is_super_admin', true)->count();
+                $superadminCount = User::where('is_super_admin', true)->count();
 
                 if ($superadminCount <= 1) {
                     $validator->errors()->add('confirm_delete', 'No se puede eliminar al último Super Admin del sistema.');

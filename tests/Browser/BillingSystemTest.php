@@ -2,15 +2,16 @@
 
 namespace Tests\Browser;
 
-use Laravel\Dusk\Browser;
-use Tests\DuskTestCase;
+use App\Models\PaymentSettings;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Models\PaymentSettings;
+use Laravel\Dusk\Browser;
+use Tests\DuskTestCase;
 
 class BillingSystemTest extends DuskTestCase
 {
     private $tenant;
+
     private $user;
 
     protected function setUp(): void
@@ -19,28 +20,28 @@ class BillingSystemTest extends DuskTestCase
 
         // Create or get a test tenant
         $this->tenant = Tenant::where('domain', 'fruteria')->first();
-        if (!$this->tenant) {
+        if (! $this->tenant) {
             $this->tenant = Tenant::factory()->create(['domain' => 'fruteria-test']);
         }
 
         // Create or get a test user for this tenant
         $this->user = User::where('email', 'test@fruteria.test')->first();
-        if (!$this->user) {
+        if (! $this->user) {
             $this->user = User::factory()->create([
                 'email' => 'test@fruteria.test',
                 'tenant_id' => $this->tenant->id,
-                'password' => bcrypt('password')
+                'password' => bcrypt('password'),
             ]);
         }
 
         // Ensure payment settings exist
         $paymentSettings = PaymentSettings::on('landlord')->first();
-        if (!$paymentSettings) {
+        if (! $paymentSettings) {
             PaymentSettings::on('landlord')->create([
                 'max_file_size_mb' => 5,
                 'allowed_file_types' => json_encode(['pdf', 'jpg', 'jpeg', 'png']),
                 'bank_account_info' => 'Banco Test - Cuenta: 123456789',
-                'payment_instructions' => 'Instrucciones de pago de prueba'
+                'payment_instructions' => 'Instrucciones de pago de prueba',
             ]);
         }
     }
@@ -52,18 +53,18 @@ class BillingSystemTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit("http://{$this->tenant->domain}.emporiodigital.test/login")
-                    ->waitForText('Iniciar Sesión', 10)
-                    ->type('email', $this->user->email)
-                    ->type('password', 'password')
-                    ->press('Ingresar')
-                    ->waitForLocation('/', 15)
-                    ->assertPathIs('/')
-                    ->clickLink('Facturación')
-                    ->waitForLocation('/billing', 10)
-                    ->assertPathIs('/billing')
-                    ->waitForText('Centro de Facturación', 10)
-                    ->assertSee('Centro de Facturación')
-                    ->assertSee('Subir Comprobante de Pago');
+                ->waitForText('Iniciar Sesión', 10)
+                ->type('email', $this->user->email)
+                ->type('password', 'password')
+                ->press('Ingresar')
+                ->waitForLocation('/', 15)
+                ->assertPathIs('/')
+                ->clickLink('Facturación')
+                ->waitForLocation('/billing', 10)
+                ->assertPathIs('/billing')
+                ->waitForText('Centro de Facturación', 10)
+                ->assertSee('Centro de Facturación')
+                ->assertSee('Subir Comprobante de Pago');
         });
     }
 
@@ -75,11 +76,11 @@ class BillingSystemTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             // First login to get tenant session
             $browser->visit("http://{$this->tenant->domain}.emporiodigital.test/login")
-                    ->waitForText('Iniciar Sesión', 10)
-                    ->type('email', $this->user->email)
-                    ->type('password', 'password')
-                    ->press('Ingresar')
-                    ->waitForLocation('/', 15);
+                ->waitForText('Iniciar Sesión', 10)
+                ->type('email', $this->user->email)
+                ->type('password', 'password')
+                ->press('Ingresar')
+                ->waitForLocation('/', 15);
 
             // Test the API endpoint via JavaScript
             $result = $browser->script("
@@ -116,14 +117,14 @@ class BillingSystemTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit("http://{$this->tenant->domain}.emporiodigital.test/login")
-                    ->waitForText('Iniciar Sesión', 10)
-                    ->type('email', $this->user->email)
-                    ->type('password', 'password')
-                    ->press('Ingresar')
-                    ->waitForLocation('/', 15)
-                    ->clickLink('Facturación')
-                    ->waitForLocation('/billing', 10)
-                    ->waitForText('Subir Comprobante de Pago', 10);
+                ->waitForText('Iniciar Sesión', 10)
+                ->type('email', $this->user->email)
+                ->type('password', 'password')
+                ->press('Ingresar')
+                ->waitForLocation('/', 15)
+                ->clickLink('Facturación')
+                ->waitForLocation('/billing', 10)
+                ->waitForText('Subir Comprobante de Pago', 10);
 
             // Check if file upload element exists
             $hasFileUpload = $browser->script("
@@ -134,7 +135,7 @@ class BillingSystemTest extends DuskTestCase
 
             // Check for payment method selection or fields
             $browser->assertSee('Monto')
-                    ->assertSee('Método');
+                ->assertSee('Método');
         });
     }
 
@@ -145,13 +146,13 @@ class BillingSystemTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit("http://{$this->tenant->domain}.emporiodigital.test/login")
-                    ->waitForText('Iniciar Sesión', 10)
-                    ->type('email', $this->user->email)
-                    ->type('password', 'password')
-                    ->press('Ingresar')
-                    ->waitForLocation('/', 15)
-                    ->clickLink('Facturación')
-                    ->waitForLocation('/billing', 10);
+                ->waitForText('Iniciar Sesión', 10)
+                ->type('email', $this->user->email)
+                ->type('password', 'password')
+                ->press('Ingresar')
+                ->waitForLocation('/', 15)
+                ->clickLink('Facturación')
+                ->waitForLocation('/billing', 10);
 
             // Test API history endpoint
             $result = $browser->script("
@@ -189,15 +190,15 @@ class BillingSystemTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             // Resize to mobile viewport
             $browser->resize(375, 667) // iPhone SE dimensions
-                    ->visit("http://{$this->tenant->domain}.emporiodigital.test/login")
-                    ->waitForText('Iniciar Sesión', 10)
-                    ->type('email', $this->user->email)
-                    ->type('password', 'password')
-                    ->press('Ingresar')
-                    ->waitForLocation('/', 15)
-                    ->clickLink('Facturación')
-                    ->waitForLocation('/billing', 10)
-                    ->assertSee('Centro de Facturación');
+                ->visit("http://{$this->tenant->domain}.emporiodigital.test/login")
+                ->waitForText('Iniciar Sesión', 10)
+                ->type('email', $this->user->email)
+                ->type('password', 'password')
+                ->press('Ingresar')
+                ->waitForLocation('/', 15)
+                ->clickLink('Facturación')
+                ->waitForLocation('/billing', 10)
+                ->assertSee('Centro de Facturación');
 
             // Check mobile menu works
             $hasMobileMenu = $browser->script("
@@ -220,18 +221,18 @@ class BillingSystemTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit("http://{$this->tenant->domain}.emporiodigital.test/login")
-                    ->waitForText('Iniciar Sesión', 10)
-                    ->type('email', $this->user->email)
-                    ->type('password', 'password')
-                    ->press('Ingresar')
-                    ->waitForLocation('/', 15)
-                    ->clickLink('Facturación')
-                    ->waitForLocation('/billing', 10);
+                ->waitForText('Iniciar Sesión', 10)
+                ->type('email', $this->user->email)
+                ->type('password', 'password')
+                ->press('Ingresar')
+                ->waitForLocation('/', 15)
+                ->clickLink('Facturación')
+                ->waitForLocation('/billing', 10);
 
             // Test submitting form without file
             $browser->press('Enviar Comprobante')
-                    ->waitForText('Error', 5)
-                    ->assertSee('Por favor selecciona un archivo de comprobante');
+                ->waitForText('Error', 5)
+                ->assertSee('Por favor selecciona un archivo de comprobante');
         });
     }
 
@@ -242,11 +243,11 @@ class BillingSystemTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit("http://{$this->tenant->domain}.emporiodigital.test/login")
-                    ->waitForText('Iniciar Sesión', 10)
-                    ->type('email', $this->user->email)
-                    ->type('password', 'password')
-                    ->press('Ingresar')
-                    ->waitForLocation('/', 15);
+                ->waitForText('Iniciar Sesión', 10)
+                ->type('email', $this->user->email)
+                ->type('password', 'password')
+                ->press('Ingresar')
+                ->waitForLocation('/', 15);
 
             // Verify API calls include tenant context
             $result = $browser->script("

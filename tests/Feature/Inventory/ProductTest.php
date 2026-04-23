@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Inventory\Models\Product;
 use App\Modules\Inventory\Models\StockMovement;
 use App\Services\StockMovementService;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Multitenancy\Models\Tenant;
@@ -16,6 +17,7 @@ class ProductTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Tenant $tenant;
 
     protected function setUp(): void
@@ -235,7 +237,7 @@ class ProductTest extends TestCase
             'stock' => 10,
         ]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         Product::create([
             'name' => 'Producto 2',

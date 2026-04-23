@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,8 +12,6 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Database\Seeders\DefaultPermissionsSeeder;
-use Database\Seeders\DefaultRolesSeeder;
 
 class SetupTenantPermissions extends Command
 {
@@ -45,14 +43,14 @@ class SetupTenantPermissions extends Command
             // Setup for all tenants
             $this->info('📦 Configurando para TODOS los tenants...');
             $this->call('tenants:artisan', [
-                'artisanCommand' => 'db:seed --class=DefaultRolesSeeder'
+                'artisanCommand' => 'db:seed --class=DefaultRolesSeeder',
             ]);
         } elseif ($tenantId = $this->option('tenant')) {
             // Setup for specific tenant
             $this->info("📦 Configurando para tenant ID: {$tenantId}...");
             $this->call('tenants:artisan', [
                 'artisanCommand' => 'db:seed --class=DefaultRolesSeeder',
-                '--tenant' => $tenantId
+                '--tenant' => $tenantId,
             ]);
         } else {
             // Interactive selection
@@ -61,13 +59,14 @@ class SetupTenantPermissions extends Command
             $this->info('  --all         : Configurar todos los tenants');
             $this->info('  --tenant=ID   : Configurar tenant específico');
             $this->newLine();
-            
+
             if ($this->confirm('¿Deseas configurar TODOS los tenants?', true)) {
                 $this->call('tenants:artisan', [
-                    'artisanCommand' => 'db:seed --class=DefaultRolesSeeder'
+                    'artisanCommand' => 'db:seed --class=DefaultRolesSeeder',
                 ]);
             } else {
                 $this->error('❌ Operación cancelada.');
+
                 return Command::FAILURE;
             }
         }

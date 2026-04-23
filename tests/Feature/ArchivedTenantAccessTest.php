@@ -1,5 +1,6 @@
 <?php
 
+use App\Filament\Resources\ArchivedTenantResource;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -31,10 +32,10 @@ class ArchivedTenantAccessTest extends TestCase
      */
     public function test_archived_tenant_resource_class_exists(): void
     {
-        $this->assertTrue(class_exists(\App\Filament\Resources\ArchivedTenantResource::class));
+        $this->assertTrue(class_exists(ArchivedTenantResource::class));
 
         // Try to get the form schema without errors
-        $resource = new \App\Filament\Resources\ArchivedTenantResource();
+        $resource = new ArchivedTenantResource;
         $this->assertNotNull($resource);
     }
 }

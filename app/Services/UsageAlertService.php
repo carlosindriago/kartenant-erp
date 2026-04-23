@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Mail\SalesTeamAlertMail;
+use App\Mail\UsageAlertMail;
+use App\Models\Tenant;
 use App\Models\TenantUsage;
 use App\Models\UsageAlert;
-use App\Models\Tenant;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 
 class UsageAlertService
@@ -32,7 +34,7 @@ class UsageAlertService
     {
         try {
             $tenant = $usage->tenant;
-            if (!$tenant) {
+            if (! $tenant) {
                 return;
             }
 
@@ -129,7 +131,7 @@ class UsageAlertService
             $channels[] = 'email';
         } elseif ($alertType === 'overdraft') {
             $channels[] = 'email';
-            if (config('services.slack.webhooks.' . self::SLACK_WEBHOOK_KEY)) {
+            if (config('services.slack.webhooks.'.self::SLACK_WEBHOOK_KEY)) {
                 $channels[] = 'slack';
             }
         } elseif ($alertType === 'critical') {
@@ -177,7 +179,7 @@ class UsageAlertService
         // Send to tenant owner
         if ($tenant->owner && $tenant->owner->email) {
             Mail::to($tenant->owner->email)->send(
-                new \App\Mail\UsageAlertMail($alert)
+                new UsageAlertMail($alert)
             );
         }
 
@@ -185,7 +187,7 @@ class UsageAlertService
         if (in_array($alert->alert_type, ['overdraft', 'critical'])) {
             $salesEmail = config('usage.sales_team_email', 'sales@emporiodigital.com');
             Mail::to($salesEmail)->send(
-                new \App\Mail\SalesTeamAlertMail($alert)
+                new SalesTeamAlertMail($alert)
             );
         }
 
@@ -197,9 +199,9 @@ class UsageAlertService
      */
     private function sendSlackAlert(UsageAlert $alert): void
     {
-        $webhook = config('services.slack.webhooks.' . self::SLACK_WEBHOOK_KEY);
+        $webhook = config('services.slack.webhooks.'.self::SLACK_WEBHOOK_KEY);
 
-        if (!$webhook) {
+        if (! $webhook) {
             return;
         }
 
@@ -210,7 +212,7 @@ class UsageAlertService
         if ($response->successful()) {
             $alert->markDelivered('slack');
         } else {
-            $alert->markFailed('slack', 'HTTP ' . $response->status());
+            $alert->markFailed('slack', 'HTTP '.$response->status());
         }
     }
 
@@ -219,14 +221,14 @@ class UsageAlertService
      */
     private function buildSlackPayload(UsageAlert $alert): array
     {
-        $color = match($alert->alert_type) {
+        $color = match ($alert->alert_type) {
             'warning' => 'warning',
             'overdraft' => 'danger',
             'critical' => 'danger',
             default => 'good',
         };
 
-        $emoji = match($alert->alert_type) {
+        $emoji = match ($alert->alert_type) {
             'warning' => '⚠️',
             'overdraft' => '🔴',
             'critical' => '🚨',
@@ -261,7 +263,7 @@ class UsageAlertService
                         ],
                         [
                             'title' => 'Porcentaje',
-                            'value' => number_format($alert->percentage, 1) . '%',
+                            'value' => number_format($alert->percentage, 1).'%',
                             'short' => true,
                         ],
                         [
@@ -288,7 +290,7 @@ class UsageAlertService
         int $currentValue,
         ?int $limitValue
     ): string {
-        $metricName = match($metricType) {
+        $metricName = match ($metricType) {
             'sales' => 'Ventas Mensuales',
             'products' => 'Productos',
             'users' => 'Usuarios',
@@ -302,7 +304,7 @@ class UsageAlertService
 
         $baseMessage = "{$metricName}: {$current} / {$limit} ({$percentDisplay}%)";
 
-        return match($alertType) {
+        return match ($alertType) {
             'warning' => "⚠️ **Advertencia de Uso**\n\n{$baseMessage}\n\nEstás acercándote al límite de tu plan. Considera actualizar pronto para evitar interrupciones.",
             'overdraft' => "🔴 **Exceso de Uso Detectado**\n\n{$baseMessage}\n\nHas excedido el límite de tu plan. Se requiere actualizar el plan en el próximo ciclo de facturación.\n\n💡 **Acción Recomendada:** Contacta a nuestro equipo de ventas para una actualización inmediata.",
             'critical' => "🚨 **Uso Crítico - Acción Requerida**\n\n{$baseMessage}\n\nHas excedido significativamente el límite de tu plan. Algunas funciones pueden estar limitadas.\n\n⚡ **Acción Inmediata Requerida:** Actualiza tu plan ahora para restaurar todas las funcionalidades.",
@@ -320,12 +322,12 @@ class UsageAlertService
                 $query->where(function ($q) {
                     $q->where('status', 'warning')->where('warning_sent', false);
                 })
-                ->orWhere(function ($q) {
-                    $q->where('status', 'overdraft')->where('overdraft_sent', false);
-                })
-                ->orWhere(function ($q) {
-                    $q->where('status', 'critical')->where('critical_sent', false);
-                });
+                    ->orWhere(function ($q) {
+                        $q->where('status', 'overdraft')->where('overdraft_sent', false);
+                    })
+                    ->orWhere(function ($q) {
+                        $q->where('status', 'critical')->where('critical_sent', false);
+                    });
             })
             ->chunk(50, function ($usages) {
                 foreach ($usages as $usage) {
@@ -378,7 +380,7 @@ class UsageAlertService
         }
 
         $delivered = UsageAlert::whereJsonContains('delivery_channels', $channel)
-            ->whereJsonContains('delivery_status->' . $channel, 'sent')
+            ->whereJsonContains('delivery_status->'.$channel, 'sent')
             ->count();
 
         return round(($delivered / $total) * 100, 2);

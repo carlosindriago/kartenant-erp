@@ -2,17 +2,16 @@
 
 namespace App\Services;
 
-use App\Models\Tenant;
-use App\Models\TenantSubscription;
 use App\Models\PaymentProof;
 use App\Models\PaymentSettings;
+use App\Models\Tenant;
+use App\Models\TenantSubscription;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PaymentProofService
 {
@@ -32,15 +31,17 @@ class PaymentProofService
         $errors = [];
 
         foreach ($files as $index => $file) {
-            if (!$file instanceof UploadedFile) {
+            if (! $file instanceof UploadedFile) {
                 $errors[$index] = 'Archivo inválido';
+
                 continue;
             }
 
             // Validate individual file
             $validation = $this->validateFile($file);
-            if (!$validation['valid']) {
+            if (! $validation['valid']) {
                 $errors[$index] = $validation['error'];
+
                 continue;
             }
 
@@ -63,7 +64,7 @@ class PaymentProofService
                 $totalSize += $file->getSize();
 
             } catch (\Exception $e) {
-                $errors[$index] = 'Error al subir archivo: ' . $e->getMessage();
+                $errors[$index] = 'Error al subir archivo: '.$e->getMessage();
                 Log::error('Payment proof file upload error', [
                     'subscription_id' => $subscription->id,
                     'file' => $file->getClientOriginalName(),
@@ -98,16 +99,16 @@ class PaymentProofService
         $allowedTypes = $this->paymentSettings->allowed_file_types ?? ['pdf', 'jpg', 'jpeg', 'png'];
         $extension = strtolower($file->getClientOriginalExtension());
 
-        if (!in_array($extension, $allowedTypes)) {
+        if (! in_array($extension, $allowedTypes)) {
             return [
                 'valid' => false,
-                'error' => "Tipo de archivo '{$extension}' no permitido. Tipos permitidos: " . implode(', ', $allowedTypes),
+                'error' => "Tipo de archivo '{$extension}' no permitido. Tipos permitidos: ".implode(', ', $allowedTypes),
             ];
         }
 
         // Additional validation for images
         if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
-            if (!$this->validateImageFile($file)) {
+            if (! $this->validateImageFile($file)) {
                 return [
                     'valid' => false,
                     'error' => 'La imagen no parece ser válida o está corrupta',
@@ -117,7 +118,7 @@ class PaymentProofService
 
         // Validation for PDF
         if ($extension === 'pdf') {
-            if (!$this->validatePDFFile($file)) {
+            if (! $this->validatePDFFile($file)) {
                 return [
                     'valid' => false,
                     'error' => 'El archivo PDF no parece ser válido',
@@ -136,6 +137,7 @@ class PaymentProofService
         try {
             // Check if it's actually an image
             $imageInfo = @getimagesize($file->getPathname());
+
             return $imageInfo !== false;
         } catch (\Exception $e) {
             return false;
@@ -150,7 +152,7 @@ class PaymentProofService
         try {
             // Check PDF header
             $handle = fopen($file->getPathname(), 'rb');
-            if (!$handle) {
+            if (! $handle) {
                 return false;
             }
 
@@ -188,7 +190,7 @@ class PaymentProofService
         $rules = [
             'payment_method' => ['required', 'string', 'in:bank_transfer,cash,mobile_money,other'],
             'amount' => ['required', 'numeric', 'min:0.01'],
-            'payment_date' => ['required', 'date', 'before_or_equal:today', 'after_or_equal:' . now()->subDays(30)->toDateString()],
+            'payment_date' => ['required', 'date', 'before_or_equal:today', 'after_or_equal:'.now()->subDays(30)->toDateString()],
             'reference_number' => ['nullable', 'string', 'max:100'],
             'payer_name' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -272,7 +274,7 @@ class PaymentProofService
     ): PaymentProof {
         $filePaths = array_column($uploadedFiles, 'path');
         $totalSizeMb = array_sum(array_column($uploadedFiles, 'size')) / 1024 / 1024;
-        $mainFileType = !empty($uploadedFiles) ? strtolower(pathinfo($filePaths[0], PATHINFO_EXTENSION)) : null;
+        $mainFileType = ! empty($uploadedFiles) ? strtolower(pathinfo($filePaths[0], PATHINFO_EXTENSION)) : null;
 
         $paymentProof = PaymentProof::create([
             'tenant_id' => $subscription->tenant_id,
@@ -326,7 +328,7 @@ class PaymentProofService
                 }
             } catch (\Exception $e) {
                 $deleted = false;
-                $errors[] = "Error deleting file {$filePath}: " . $e->getMessage();
+                $errors[] = "Error deleting file {$filePath}: ".$e->getMessage();
                 Log::error('Error deleting payment proof file', [
                     'payment_proof_id' => $paymentProof->id,
                     'file_path' => $filePath,
@@ -335,7 +337,7 @@ class PaymentProofService
             }
         }
 
-        if (!$deleted) {
+        if (! $deleted) {
             Log::warning('Some files could not be deleted', [
                 'payment_proof_id' => $paymentProof->id,
                 'errors' => $errors,
@@ -378,11 +380,11 @@ class PaymentProofService
     /**
      * Download payment proof file
      */
-    public function downloadPaymentProofFile(PaymentProof $paymentProof, string $filePath): ?\Symfony\Component\HttpFoundation\StreamedResponse
+    public function downloadPaymentProofFile(PaymentProof $paymentProof, string $filePath): ?StreamedResponse
     {
         try {
             // Check if file belongs to this payment proof
-            if (!in_array($filePath, $paymentProof->file_paths ?? [])) {
+            if (! in_array($filePath, $paymentProof->file_paths ?? [])) {
                 return null;
             }
 
@@ -461,7 +463,7 @@ class PaymentProofService
 
             foreach ($iterator as $file) {
                 if ($file->isFile()) {
-                    $relativePath = 'payment-proofs/' . $file->getFilename();
+                    $relativePath = 'payment-proofs/'.$file->getFilename();
                     $isOrphaned = true;
 
                     // Check if file exists in any payment proof
@@ -469,6 +471,7 @@ class PaymentProofService
                         foreach ($paymentProofs as $paymentProof) {
                             if (in_array($relativePath, $paymentProof->file_paths ?? [])) {
                                 $isOrphaned = false;
+
                                 return false; // Stop checking
                             }
                         }
@@ -526,7 +529,7 @@ class PaymentProofService
             ->where('status', 'active')
             ->first();
 
-        if (!$subscription) {
+        if (! $subscription) {
             $subscription = TenantSubscription::on('landlord')->create([
                 'tenant_id' => $tenant->id,
                 'plan_id' => 1, // Default plan
@@ -541,8 +544,8 @@ class PaymentProofService
         // Upload file
         $uploadResult = $this->uploadPaymentProofFiles([$file], $subscription);
 
-        if (!$uploadResult['success']) {
-            throw new \Exception('Error uploading file: ' . implode(', ', $uploadResult['errors']));
+        if (! $uploadResult['success']) {
+            throw new \Exception('Error uploading file: '.implode(', ', $uploadResult['errors']));
         }
 
         // Validate payment data
@@ -553,8 +556,8 @@ class PaymentProofService
             'notes' => $data['notes'] ?? null,
         ], $subscription);
 
-        if (!$validationResult['valid']) {
-            throw new \Exception('Validation error: ' . implode(', ', array_flatten($validationResult['errors'])));
+        if (! $validationResult['valid']) {
+            throw new \Exception('Validation error: '.implode(', ', array_flatten($validationResult['errors'])));
         }
 
         // Create payment proof

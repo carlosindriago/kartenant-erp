@@ -2,22 +2,19 @@
 
 namespace Tests\Feature\Resources;
 
-use App\Models\User;
-use App\Models\Tenant;
+use App\Filament\Resources\TenantResource;
 use App\Models\SubscriptionPlan;
+use App\Models\Tenant;
 use App\Models\TenantSubscription;
-use App\Models\BackupLog;
-use App\Models\TenantActivity;
+use App\Models\User;
 use App\Services\TenantBackupService;
-use Filament\Tables\Table;
 use Filament\Forms\Form;
+use Filament\Infolists\Infolist;
+use Filament\Tables\Table;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class TenantResourceTest extends TestCase
@@ -25,9 +22,13 @@ class TenantResourceTest extends TestCase
     use RefreshDatabase;
 
     protected User $superadmin;
+
     protected User $regularUser;
+
     protected Tenant $tenant1;
+
     protected Tenant $tenant2;
+
     protected SubscriptionPlan $plan;
 
     protected function setUp(): void
@@ -98,9 +99,9 @@ class TenantResourceTest extends TestCase
     /** @test */
     public function tenant_resource_can_be_instantiated()
     {
-        $resource = app(\App\Filament\Resources\TenantResource::class);
+        $resource = app(TenantResource::class);
 
-        $this->assertInstanceOf(\App\Filament\Resources\TenantResource::class, $resource);
+        $this->assertInstanceOf(TenantResource::class, $resource);
         $this->assertEquals(Tenant::class, $resource::getModel());
     }
 
@@ -113,7 +114,7 @@ class TenantResourceTest extends TestCase
             ->with($this->isType('array'))
             ->willReturnSelf();
 
-        $resource = new \App\Filament\Resources\TenantResource();
+        $resource = new TenantResource;
         $result = $resource->form($form);
 
         $this->assertInstanceOf(Form::class, $result);
@@ -122,7 +123,7 @@ class TenantResourceTest extends TestCase
     /** @test */
     public function tenant_resource_table_can_be_configured()
     {
-        $resource = new \App\Filament\Resources\TenantResource();
+        $resource = new TenantResource;
         $table = $resource->table(Table::make());
 
         $this->assertInstanceOf(Table::class, $table);
@@ -142,36 +143,36 @@ class TenantResourceTest extends TestCase
     public function tenant_resource_static_methods_work_without_instance_context()
     {
         // Test getLockedAccountsCount without $this context
-        $lockedCount = \App\Filament\Resources\TenantResource::getLockedAccountsCount($this->tenant1);
+        $lockedCount = TenantResource::getLockedAccountsCount($this->tenant1);
         $this->assertIsInt($lockedCount);
 
         // Test unlockTenantAccounts without $this context
-        Cache::put('2fa_lockout:' . $this->regularUser->id, true, 3600);
+        Cache::put('2fa_lockout:'.$this->regularUser->id, true, 3600);
 
         // This should not throw "Using $this when not in object context" error
-        \App\Filament\Resources\TenantResource::unlockTenantAccounts($this->tenant1);
+        TenantResource::unlockTenantAccounts($this->tenant1);
 
         // Verify lockout was cleared
-        $this->assertFalse(Cache::has('2fa_lockout:' . $this->regularUser->id));
+        $this->assertFalse(Cache::has('2fa_lockout:'.$this->regularUser->id));
     }
 
     /** @test */
     public function get_locked_accounts_count_returns_correct_value()
     {
         // Initially should be 0
-        $count = \App\Filament\Resources\TenantResource::getLockedAccountsCount($this->tenant1);
+        $count = TenantResource::getLockedAccountsCount($this->tenant1);
         $this->assertEquals(0, $count);
 
         // Add some locked accounts
-        Cache::put('2fa_lockout:' . $this->regularUser->id, true, 3600);
+        Cache::put('2fa_lockout:'.$this->regularUser->id, true, 3600);
 
         // Add another user to tenant and lock them
         $user2 = User::factory()->create();
         $this->tenant1->users()->attach($user2->id);
-        Cache::put('2fa_lockout:' . $user2->id, true, 3600);
+        Cache::put('2fa_lockout:'.$user2->id, true, 3600);
 
         // Count should now be 2
-        $count = \App\Filament\Resources\TenantResource::getLockedAccountsCount($this->tenant1);
+        $count = TenantResource::getLockedAccountsCount($this->tenant1);
         $this->assertEquals(2, $count);
     }
 
@@ -185,58 +186,58 @@ class TenantResourceTest extends TestCase
         $this->tenant1->users()->attach([$user2->id, $user3->id]);
 
         // Lock all users
-        Cache::put('2fa_lockout:' . $this->regularUser->id, true, 3600);
-        Cache::put('2fa_lockout:' . $user2->id, true, 3600);
-        Cache::put('2fa_lockout:' . $user3->id, true, 3600);
-        Cache::put('2fa_attempts:' . $this->regularUser->id, 3, 3600);
+        Cache::put('2fa_lockout:'.$this->regularUser->id, true, 3600);
+        Cache::put('2fa_lockout:'.$user2->id, true, 3600);
+        Cache::put('2fa_lockout:'.$user3->id, true, 3600);
+        Cache::put('2fa_attempts:'.$this->regularUser->id, 3, 3600);
 
         // Verify locks exist
-        $this->assertTrue(Cache::has('2fa_lockout:' . $this->regularUser->id));
-        $this->assertTrue(Cache::has('2fa_lockout:' . $user2->id));
-        $this->assertTrue(Cache::has('2fa_lockout:' . $user3->id));
-        $this->assertTrue(Cache::has('2fa_attempts:' . $this->regularUser->id));
+        $this->assertTrue(Cache::has('2fa_lockout:'.$this->regularUser->id));
+        $this->assertTrue(Cache::has('2fa_lockout:'.$user2->id));
+        $this->assertTrue(Cache::has('2fa_lockout:'.$user3->id));
+        $this->assertTrue(Cache::has('2fa_attempts:'.$this->regularUser->id));
 
         // Unlock accounts
-        \App\Filament\Resources\TenantResource::unlockTenantAccounts($this->tenant1);
+        TenantResource::unlockTenantAccounts($this->tenant1);
 
         // Verify all locks are cleared
-        $this->assertFalse(Cache::has('2fa_lockout:' . $this->regularUser->id));
-        $this->assertFalse(Cache::has('2fa_lockout:' . $user2->id));
-        $this->assertFalse(Cache::has('2fa_lockout:' . $user3->id));
-        $this->assertFalse(Cache::has('2fa_attempts:' . $this->regularUser->id));
+        $this->assertFalse(Cache::has('2fa_lockout:'.$this->regularUser->id));
+        $this->assertFalse(Cache::has('2fa_lockout:'.$user2->id));
+        $this->assertFalse(Cache::has('2fa_lockout:'.$user3->id));
+        $this->assertFalse(Cache::has('2fa_attempts:'.$this->regularUser->id));
     }
 
     /** @test */
     public function tenant_resource_statistics_methods_work_correctly()
     {
         // Test getTenantStorageUsage
-        $storageUsage = \App\Filament\Resources\TenantResource::getTenantStorageUsage(
-            fn() => $this->tenant1->database
+        $storageUsage = TenantResource::getTenantStorageUsage(
+            fn () => $this->tenant1->database
         );
         $this->assertIsString($storageUsage);
 
         // Test getTenantFileCount
-        $fileCount = \App\Filament\Resources\TenantResource::getTenantFileCount(
-            fn() => $this->tenant1->id
+        $fileCount = TenantResource::getTenantFileCount(
+            fn () => $this->tenant1->id
         );
         $this->assertIsInt($fileCount);
 
         // Test getTenantUserCount
-        $userCount = \App\Filament\Resources\TenantResource::getTenantUserCount(
-            fn() => $this->tenant1->id
+        $userCount = TenantResource::getTenantUserCount(
+            fn () => $this->tenant1->id
         );
         $this->assertIsInt($userCount);
         $this->assertEquals(1, $userCount); // We attached 1 user
 
         // Test getTenantLastActivity
-        $lastActivity = \App\Filament\Resources\TenantResource::getTenantLastActivity(
-            fn() => $this->tenant1->id
+        $lastActivity = TenantResource::getTenantLastActivity(
+            fn () => $this->tenant1->id
         );
         $this->assertIsString($lastActivity);
 
         // Test getTenantHealthScore
-        $healthScore = \App\Filament\Resources\TenantResource::calculateTenantHealthScore(
-            fn() => $this->tenant1
+        $healthScore = TenantResource::calculateTenantHealthScore(
+            fn () => $this->tenant1
         );
         $this->assertIsInt($healthScore);
         $this->assertGreaterThanOrEqual(0, $healthScore);
@@ -253,7 +254,7 @@ class TenantResourceTest extends TestCase
             'deleted_at' => now(),
         ]);
 
-        $resource = new \App\Filament\Resources\TenantResource();
+        $resource = new TenantResource;
         $query = $resource::getEloquentQuery();
 
         // Should not include archived tenants
@@ -266,7 +267,7 @@ class TenantResourceTest extends TestCase
     /** @test */
     public function tenant_resource_permissions_work_correctly()
     {
-        $resource = new \App\Filament\Resources\TenantResource();
+        $resource = new TenantResource;
 
         // Mock superadmin auth
         auth('superadmin')->login($this->superadmin);
@@ -293,7 +294,7 @@ class TenantResourceTest extends TestCase
     /** @test */
     public function tenant_resource_navigation_registration_works()
     {
-        $resource = new \App\Filament\Resources\TenantResource();
+        $resource = new TenantResource;
 
         // Mock superadmin auth
         auth('superadmin')->login($this->superadmin);
@@ -328,7 +329,7 @@ class TenantResourceTest extends TestCase
         Notification::fake();
 
         // Execute the backup action
-        $resource = new \App\Filament\Resources\TenantResource();
+        $resource = new TenantResource;
 
         // This would normally be called by the Filament action
         // We're testing that the service call works without errors
@@ -340,22 +341,25 @@ class TenantResourceTest extends TestCase
     public function tenant_resource_handles_exception_in_static_methods()
     {
         // Test with invalid tenant that would cause exception
-        $invalidTenant = new class {
-            public function __get($property) {
+        $invalidTenant = new class
+        {
+            public function __get($property)
+            {
                 throw new \Exception("Invalid property: {$property}");
             }
 
-            public function users() {
-                throw new \Exception("Cannot access users");
+            public function users()
+            {
+                throw new \Exception('Cannot access users');
             }
         };
 
         // Methods should handle exceptions gracefully
-        $count = \App\Filament\Resources\TenantResource::getLockedAccountsCount($invalidTenant);
+        $count = TenantResource::getLockedAccountsCount($invalidTenant);
         $this->assertEquals(0, $count);
 
         // unlockTenantAccounts should not throw exception
-        \App\Filament\Resources\TenantResource::unlockTenantAccounts($invalidTenant);
+        TenantResource::unlockTenantAccounts($invalidTenant);
 
         // If we reach here, no exception was thrown
         $this->assertTrue(true);
@@ -375,21 +379,21 @@ class TenantResourceTest extends TestCase
         Cache::put("tenant_users_{$this->tenant2->id}", 1, 300);
 
         // Verify each tenant gets its own data
-        $fileCount1 = \App\Filament\Resources\TenantResource::getTenantFileCount(
-            fn() => $this->tenant1->id
+        $fileCount1 = TenantResource::getTenantFileCount(
+            fn () => $this->tenant1->id
         );
-        $fileCount2 = \App\Filament\Resources\TenantResource::getTenantFileCount(
-            fn() => $this->tenant2->id
+        $fileCount2 = TenantResource::getTenantFileCount(
+            fn () => $this->tenant2->id
         );
 
         $this->assertEquals(5, $fileCount1);
         $this->assertEquals(2, $fileCount2);
 
-        $userCount1 = \App\Filament\Resources\TenantResource::getTenantUserCount(
-            fn() => $this->tenant1->id
+        $userCount1 = TenantResource::getTenantUserCount(
+            fn () => $this->tenant1->id
         );
-        $userCount2 = \App\Filament\Resources\TenantResource::getTenantUserCount(
-            fn() => $this->tenant2->id
+        $userCount2 = TenantResource::getTenantUserCount(
+            fn () => $this->tenant2->id
         );
 
         $this->assertEquals(3, $userCount1);
@@ -399,10 +403,10 @@ class TenantResourceTest extends TestCase
     /** @test */
     public function tenant_resource_infolist_configuration_works()
     {
-        $resource = new \App\Filament\Resources\TenantResource();
+        $resource = new TenantResource;
 
         // Mock the infolist
-        $infolist = $this->createMock(\Filament\Infolists\Infolist::class);
+        $infolist = $this->createMock(Infolist::class);
         $infolist->expects($this->once())
             ->method('schema')
             ->with($this->isType('array'))
@@ -410,13 +414,13 @@ class TenantResourceTest extends TestCase
 
         // Should not throw exception
         $result = $resource->infolist($infolist);
-        $this->assertInstanceOf(\Filament\Infolists\Infolist::class, $result);
+        $this->assertInstanceOf(Infolist::class, $result);
     }
 
     /** @test */
     public function tenant_resource_pages_configuration_works()
     {
-        $resource = new \App\Filament\Resources\TenantResource();
+        $resource = new TenantResource;
         $pages = $resource::getPages();
 
         $this->assertIsArray($pages);
@@ -434,8 +438,9 @@ class TenantResourceTest extends TestCase
         // Create a closure similar to what Filament uses
         $closure = function () use (&$wasCalled) {
             $wasCalled = true;
+
             // This should not throw "Using $this when not in object context"
-            return \App\Filament\Resources\TenantResource::getLockedAccountsCount($this->tenant1);
+            return TenantResource::getLockedAccountsCount($this->tenant1);
         };
 
         // Bind the closure to a mock context (similar to what Filament does)
@@ -461,7 +466,7 @@ class TenantResourceTest extends TestCase
         ]);
 
         // Attempting to resend welcome should not crash
-        $resource = new \App\Filament\Resources\TenantResource();
+        $resource = new TenantResource;
 
         // The action would normally be called by Filament, but we can test the logic
         $user = User::where('email', $tenantWithNoUser->contact_email)->first();
@@ -479,15 +484,15 @@ class TenantResourceTest extends TestCase
         $cacheKey = "tenant_health_{$this->tenant1->id}";
 
         // First call should calculate and cache
-        $score1 = \App\Filament\Resources\TenantResource::calculateTenantHealthScore(
-            fn() => $this->tenant1
+        $score1 = TenantResource::calculateTenantHealthScore(
+            fn () => $this->tenant1
         );
 
         $this->assertTrue(Cache::has($cacheKey));
 
         // Second call should use cache
-        $score2 = \App\Filament\Resources\TenantResource::calculateTenantHealthScore(
-            fn() => $this->tenant1
+        $score2 = TenantResource::calculateTenantHealthScore(
+            fn () => $this->tenant1
         );
 
         $this->assertEquals($score1, $score2);

@@ -1,23 +1,26 @@
 <?php
 
+use App\Models\User;
+use Illuminate\Contracts\Console\Kernel;
+
 require dirname(__DIR__).'/vendor/autoload.php';
 
 $app = require_once dirname(__DIR__).'/bootstrap/app.php';
-$app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+$app->make(Kernel::class)->bootstrap();
 
 $email = $argv[1] ?? 'admin@kartenant.test';
 $newPassword = $argv[2] ?? bin2hex(random_bytes(8));
 
 echo "=== Reset Password para Superadmin ===\n\n";
 
-$user = \App\Models\User::where('email', $email)->first();
+$user = User::where('email', $email)->first();
 
-if (!$user) {
+if (! $user) {
     echo "❌ Usuario no encontrado: {$email}\n";
     exit(1);
 }
 
-if (!$user->is_super_admin) {
+if (! $user->is_super_admin) {
     echo "❌ El usuario no es superadmin\n";
     exit(1);
 }

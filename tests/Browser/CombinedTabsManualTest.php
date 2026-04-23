@@ -15,14 +15,14 @@ class CombinedTabsManualTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             // Visit the admin login page first
             $browser->visit('/admin/login')
-                    ->pause(1000)
-                    ->assertSee('Iniciar sesión');
+                ->pause(1000)
+                ->assertSee('Iniciar sesión');
 
             // Try to login with default credentials
             $browser->type('email', 'admin@emporiodigital.com')
-                    ->type('password', 'password')
-                    ->press('Iniciar sesión')
-                    ->pause(3000);
+                ->type('password', 'password')
+                ->press('Iniciar sesión')
+                ->pause(3000);
 
             // Check if we made it to admin dashboard
             $currentUrl = $browser->driver->getCurrentURL();
@@ -33,7 +33,7 @@ class CombinedTabsManualTest extends DuskTestCase
 
                 // Now visit the tenant edit page
                 $browser->visit('/admin/tenants/10/edit')
-                        ->pause(3000);
+                    ->pause(3000);
 
                 $editUrl = $browser->driver->getCurrentURL();
                 echo "Edit page URL: $editUrl\n";
@@ -49,7 +49,7 @@ class CombinedTabsManualTest extends DuskTestCase
                     'modules-tab' => 'Módulos y Add-ons',
                     'save-button' => 'Guardar Cambios',
                     'cancel-button' => 'Cancelar',
-                    'document-icon' => 'document-text'
+                    'document-icon' => 'document-text',
                 ];
 
                 echo "\n📋 Page Analysis Results:\n";

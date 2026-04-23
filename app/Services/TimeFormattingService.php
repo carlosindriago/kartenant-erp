@@ -10,7 +10,7 @@ class TimeFormattingService
     /**
      * Formatea tiempo restante en formato "Días y Horas" para Ernesto
      *
-     * @param Carbon $endDate Fecha de vencimiento
+     * @param  Carbon  $endDate  Fecha de vencimiento
      * @return string Formato "Faltan X días y Y horas" o "Vencido hace X días"
      */
     public static function formatRemainingTime(Carbon $endDate): string
@@ -41,7 +41,7 @@ class TimeFormattingService
         } catch (\Exception $e) {
             Log::error('Error en TimeFormattingService::formatRemainingTime', [
                 'end_date' => $endDate->toISOString(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return 'Fecha no disponible';
@@ -62,7 +62,7 @@ class TimeFormattingService
         if ($diff->days === 1) {
             return $diff->h > 0
                 ? "Vencido hace 1 día y {$diff->h} horas"
-                : "Vencido hace 1 día";
+                : 'Vencido hace 1 día';
         }
 
         return $diff->h > 0
@@ -75,9 +75,9 @@ class TimeFormattingService
      */
     private static function formatHoursOnly(int $hours): string
     {
-        return match(true) {
-            $hours === 0 => "Menos de 1 hora",
-            $hours === 1 => "Falta 1 hora",
+        return match (true) {
+            $hours === 0 => 'Menos de 1 hora',
+            $hours === 1 => 'Falta 1 hora',
             $hours <= 6 => "Faltan {$hours} horas",
             default => "Faltan {$hours} horas"
         };
@@ -88,9 +88,9 @@ class TimeFormattingService
      */
     private static function formatOneDay(int $hours): string
     {
-        return match(true) {
-            $hours === 0 => "Falta 1 día",
-            $hours === 1 => "Falta 1 día y 1 hora",
+        return match (true) {
+            $hours === 0 => 'Falta 1 día',
+            $hours === 1 => 'Falta 1 día y 1 hora',
             $hours <= 6 => "Falta 1 día y {$hours} horas",
             default => "Falta 1 día y {$hours} horas"
         };
@@ -101,7 +101,7 @@ class TimeFormattingService
      */
     private static function formatMultipleDays(int $days, int $hours): string
     {
-        $dayText = match(true) {
+        $dayText = match (true) {
             $days === 0 => '',
             $days === 1 => '1 día',
             $days <= 6 => "{$days} días",
@@ -122,7 +122,6 @@ class TimeFormattingService
     /**
      * Formato simplificado para widgets de dashboard
      *
-     * @param Carbon $endDate
      * @return string Formato corto "Xd Yh"
      */
     public static function formatCompactRemainingTime(Carbon $endDate): string
@@ -149,7 +148,7 @@ class TimeFormattingService
         } catch (\Exception $e) {
             Log::error('Error en TimeFormattingService::formatCompactRemainingTime', [
                 'end_date' => $endDate->toISOString(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return 'N/A';
@@ -159,7 +158,6 @@ class TimeFormattingService
     /**
      * Formatea diferencia relativa en español business-friendly
      *
-     * @param Carbon $date
      * @return string "Hoy", "Ayer", "Hace X días", etc.
      */
     public static function formatRelativeDate(Carbon $date): string
@@ -168,15 +166,15 @@ class TimeFormattingService
             $now = now();
 
             if ($date->isToday()) {
-                return "Hoy";
+                return 'Hoy';
             }
 
             if ($date->isYesterday()) {
-                return "Ayer";
+                return 'Ayer';
             }
 
             if ($date->isTomorrow()) {
-                return "Mañana";
+                return 'Mañana';
             }
 
             $diffDays = $now->diffInDays($date, false);
@@ -184,11 +182,12 @@ class TimeFormattingService
             if (abs($diffDays) <= 7) {
                 return $diffDays > 0
                     ? "En {$diffDays} días"
-                    : "Hace " . abs($diffDays) . " días";
+                    : 'Hace '.abs($diffDays).' días';
             }
 
             if (abs($diffDays) <= 30) {
                 $weeks = round(abs($diffDays) / 7);
+
                 return $diffDays > 0
                     ? "En {$weeks} semanas"
                     : "Hace {$weeks} semanas";
@@ -196,12 +195,14 @@ class TimeFormattingService
 
             if (abs($diffDays) <= 365) {
                 $months = round(abs($diffDays) / 30);
+
                 return $diffDays > 0
                     ? "En {$months} meses"
                     : "Hace {$months} meses";
             }
 
             $years = round(abs($diffDays) / 365);
+
             return $diffDays > 0
                 ? "En {$years} años"
                 : "Hace {$years} años";
@@ -209,7 +210,7 @@ class TimeFormattingService
         } catch (\Exception $e) {
             Log::error('Error en TimeFormattingService::formatRelativeDate', [
                 'date' => $date->toISOString(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return 'Fecha desconocida';
@@ -219,7 +220,6 @@ class TimeFormattingService
     /**
      * Formatea fecha completa en formato latinoamericano
      *
-     * @param Carbon $date
      * @return string "d de mes de año, H:MM"
      */
     public static function formatFullDate(Carbon $date): string
@@ -227,15 +227,15 @@ class TimeFormattingService
         try {
             $months = [
                 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-                'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+                'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
             ];
 
-            return $date->format('d') . ' de ' . $months[$date->month - 1] . ' de ' . $date->format('Y, H:i');
+            return $date->format('d').' de '.$months[$date->month - 1].' de '.$date->format('Y, H:i');
 
         } catch (\Exception $e) {
             Log::error('Error en TimeFormattingService::formatFullDate', [
                 'date' => $date->toISOString(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return $date->format('d/m/Y H:i');
@@ -245,9 +245,7 @@ class TimeFormattingService
     /**
      * Verifica si una fecha está próxima a vencer (alerta naranja)
      *
-     * @param Carbon $endDate
-     * @param int $daysThreshold Umbral de días (default: 7)
-     * @return bool
+     * @param  int  $daysThreshold  Umbral de días (default: 7)
      */
     public static function isExpiringSoon(Carbon $endDate, int $daysThreshold = 7): bool
     {
@@ -262,8 +260,8 @@ class TimeFormattingService
     /**
      * Formatea días decimales a formato "X días Y horas" para dashboard
      *
-     * @param float $decimalDays Días con decimales (ej: 6.8758198285301)
-     * @param bool $isPast Si es tiempo pasado o futuro
+     * @param  float  $decimalDays  Días con decimales (ej: 6.8758198285301)
+     * @param  bool  $isPast  Si es tiempo pasado o futuro
      * @return string Formato legible "Hace X días Y horas" o "Faltan X días Y horas"
      */
     public static function formatDecimalDays(float $decimalDays, bool $isPast = false): string
@@ -309,7 +307,7 @@ class TimeFormattingService
             Log::error('Error en TimeFormattingService::formatDecimalDays', [
                 'decimal_days' => $decimalDays,
                 'is_past' => $isPast,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return 'Tiempo no disponible';
@@ -319,8 +317,8 @@ class TimeFormattingService
     /**
      * Formatea días decimales de forma compacta para dashboard
      *
-     * @param float $decimalDays Días con decimales
-     * @param bool $isPast Si es tiempo pasado
+     * @param  float  $decimalDays  Días con decimales
+     * @param  bool  $isPast  Si es tiempo pasado
      * @return string Formato "Xd Yh" o "Hace Xd Yh"
      */
     public static function formatDecimalDaysCompact(float $decimalDays, bool $isPast = false): string
@@ -342,14 +340,14 @@ class TimeFormattingService
             }
 
             if ($days === 0) {
-                return $prefix . "{$hours}h";
+                return $prefix."{$hours}h";
             }
 
             if ($hours === 0) {
-                return $prefix . "{$days}d";
+                return $prefix."{$days}d";
             }
 
-            return $prefix . "{$days}d {$hours}h";
+            return $prefix."{$days}d {$hours}h";
 
         } catch (\Exception $e) {
             return 'N/A';
@@ -359,7 +357,6 @@ class TimeFormattingService
     /**
      * Obtiene el color de estado según tiempo restante
      *
-     * @param Carbon $endDate
      * @return string 'success', 'warning', 'danger'
      */
     public static function getTimeStatusColor(Carbon $endDate): string
@@ -371,7 +368,7 @@ class TimeFormattingService
 
             $daysLeft = $endDate->diffInDays(now());
 
-            return match(true) {
+            return match (true) {
                 $daysLeft > 30 => 'success',
                 $daysLeft > 7 => 'warning',
                 default => 'danger'

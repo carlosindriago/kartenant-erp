@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -32,7 +32,7 @@ class ViewActivity extends ViewRecord
                                     ->label('Fecha y Hora')
                                     ->dateTime('d/m/Y H:i:s')
                                     ->icon('heroicon-o-calendar'),
-                                
+
                                 Infolists\Components\TextEntry::make('description')
                                     ->label('Acción')
                                     ->badge()
@@ -48,14 +48,14 @@ class ViewActivity extends ViewRecord
                                         'deleted' => 'Eliminado',
                                         default => ucfirst($state),
                                     }),
-                                
+
                                 Infolists\Components\TextEntry::make('event')
                                     ->label('Evento')
                                     ->badge()
                                     ->placeholder('N/A'),
                             ]),
                     ]),
-                
+
                 Infolists\Components\Section::make('Usuario y Contexto')
                     ->schema([
                         Infolists\Components\Grid::make(2)
@@ -66,38 +66,37 @@ class ViewActivity extends ViewRecord
                                     ->icon('heroicon-o-user')
                                     ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
                                     ->weight('bold'),
-                                
+
                                 Infolists\Components\TextEntry::make('causer.email')
                                     ->label('Email del Usuario')
                                     ->placeholder('N/A')
                                     ->icon('heroicon-o-envelope'),
                             ]),
                     ]),
-                
+
                 Infolists\Components\Section::make('Recurso Afectado')
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('subject_type')
                                     ->label('Tipo de Recurso')
-                                    ->formatStateUsing(fn (?string $state): string => 
-                                        $state ? class_basename($state) : 'N/A'
+                                    ->formatStateUsing(fn (?string $state): string => $state ? class_basename($state) : 'N/A'
                                     )
                                     ->badge()
                                     ->color('info'),
-                                
+
                                 Infolists\Components\TextEntry::make('subject_id')
                                     ->label('ID del Recurso')
                                     ->badge()
                                     ->placeholder('N/A'),
-                                
+
                                 Infolists\Components\TextEntry::make('log_name')
                                     ->label('Categoría del Log')
                                     ->badge()
                                     ->placeholder('default'),
                             ]),
                     ]),
-                
+
                 Infolists\Components\Section::make('Detalles de los Cambios')
                     ->schema([
                         Infolists\Components\ViewEntry::make('properties')
@@ -106,7 +105,7 @@ class ViewActivity extends ViewRecord
                             ->columnSpanFull(),
                     ])
                     ->collapsible(),
-                
+
                 Infolists\Components\Section::make('Información Técnica')
                     ->schema([
                         Infolists\Components\Grid::make(2)
@@ -115,7 +114,7 @@ class ViewActivity extends ViewRecord
                                     ->label('UUID del Batch')
                                     ->placeholder('N/A')
                                     ->copyable(),
-                                
+
                                 Infolists\Components\TextEntry::make('id')
                                     ->label('ID del Registro')
                                     ->badge()

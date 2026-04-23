@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -17,9 +17,12 @@ use Filament\Widgets\ChartWidget;
 class TrialVsPaidWidget extends ChartWidget
 {
     protected static ?string $heading = 'Tenants: Trial vs Pago';
+
     protected static ?int $sort = 3;
+
     protected static ?string $pollingInterval = '60s';
-    protected int | string | array $columnSpan = 'full';
+
+    protected int|string|array $columnSpan = 'full';
 
     /**
      * Solo mostrar en panel admin
@@ -28,6 +31,7 @@ class TrialVsPaidWidget extends ChartWidget
     {
         // Use filament() helper for proper panel context with null checks
         $panel = filament()->getCurrentPanel();
+
         return $panel && $panel->getId() === 'admin' && filament()->auth()->check();
     }
 

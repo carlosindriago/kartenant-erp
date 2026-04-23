@@ -22,7 +22,7 @@ class SalesTeamAlertMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $subject = match($this->alert->alert_type) {
+        $subject = match ($this->alert->alert_type) {
             'overdraft' => '🔴 Oportunidad de Venta - Cliente Excedió Límites',
             'critical' => '🚨 URGENTE - Cliente con Uso Crítico',
             default => '📊 Alerta de Uso - Equipo de Ventas',

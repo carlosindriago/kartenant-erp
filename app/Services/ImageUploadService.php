@@ -13,13 +13,16 @@ use Throwable;
 class ImageUploadService
 {
     private const MAX_LOGO_SIZE = 2048; // 2MB in KB
+
     private const MAX_BACKGROUND_SIZE = 5120; // 5MB in KB
+
     private const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
+
     private const ALLOWED_MIME_TYPES = [
         'image/jpeg',
         'image/jpg',
         'image/png',
-        'image/webp'
+        'image/webp',
     ];
 
     /**
@@ -31,7 +34,7 @@ class ImageUploadService
             'tenant_id' => $tenant->id,
             'original_name' => $file->getClientOriginalName(),
             'size' => $file->getSize(),
-            'mime_type' => $file->getMimeType()
+            'mime_type' => $file->getMimeType(),
         ]);
 
         $this->validateImage($file, 'logo');
@@ -41,13 +44,13 @@ class ImageUploadService
         $path = $this->getStoragePath('logo', $tenant);
 
         // Store the processed image
-        $fullPath = $path . '/' . $filename;
+        $fullPath = $path.'/'.$filename;
         Storage::disk('tenant_uploads')->put($fullPath, $processedImage);
 
         Log::info('Logo uploaded successfully', [
             'tenant_id' => $tenant->id,
             'path' => $fullPath,
-            'size' => strlen($processedImage)
+            'size' => strlen($processedImage),
         ]);
 
         return $fullPath;
@@ -62,7 +65,7 @@ class ImageUploadService
             'tenant_id' => $tenant->id,
             'original_name' => $file->getClientOriginalName(),
             'size' => $file->getSize(),
-            'mime_type' => $file->getMimeType()
+            'mime_type' => $file->getMimeType(),
         ]);
 
         $this->validateImage($file, 'background');
@@ -72,13 +75,13 @@ class ImageUploadService
         $path = $this->getStoragePath('background', $tenant);
 
         // Store the processed image
-        $fullPath = $path . '/' . $filename;
+        $fullPath = $path.'/'.$filename;
         Storage::disk('tenant_uploads')->put($fullPath, $processedImage);
 
         Log::info('Background uploaded successfully', [
             'tenant_id' => $tenant->id,
             'path' => $fullPath,
-            'size' => strlen($processedImage)
+            'size' => strlen($processedImage),
         ]);
 
         return $fullPath;
@@ -91,11 +94,12 @@ class ImageUploadService
     {
         try {
             // Verify the file belongs to the tenant
-            if (!$this->isTenantFile($path, $tenant)) {
+            if (! $this->isTenantFile($path, $tenant)) {
                 Log::warning('Attempted to delete file from different tenant', [
                     'tenant_id' => $tenant->id,
-                    'path' => $path
+                    'path' => $path,
                 ]);
+
                 return false;
             }
 
@@ -106,7 +110,7 @@ class ImageUploadService
 
                 Log::info('Image deleted successfully', [
                     'tenant_id' => $tenant->id,
-                    'path' => $path
+                    'path' => $path,
                 ]);
 
                 return true;
@@ -114,7 +118,7 @@ class ImageUploadService
 
             Log::warning('File not found for deletion', [
                 'tenant_id' => $tenant->id,
-                'path' => $path
+                'path' => $path,
             ]);
 
             return false;
@@ -122,7 +126,7 @@ class ImageUploadService
             Log::error('Error deleting image', [
                 'tenant_id' => $tenant->id,
                 'path' => $path,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return false;
@@ -139,21 +143,21 @@ class ImageUploadService
 
         if ($file->getSize() > $maxSize) {
             throw new \InvalidArgumentException(
-                "El archivo es demasiado grande. Máximo permitido: " .
-                ($maxSize / 1024 / 1024) . "MB"
+                'El archivo es demasiado grande. Máximo permitido: '.
+                ($maxSize / 1024 / 1024).'MB'
             );
         }
 
         // Check file extension
         $extension = strtolower($file->getClientOriginalExtension());
-        if (!in_array($extension, self::ALLOWED_EXTENSIONS)) {
+        if (! in_array($extension, self::ALLOWED_EXTENSIONS)) {
             throw new \InvalidArgumentException(
-                'Formato de archivo no permitido. Use: ' . implode(', ', self::ALLOWED_EXTENSIONS)
+                'Formato de archivo no permitido. Use: '.implode(', ', self::ALLOWED_EXTENSIONS)
             );
         }
 
         // Check MIME type
-        if (!in_array($file->getMimeType(), self::ALLOWED_MIME_TYPES)) {
+        if (! in_array($file->getMimeType(), self::ALLOWED_MIME_TYPES)) {
             throw new \InvalidArgumentException(
                 'Tipo de archivo no válido. Solo se permiten imágenes.'
             );
@@ -178,7 +182,7 @@ class ImageUploadService
         $signatures = [
             'jpeg' => [0xFF, 0xD8, 0xFF],
             'png' => [0x89, 0x50, 0x4E, 0x47],
-            'webp' => [0x52, 0x49, 0x46, 0x46]
+            'webp' => [0x52, 0x49, 0x46, 0x46],
         ];
 
         $isValid = false;
@@ -194,10 +198,10 @@ class ImageUploadService
             }
         }
 
-        if (!$isValid) {
+        if (! $isValid) {
             Log::warning('Invalid file signature detected', [
                 'file' => $file->getClientOriginalName(),
-                'signature' => bin2hex($signature)
+                'signature' => bin2hex($signature),
             ]);
 
             throw new \InvalidArgumentException('El archivo no parece ser una imagen válida.');
@@ -216,14 +220,14 @@ class ImageUploadService
             if ($result !== CL_CLEAN) {
                 Log::error('Malware detected in uploaded file', [
                     'file' => $file->getClientOriginalName(),
-                    'result' => $result
+                    'result' => $result,
                 ]);
 
                 throw new \RuntimeException('El archivo ha sido bloqueado por razones de seguridad.');
             }
 
             Log::info('File passed ClamAV scan', [
-                'file' => $file->getClientOriginalName()
+                'file' => $file->getClientOriginalName(),
             ]);
 
             return;
@@ -249,14 +253,14 @@ class ImageUploadService
             'onload=',
             'onerror=',
             'eval(',
-            'exec('
+            'exec(',
         ];
 
         foreach ($suspiciousPatterns as $pattern) {
             if (stripos($content, $pattern) !== false) {
                 Log::warning('Suspicious pattern detected in uploaded file', [
                     'file' => $file->getClientOriginalName(),
-                    'pattern' => $pattern
+                    'pattern' => $pattern,
                 ]);
 
                 throw new \RuntimeException('El archivo contiene contenido sospechoso y ha sido bloqueado.');
@@ -264,7 +268,7 @@ class ImageUploadService
         }
 
         Log::info('File passed basic security scan', [
-            'file' => $file->getClientOriginalName()
+            'file' => $file->getClientOriginalName(),
         ]);
     }
 
@@ -277,7 +281,7 @@ class ImageUploadService
             $image = Image::make($file->getPathname());
 
             // Validate that it's actually an image
-            if (!$image->width() || !$image->height()) {
+            if (! $image->width() || ! $image->height()) {
                 throw new \InvalidArgumentException('El archivo no es una imagen válida.');
             }
 
@@ -307,7 +311,7 @@ class ImageUploadService
                 'type' => $type,
                 'original_size' => $file->getSize(),
                 'processed_size' => strlen($image->encoded),
-                'dimensions' => $image->width() . 'x' . $image->height()
+                'dimensions' => $image->width().'x'.$image->height(),
             ]);
 
             return $image->encoded;
@@ -316,10 +320,10 @@ class ImageUploadService
             Log::error('Error processing image', [
                 'file' => $file->getClientOriginalName(),
                 'type' => $type,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
-            throw new \RuntimeException('Error al procesar la imagen: ' . $e->getMessage());
+            throw new \RuntimeException('Error al procesar la imagen: '.$e->getMessage());
         }
     }
 
@@ -379,18 +383,18 @@ class ImageUploadService
             return [
                 'total_size' => $totalSize,
                 'file_count' => $fileCount,
-                'total_size_human' => $this->formatBytes($totalSize)
+                'total_size_human' => $this->formatBytes($totalSize),
             ];
         } catch (Throwable $e) {
             Log::error('Error calculating storage usage', [
                 'tenant_id' => $tenant->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [
                 'total_size' => 0,
                 'file_count' => 0,
-                'total_size_human' => '0 B'
+                'total_size_human' => '0 B',
             ];
         }
     }
@@ -406,6 +410,6 @@ class ImageUploadService
             $bytes /= 1024;
         }
 
-        return round($bytes, $precision) . ' ' . $units[$i];
+        return round($bytes, $precision).' '.$units[$i];
     }
 }

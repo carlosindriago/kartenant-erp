@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Landlord\Permission;
+use App\Models\Landlord\Role;
+use Spatie\Permission\DefaultTeamResolver;
+
 return [
 
     'models' => [
@@ -16,7 +20,7 @@ return [
         // CRITICAL: Default models MUST be Landlord models
         // Tenant models are switched by SpatiePermissionsBootstrapper when in tenant context
         // This prevents accidental use of tenant connection in admin/global context
-        'permission' => App\Models\Landlord\Permission::class,
+        'permission' => Permission::class,
 
         /*
          * When using the "HasRoles" trait from this package, we need to know which
@@ -27,8 +31,8 @@ return [
          * `Spatie\Permission\Contracts\Role` contract.
          */
 
-        // CRITICAL: Default models MUST be Landlord models  
-        'role' => App\Models\Landlord\Role::class,
+        // CRITICAL: Default models MUST be Landlord models
+        'role' => Role::class,
 
     ],
 
@@ -140,7 +144,7 @@ return [
     /*
      * The class to use to resolve the permissions team id
      */
-    'team_resolver' => \Spatie\Permission\DefaultTeamResolver::class,
+    'team_resolver' => DefaultTeamResolver::class,
 
     /*
      * Passport Client Credentials Grant
@@ -187,7 +191,7 @@ return [
          * When permissions or roles are updated the cache is flushed automatically.
          */
 
-        'expiration_time' => \DateInterval::createFromDateString('24 hours'),
+        'expiration_time' => DateInterval::createFromDateString('24 hours'),
 
         /*
          * The cache key used to store all permissions.

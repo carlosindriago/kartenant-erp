@@ -2,31 +2,27 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Modules\POS\Services;
 
-use App\Modules\POS\Models\Sale;
-use App\Modules\POS\Models\SaleItem;
+use App\Modules\Inventory\Models\MovementReason;
 use App\Modules\Inventory\Models\Product;
 use App\Modules\Inventory\Models\StockMovement;
-use App\Modules\Inventory\Models\MovementReason;
+use App\Modules\POS\Models\Sale;
+use App\Modules\POS\Models\SaleItem;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 
 class POSService
 {
     /**
      * Process a sale transaction
-     * 
-     * @param array $saleData
-     * @param array $items
-     * @return Sale
+     *
      * @throws \Exception
      */
     public function processSale(array $saleData, array $items): Sale
@@ -34,16 +30,16 @@ class POSService
         return DB::transaction(function () use ($saleData, $items) {
             // 1. Validate stock availability
             $this->validateStockAvailability($items);
-            
+
             // 2. Create sale record
             $sale = $this->createSale($saleData);
-            
+
             // 3. Create sale items and update inventory
             foreach ($items as $item) {
                 $this->createSaleItem($sale, $item);
                 $this->updateInventory($sale, $item);
             }
-            
+
             // 4. Generar hash de seguridad único e inmutable para el comprobante
             $sale->verification_hash = hash('sha256', implode('|', [
                 'Sale',
@@ -56,14 +52,14 @@ class POSService
             ]));
             $sale->verification_generated_at = now();
             $sale->saveQuietly();
-            
+
             // 5. Load relationships for return
             $sale->load(['items', 'customer', 'user']);
-            
+
             return $sale;
         });
     }
-    
+
     /**
      * Validate that all products have sufficient stock
      */
@@ -71,16 +67,16 @@ class POSService
     {
         foreach ($items as $item) {
             $product = Product::findOrFail($item['product_id']);
-            
+
             if ($product->stock < $item['quantity']) {
                 throw new \Exception(
-                    "Stock insuficiente para {$product->name}. " .
+                    "Stock insuficiente para {$product->name}. ".
                     "Disponible: {$product->stock}, Solicitado: {$item['quantity']}"
                 );
             }
         }
     }
-    
+
     /**
      * Create sale record
      */
@@ -102,23 +98,23 @@ class POSService
             'notes' => $data['notes'] ?? null,
         ]);
     }
-    
+
     /**
      * Create sale item with product snapshot
      */
     protected function createSaleItem(Sale $sale, array $itemData): SaleItem
     {
         $product = Product::findOrFail($itemData['product_id']);
-        
+
         $quantity = $itemData['quantity'];
         $unitPrice = $itemData['unit_price'] ?? $product->price;
         $taxRate = $itemData['tax_rate'] ?? 0;
         $discountAmount = $itemData['discount_amount'] ?? 0;
-        
+
         $subtotal = $quantity * $unitPrice;
         $taxAmount = ($subtotal - $discountAmount) * ($taxRate / 100);
         $total = $subtotal + $taxAmount - $discountAmount;
-        
+
         return SaleItem::create([
             'sale_id' => $sale->id,
             'product_id' => $product->id,
@@ -133,7 +129,7 @@ class POSService
             'total' => $total,
         ]);
     }
-    
+
     /**
      * Update inventory and create stock movement
      */
@@ -141,7 +137,7 @@ class POSService
     {
         $product = Product::findOrFail($itemData['product_id']);
         $quantity = $itemData['quantity'];
-        
+
         // Get or create "Venta" movement reason
         $movementReason = MovementReason::firstOrCreate(
             [
@@ -152,16 +148,16 @@ class POSService
                 'is_active' => true,
             ]
         );
-        
+
         $previousStock = $product->stock;
         $newStock = $previousStock - $quantity;
-        
+
         // Update product stock (quietly to avoid triggering observer)
         $product->updateQuietly(['stock' => $newStock]);
-        
+
         // Get current authenticated user
         $currentUser = auth('tenant')->user() ?? auth('web')->user();
-        
+
         // Create stock movement record
         StockMovement::create([
             'product_id' => $product->id,
@@ -175,22 +171,22 @@ class POSService
             'new_stock' => $newStock,
         ]);
     }
-    
+
     /**
      * Cancel a sale and restore inventory
      */
     public function cancelSale(Sale $sale, string $reason): Sale
     {
-        if (!$sale->canBeCancelled()) {
+        if (! $sale->canBeCancelled()) {
             throw new \Exception('Esta venta no puede ser cancelada');
         }
-        
+
         return DB::transaction(function () use ($sale, $reason) {
             // Restore inventory for each item
             foreach ($sale->items as $item) {
                 $this->restoreInventory($sale, $item);
             }
-            
+
             // Update sale status
             $sale->update([
                 'status' => 'cancelled',
@@ -198,18 +194,18 @@ class POSService
                 'cancelled_by' => auth()->id() ?? auth('tenant')->id(),
                 'cancellation_reason' => $reason,
             ]);
-            
+
             return $sale->fresh(['items', 'customer', 'user']);
         });
     }
-    
+
     /**
      * Restore inventory after cancellation
      */
     protected function restoreInventory(Sale $sale, SaleItem $item): void
     {
         $product = Product::findOrFail($item->product_id);
-        
+
         // Get or create "Devolución de Venta" movement reason
         $movementReason = MovementReason::firstOrCreate(
             [
@@ -220,16 +216,16 @@ class POSService
                 'is_active' => true,
             ]
         );
-        
+
         $previousStock = $product->stock;
         $newStock = $previousStock + $item->quantity;
-        
+
         // Update product stock (quietly to avoid triggering observer)
         $product->updateQuietly(['stock' => $newStock]);
-        
+
         // Get current authenticated user
         $currentUser = auth('tenant')->user() ?? auth('web')->user();
-        
+
         // Create stock movement record
         StockMovement::create([
             'product_id' => $product->id,

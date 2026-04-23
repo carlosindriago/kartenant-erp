@@ -15,13 +15,13 @@ class SimpleAdminLoginTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             // Just take a screenshot of the login page to verify it loads
             $browser->visit('/admin/login')
-                    ->screenshot('admin-login-page-2')
-                    ->pause(3);
+                ->screenshot('admin-login-page-2')
+                ->pause(3);
 
             // Try to access invoices page directly (should redirect to login)
             $browser->visit('/admin/invoices')
-                    ->screenshot('invoices-redirect-test')
-                    ->pause(2);
+                ->screenshot('invoices-redirect-test')
+                ->pause(2);
         });
     }
 }

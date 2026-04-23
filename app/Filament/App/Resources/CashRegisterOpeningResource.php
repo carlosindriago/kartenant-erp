@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -16,9 +16,9 @@ use App\Models\Tenancy\CashRegister\CashRegisterOpening;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Support\Enums\FontWeight;
 
 class CashRegisterOpeningResource extends Resource
 {
@@ -47,20 +47,20 @@ class CashRegisterOpeningResource extends Resource
                             ->disabled()
                             ->dehydrated(false)
                             ->visible(fn ($record) => $record !== null),
-                        
+
                         Forms\Components\Select::make('opened_by')
                             ->label('Cajero')
                             ->relationship('openedBy', 'name')
                             ->default(fn () => auth()->id())
                             ->required()
                             ->disabled(fn ($record) => $record !== null),
-                        
+
                         Forms\Components\DateTimePicker::make('opened_at')
                             ->label('Fecha y Hora de Apertura')
                             ->default(now())
                             ->required()
                             ->disabled(fn ($record) => $record !== null),
-                        
+
                         Forms\Components\TextInput::make('opening_balance')
                             ->label('Saldo Inicial')
                             ->numeric()
@@ -68,7 +68,7 @@ class CashRegisterOpeningResource extends Resource
                             ->default(0)
                             ->required()
                             ->disabled(fn ($record) => $record !== null),
-                        
+
                         Forms\Components\Select::make('pdf_format')
                             ->label('Formato de PDF')
                             ->options([
@@ -77,7 +77,7 @@ class CashRegisterOpeningResource extends Resource
                             ])
                             ->default('thermal')
                             ->required(),
-                        
+
                         Forms\Components\Textarea::make('notes')
                             ->label('Observaciones')
                             ->rows(3)
@@ -96,22 +96,22 @@ class CashRegisterOpeningResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight(FontWeight::Bold),
-                
+
                 Tables\Columns\TextColumn::make('openedBy.name')
                     ->label('Cajero')
                     ->searchable()
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('opened_at')
                     ->label('Fecha/Hora')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('opening_balance')
                     ->label('Saldo Inicial')
                     ->money('ARS')
                     ->sortable(),
-                
+
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Estado')
                     ->colors([
@@ -123,7 +123,7 @@ class CashRegisterOpeningResource extends Resource
                         'closed' => 'Cerrada',
                         default => $state,
                     }),
-                
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime('d/m/Y H:i')
@@ -137,7 +137,7 @@ class CashRegisterOpeningResource extends Resource
                         'open' => 'Abierta',
                         'closed' => 'Cerrada',
                     ]),
-                
+
                 Tables\Filters\Filter::make('opened_at')
                     ->form([
                         Forms\Components\DatePicker::make('desde')

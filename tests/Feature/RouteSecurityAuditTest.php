@@ -11,18 +11,21 @@
  * Auditor: Claude Code (Senior Laravel Developer & Cybersecurity Expert)
  */
 
-use Tests\TestCase;
-use App\Models\User;
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class RouteSecurityAuditTest extends TestCase
 {
     use RefreshDatabase;
 
     protected Tenant $tenant1;
+
     protected Tenant $tenant2;
+
     protected User $superAdmin;
+
     protected User $tenantUser;
 
     protected function setUp(): void
@@ -32,22 +35,22 @@ class RouteSecurityAuditTest extends TestCase
         // Create test tenants
         $this->tenant1 = Tenant::factory()->create([
             'domain' => 'tenant1.test',
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         $this->tenant2 = Tenant::factory()->create([
             'domain' => 'tenant2.test',
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         // Create test users
         $this->superAdmin = User::factory()->create([
             'is_super_admin' => true,
-            'email' => 'admin@test.com'
+            'email' => 'admin@test.com',
         ]);
 
         $this->tenantUser = User::factory()->create([
-            'email' => 'user@test.com'
+            'email' => 'user@test.com',
         ]);
     }
 
@@ -90,7 +93,7 @@ class RouteSecurityAuditTest extends TestCase
         $this->actingAs($this->superAdmin, 'superadmin');
 
         // Test that admin operations use landlord connection
-        $connection = \DB::getDefaultConnection();
+        $connection = DB::getDefaultConnection();
         $this->assertEquals('landlord', $connection);
 
         // Verify we can access admin dashboard
@@ -131,7 +134,7 @@ class RouteSecurityAuditTest extends TestCase
 
         // Test: Tenant routes should work on correct subdomain
         $response = $this->withHeaders(['Host' => 'tenant1.test'])
-                         ->get('/tenant/dashboard');
+            ->get('/tenant/dashboard');
 
         // Should redirect to login (not 400/404)
         $response->assertRedirect('/app/login');
@@ -142,15 +145,15 @@ class RouteSecurityAuditTest extends TestCase
     {
         // Create tenant-specific data
         $this->tenant1->makeCurrent();
-        $tenant1Data = \DB::table('store_settings')->insert([
+        $tenant1Data = DB::table('store_settings')->insert([
             'tenant_id' => $this->tenant1->id,
-            'store_name' => 'Tenant 1 Store'
+            'store_name' => 'Tenant 1 Store',
         ]);
 
         $this->tenant2->makeCurrent();
-        $tenant2Data = \DB::table('store_settings')->insert([
+        $tenant2Data = DB::table('store_settings')->insert([
             'tenant_id' => $this->tenant2->id,
-            'store_name' => 'Tenant 2 Store'
+            'store_name' => 'Tenant 2 Store',
         ]);
 
         // Switch to tenant1 context
@@ -158,11 +161,11 @@ class RouteSecurityAuditTest extends TestCase
         $this->tenant1->makeCurrent();
 
         // Should only see tenant1 data
-        $settings = \DB::table('store_settings')->where('tenant_id', $this->tenant1->id)->first();
+        $settings = DB::table('store_settings')->where('tenant_id', $this->tenant1->id)->first();
         $this->assertEquals('Tenant 1 Store', $settings->store_name);
 
         // Should NOT see tenant2 data
-        $tenant2Settings = \DB::table('store_settings')->where('tenant_id', $this->tenant2->id)->first();
+        $tenant2Settings = DB::table('store_settings')->where('tenant_id', $this->tenant2->id)->first();
         $this->assertNull($tenant2Settings);
     }
 
@@ -179,7 +182,7 @@ class RouteSecurityAuditTest extends TestCase
 
         // Try to access tenant2 routes from tenant1 subdomain (should fail)
         $response = $this->withHeaders(['Host' => 'tenant1.test'])
-                         ->get('/tenant/settings');
+            ->get('/tenant/settings');
 
         // Route should resolve to tenant1 context, not tenant2
         // This tests the EnsureTenantContext middleware security
@@ -195,10 +198,10 @@ class RouteSecurityAuditTest extends TestCase
         $this->tenant1->makeCurrent();
 
         // Purge connection to ensure clean test
-        \DB::purge('tenant');
+        DB::purge('tenant');
 
         // Query tenant database
-        $tenantConnection = \DB::connection('tenant');
+        $tenantConnection = DB::connection('tenant');
         $this->assertNotNull($tenantConnection);
 
         // Verify we're using tenant database, not landlord
@@ -244,7 +247,7 @@ class RouteSecurityAuditTest extends TestCase
 
         // Try to access tenant routes (should fail)
         $response = $this->withHeaders(['Host' => 'tenant1.test'])
-                         ->get('/tenant/dashboard');
+            ->get('/tenant/dashboard');
 
         // Should redirect to tenant login, not allow access
         $response->assertRedirect('/app/login');
@@ -317,10 +320,10 @@ class RouteSecurityAuditTest extends TestCase
         // Test tenant login rate limiting
         for ($i = 0; $i < 6; $i++) {
             $response = $this->withHeaders(['Host' => 'tenant1.test'])
-                             ->post('/tenant/login', [
-                                 'email' => 'test@test.com',
-                                 'password' => 'wrong'
-                             ]);
+                ->post('/tenant/login', [
+                    'email' => 'test@test.com',
+                    'password' => 'wrong',
+                ]);
         }
 
         // 6th attempt should be throttled
@@ -329,10 +332,10 @@ class RouteSecurityAuditTest extends TestCase
         // Test that rate limiting is per-tenant
         // Switch to different tenant - should not be throttled
         $response = $this->withHeaders(['Host' => 'tenant2.test'])
-                         ->post('/tenant/login', [
-                             'email' => 'test@test.com',
-                             'password' => 'wrong'
-                         ]);
+            ->post('/tenant/login', [
+                'email' => 'test@test.com',
+                'password' => 'wrong',
+            ]);
 
         // Should not be throttled for different tenant
         $this->assertNotEquals(429, $response->getStatusCode());
@@ -363,7 +366,7 @@ class RouteSecurityAuditTest extends TestCase
     {
         // Test 404 errors don't expose tenant information
         $response = $this->withHeaders(['Host' => 'nonexistent.test'])
-                         ->get('/tenant/dashboard');
+            ->get('/tenant/dashboard');
 
         $response->assertStatus(404);
         $response->assertDontSee('database');
@@ -375,7 +378,7 @@ class RouteSecurityAuditTest extends TestCase
     public function tenant_not_found_errors_are_safe()
     {
         $response = $this->withHeaders(['Host' => 'nonexistent.test'])
-                         ->get('/');
+            ->get('/');
 
         // Should not leak information about tenant system
         $response->assertDontSee('App\\Models\\Tenant');
@@ -462,7 +465,7 @@ class RouteSecurityAuditTest extends TestCase
      */
     private function assertRouteExists($name)
     {
-        $routes = \Route::getRoutes();
+        $routes = Route::getRoutes();
         $route = $routes->getByName($name);
         $this->assertNotNull($route, "Route {$name} should exist");
     }
@@ -472,8 +475,8 @@ class RouteSecurityAuditTest extends TestCase
      */
     private function assertRouteUsesMiddleware($uri, $expectedMiddleware)
     {
-        $routes = \Route::getRoutes();
-        $route = $routes->match(\Request::create($uri));
+        $routes = Route::getRoutes();
+        $route = $routes->match(Request::create($uri));
 
         foreach ($expectedMiddleware as $middleware) {
             $this->assertContains($middleware, $route->middleware(),

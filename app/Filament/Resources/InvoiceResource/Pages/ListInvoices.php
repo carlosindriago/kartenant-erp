@@ -4,10 +4,11 @@ namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Resources\InvoiceResource;
 use App\Models\Invoice;
+use App\Services\BillingService;
 use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\Action;
 use Filament\Resources\Components\Tab;
+use Filament\Resources\Pages\ListRecords;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Url;
 
@@ -43,7 +44,7 @@ class ListInvoices extends ListRecords
                 ->icon('heroicon-o-calendar-days')
                 ->color('info')
                 ->action(function () {
-                    $results = app(\App\Services\BillingService::class)->generateMonthlyInvoices();
+                    $results = app(BillingService::class)->generateMonthlyInvoices();
 
                     $this->notify('success', "Se generaron {$results['generated']} facturas mensuales por un total de {$results['total_amount']} USD");
                 })
@@ -56,7 +57,7 @@ class ListInvoices extends ListRecords
                 ->icon('heroicon-o-exclamation-triangle')
                 ->color('warning')
                 ->action(function () {
-                    $results = app(\App\Services\BillingService::class)->processOverdueInvoices();
+                    $results = app(BillingService::class)->processOverdueInvoices();
 
                     $this->notify('info', "Se procesaron {$results['processed']} facturas vencidas. {$results['reminders']} recordatorios enviados.");
                 })

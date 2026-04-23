@@ -4,8 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Tenant;
 use App\Models\User;
-use App\Services\TenantStatsService;
 use App\Services\TenantActivityService;
+use App\Services\TenantStatsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -197,7 +197,7 @@ class TenantLifecycleTest extends TestCase
     public function test_tenant_stats_service_error_handling(): void
     {
         $tenant = Tenant::factory()->create([
-            'database' => 'non_existent_database'
+            'database' => 'non_existent_database',
         ]);
 
         $stats = app(TenantStatsService::class)->getTenantStats($tenant);

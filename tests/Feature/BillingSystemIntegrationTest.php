@@ -2,21 +2,23 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\Tenant;
-use App\Models\SubscriptionPlan;
-use App\Models\TenantSubscription;
-use App\Models\PaymentSettings;
-use App\Models\PaymentProof;
 use App\Models\Invoice;
+use App\Models\PaymentProof;
+use App\Models\PaymentSettings;
 use App\Models\PaymentTransaction;
+use App\Models\SubscriptionPlan;
+use App\Models\Tenant;
+use App\Models\TenantSubscription;
 use App\Models\User;
-use App\Services\SubscriptionService;
 use App\Services\BillingService;
 use App\Services\PaymentApprovalService;
+use App\Services\PaymentProofService;
+use App\Services\PaymentTransactionService;
+use App\Services\SubscriptionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
+use Tests\TestCase;
 
 class BillingSystemIntegrationTest extends TestCase
 {
@@ -204,7 +206,7 @@ class BillingSystemIntegrationTest extends TestCase
             ],
             'line_items' => [
                 [
-                    'description' => $plan->name . ' - ' . ucfirst($subscription->billing_cycle),
+                    'description' => $plan->name.' - '.ucfirst($subscription->billing_cycle),
                     'quantity' => 1,
                     'unit_price' => $subscription->price,
                     'total' => $subscription->price,
@@ -239,7 +241,7 @@ class BillingSystemIntegrationTest extends TestCase
             'amount' => $subscription->price,
             'currency' => $subscription->currency,
             'status' => PaymentTransaction::STATUS_PENDING,
-            'transaction_id' => 'MANUAL-' . uniqid(),
+            'transaction_id' => 'MANUAL-'.uniqid(),
             'proof_of_payment' => json_encode(['file_paths' => ['payment-proofs/test.pdf']]),
             'metadata' => [
                 'payment_method' => 'bank_transfer',
@@ -357,7 +359,7 @@ class BillingSystemIntegrationTest extends TestCase
             'subscription_plan_id' => $plan->id,
         ]);
 
-        $paymentProofService = app(\App\Services\PaymentProofService::class);
+        $paymentProofService = app(PaymentProofService::class);
 
         // Valid data
         $validData = [
@@ -536,7 +538,7 @@ class BillingSystemIntegrationTest extends TestCase
             'subscription_plan_id' => $plan->id,
         ]);
 
-        $paymentProofService = app(\App\Services\PaymentProofService::class);
+        $paymentProofService = app(PaymentProofService::class);
 
         // Test upload limits validation
         $result = $paymentProofService->validateUploadLimits(3, 5.0);
@@ -547,7 +549,7 @@ class BillingSystemIntegrationTest extends TestCase
         $this->assertStringContainsString('No se pueden subir más de', $result['error']);
 
         // Test file type validation
-        $file = new \Illuminate\Http\UploadedFile(
+        $file = new UploadedFile(
             base_path('tests/files/sample.pdf'),
             'sample.pdf',
             'application/pdf',
@@ -559,7 +561,7 @@ class BillingSystemIntegrationTest extends TestCase
         $this->assertTrue($validation['valid']);
 
         // Test invalid file
-        $invalidFile = new \Illuminate\Http\UploadedFile(
+        $invalidFile = new UploadedFile(
             base_path('tests/files/sample.exe'),
             'sample.exe',
             'application/octet-stream',
@@ -583,12 +585,12 @@ class BillingSystemIntegrationTest extends TestCase
             'subscription_plan_id' => $plan->id,
         ]);
 
-        $paymentTransactionService = app(\App\Services\PaymentTransactionService::class);
+        $paymentTransactionService = app(PaymentTransactionService::class);
 
         // Test transaction creation
         $transaction = $paymentTransactionService->createManualTransaction(
             $subscription,
-            new \App\Models\PaymentProof([
+            new PaymentProof([
                 'amount' => $subscription->price,
                 'currency' => $subscription->currency,
                 'file_paths' => ['test.pdf'],

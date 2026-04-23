@@ -2,17 +2,20 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Http\Middleware;
 
+use App\Models\Landlord\Permission;
+use App\Models\Landlord\Role;
 use App\Permissions\LandlordPermissionRegistrar;
 use Closure;
+use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Http\Request;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -34,15 +37,15 @@ class UseLandlordPermissionRegistrar
             // Use a separate cache key for landlord permissions to prevent mixing with tenant cache
             config()->set('permission.cache.key', 'spatie.permission.cache.landlord');
             // Force landlord models and guard for Spatie in admin context
-            config()->set('permission.models.role', \App\Models\Landlord\Role::class);
-            config()->set('permission.models.permission', \App\Models\Landlord\Permission::class);
+            config()->set('permission.models.role', Role::class);
+            config()->set('permission.models.permission', Permission::class);
             config()->set('permission.default_guard', 'superadmin');
             // Ensure the default auth guard resolves to superadmin for model guard inference
             config()->set('auth.defaults.guard', 'superadmin');
             // Ensure Gate is (re)registered with our registrar for this request
             try {
-                $permissionRegistrar = app(\Spatie\Permission\PermissionRegistrar::class);
-                $gate = app(\Illuminate\Contracts\Auth\Access\Gate::class);
+                $permissionRegistrar = app(PermissionRegistrar::class);
+                $gate = app(Gate::class);
 
                 // Clear any cached permissions to ensure fresh landlord permissions
                 $permissionRegistrar->forgetCachedPermissions();
@@ -55,10 +58,11 @@ class UseLandlordPermissionRegistrar
                 // The admin user will still have access via is_super_admin check
                 \Log::warning('Failed to register landlord permissions in UseLandlordPermissionRegistrar', [
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ]);
             }
         }
+
         return $next($request);
     }
 }

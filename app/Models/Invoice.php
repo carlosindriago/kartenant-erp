@@ -2,34 +2,39 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
-use App\Models\Concerns\BelongsToTenant;
 
 class Invoice extends Model
 {
-    use SoftDeletes, BelongsToTenant;
+    use BelongsToTenant, SoftDeletes;
 
     protected $connection = 'landlord';
+
     protected $table = 'invoices';
 
     // Invoice statuses
     const STATUS_DRAFT = 'draft';
+
     const STATUS_SENT = 'sent';
+
     const STATUS_PAID = 'paid';
+
     const STATUS_OVERDUE = 'overdue';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_REFUNDED = 'refunded';
 
     protected $fillable = [
@@ -144,7 +149,7 @@ class Invoice extends Model
 
     public function isOverdue(): bool
     {
-        if (!$this->isPending()) {
+        if (! $this->isPending()) {
             return false;
         }
 
@@ -153,7 +158,7 @@ class Invoice extends Model
 
     public function isDueSoon(int $days = 7): bool
     {
-        if (!$this->isPending()) {
+        if (! $this->isPending()) {
             return false;
         }
 
@@ -164,14 +169,14 @@ class Invoice extends Model
 
     public function daysUntilDue(): ?int
     {
-        if (!$this->due_date || !$this->isPending()) {
+        if (! $this->due_date || ! $this->isPending()) {
             return null;
         }
 
         return (int) now()->diffInDays($this->due_date, false);
     }
 
-    public function markAsPaid(string $paymentProvider = null, string $providerPaymentId = null): bool
+    public function markAsPaid(?string $paymentProvider = null, ?string $providerPaymentId = null): bool
     {
         $data = [
             'status' => self::STATUS_PAID,
@@ -206,22 +211,22 @@ class Invoice extends Model
 
     public function getFormattedTotal(): string
     {
-        return $this->currency . ' ' . number_format((float) $this->total, 2);
+        return $this->currency.' '.number_format((float) $this->total, 2);
     }
 
     public function getFormattedSubtotal(): string
     {
-        return $this->currency . ' ' . number_format((float) $this->subtotal, 2);
+        return $this->currency.' '.number_format((float) $this->subtotal, 2);
     }
 
     public function getFormattedTax(): string
     {
-        return $this->currency . ' ' . number_format((float) $this->tax, 2);
+        return $this->currency.' '.number_format((float) $this->tax, 2);
     }
 
     public function getFormattedDiscount(): string
     {
-        return $this->currency . ' ' . number_format((float) $this->discount, 2);
+        return $this->currency.' '.number_format((float) $this->discount, 2);
     }
 
     public function getStatusLabel(): string
@@ -231,7 +236,7 @@ class Invoice extends Model
 
     public function getStatusColor(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_PAID => 'success',
             self::STATUS_PENDING => 'warning',
             self::STATUS_FAILED => 'danger',
@@ -243,7 +248,7 @@ class Invoice extends Model
 
     public function getStatusIcon(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_PAID => 'heroicon-o-check-circle',
             self::STATUS_PENDING => 'heroicon-o-clock',
             self::STATUS_FAILED => 'heroicon-o-x-circle',
@@ -257,6 +262,7 @@ class Invoice extends Model
     {
         $items = $this->items ?? [];
         $items[] = $item;
+
         return $this->update(['items' => $items]);
     }
 
@@ -305,7 +311,7 @@ class Invoice extends Model
         $tenant = $subscription->tenant;
         $plan = $subscription->subscription_plan;
 
-        $invoice = new self();
+        $invoice = new self;
         $invoice->invoice_number = self::generateInvoiceNumber();
         $invoice->tenant_id = $tenant->id;
         $invoice->tenant_subscription_id = $subscription->id;
@@ -326,7 +332,7 @@ class Invoice extends Model
         // Items
         $invoice->items = [
             [
-                'description' => $plan->name . ' - ' . ucfirst($subscription->billing_cycle),
+                'description' => $plan->name.' - '.ucfirst($subscription->billing_cycle),
                 'quantity' => 1,
                 'unit_price' => (float) $subscription->price,
                 'total' => (float) $subscription->price,
@@ -366,6 +372,7 @@ class Invoice extends Model
     public static function getAverageInvoiceAmount(): float
     {
         $avg = self::paid()->avg('total');
+
         return $avg ? (float) $avg : 0.0;
     }
 
@@ -392,7 +399,7 @@ class Invoice extends Model
 
         static::updating(function ($invoice) {
             // Auto-set paid_at when status changes to paid
-            if ($invoice->isDirty('status') && $invoice->status === self::STATUS_PAID && !$invoice->paid_at) {
+            if ($invoice->isDirty('status') && $invoice->status === self::STATUS_PAID && ! $invoice->paid_at) {
                 $invoice->paid_at = now();
             }
         });

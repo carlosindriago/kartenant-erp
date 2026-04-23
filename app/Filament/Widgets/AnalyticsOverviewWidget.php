@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -20,6 +20,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 class AnalyticsOverviewWidget extends BaseWidget
 {
     protected static ?int $sort = 1;
+
     protected static ?string $pollingInterval = '30s';
 
     /**
@@ -29,6 +30,7 @@ class AnalyticsOverviewWidget extends BaseWidget
     {
         // Use filament() helper for proper panel context with null checks
         $panel = filament()->getCurrentPanel();
+
         return $panel && $panel->getId() === 'admin' && filament()->auth()->check();
     }
 
@@ -63,7 +65,7 @@ class AnalyticsOverviewWidget extends BaseWidget
                 ->color('success'),
 
             Stat::make('Tenants Trial', Tenant::where('is_trial', true)->where('status', 'active')->count())
-                ->description(number_format($this->getTrialPercentage(), 1) . '% del total')
+                ->description(number_format($this->getTrialPercentage(), 1).'% del total')
                 ->descriptionIcon('heroicon-m-clock')
                 ->color('warning'),
         ];
@@ -133,6 +135,7 @@ class AnalyticsOverviewWidget extends BaseWidget
         }
 
         $trial = Tenant::where('is_trial', true)->where('status', 'active')->count();
+
         return ($trial / $total) * 100;
     }
 }

@@ -2,26 +2,25 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Filament\App\Pages\Auth;
 
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Form;
-use Filament\Pages\SimplePage;
-use Filament\Actions\Action;
-use Filament\Facades\Filament;
-use Filament\Notifications\Notification;
 use App\Models\SecurityQuestion;
 use App\Models\UserSecurityAnswer;
-use Illuminate\Support\Facades\Hash;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Notifications\Notification;
+use Filament\Pages\SimplePage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class SetupSecurityQuestions extends SimplePage
 {
@@ -34,10 +33,11 @@ class SetupSecurityQuestions extends SimplePage
     public function mount(): void
     {
         $user = Auth::user();
-        
+
         // Si ya tiene preguntas de seguridad, redirigir al dashboard
         if ($user->hasSecurityQuestions()) {
             $this->redirect('/app');
+
             return;
         }
 
@@ -105,6 +105,7 @@ class SetupSecurityQuestions extends SimplePage
                 ->body('Las tres preguntas deben ser diferentes.')
                 ->danger()
                 ->send();
+
             return;
         }
 

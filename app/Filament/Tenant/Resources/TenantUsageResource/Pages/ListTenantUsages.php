@@ -90,7 +90,7 @@ class ListTenantUsages extends ListRecords
     {
         $currentUsage = TenantUsage::getCurrentUsage(tenant()->id);
 
-        if (!$currentUsage) {
+        if (! $currentUsage) {
             return 'Sin registros de uso';
         }
 
@@ -103,7 +103,7 @@ class ListTenantUsages extends ListRecords
 
         $config = $statusConfig[$currentUsage->status] ?? $statusConfig['normal'];
 
-        return "<span class='{$config['color']} font-semibold'>{$config['text']}</span> - " .
+        return "<span class='{$config['color']} font-semibold'>{$config['text']}</span> - ".
                "{$currentUsage->getDaysRemainingInPeriod()} días restantes";
     }
 }

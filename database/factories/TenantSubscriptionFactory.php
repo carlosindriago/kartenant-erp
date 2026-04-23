@@ -4,19 +4,19 @@ namespace Database\Factories;
 
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
-use App\Models\SubscriptionPlan;
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\TenantSubscription>
+ * @extends Factory<TenantSubscription>
  */
 class TenantSubscriptionFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
-     * @var class-string<\Illuminate\Database\Eloquent\Model>
+     * @var class-string<Model>
      */
     protected $model = TenantSubscription::class;
 
@@ -174,8 +174,8 @@ class TenantSubscriptionFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'payment_method' => 'stripe',
-            'stripe_subscription_id' => 'sub_' . $this->faker->unique()->sha1(),
-            'stripe_customer_id' => 'cus_' . $this->faker->unique()->sha1(),
+            'stripe_subscription_id' => 'sub_'.$this->faker->unique()->sha1(),
+            'stripe_customer_id' => 'cus_'.$this->faker->unique()->sha1(),
         ]);
     }
 }

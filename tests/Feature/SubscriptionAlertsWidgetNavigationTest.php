@@ -2,12 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\Tenant;
 use App\Models\SubscriptionPlan;
+use App\Models\Tenant;
 use App\Models\TenantSubscription;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 class SubscriptionAlertsWidgetNavigationTest extends TestCase
@@ -15,6 +14,7 @@ class SubscriptionAlertsWidgetNavigationTest extends TestCase
     use RefreshDatabase;
 
     protected User $superadmin;
+
     protected SubscriptionPlan $plan;
 
     protected function setUp(): void
@@ -23,16 +23,16 @@ class SubscriptionAlertsWidgetNavigationTest extends TestCase
 
         // Create superadmin user for testing
         $this->superadmin = User::factory()->create([
-            "name" => "Super Admin Test",
-            "email" => "superadmin@test.com",
-            "is_super_admin" => true,
-            "password" => bcrypt("password"),
+            'name' => 'Super Admin Test',
+            'email' => 'superadmin@test.com',
+            'is_super_admin' => true,
+            'password' => bcrypt('password'),
         ]);
 
         // Create subscription plan for testing
         $this->plan = SubscriptionPlan::factory()->create([
-            "name" => "Test Plan",
-            "is_active" => true,
+            'name' => 'Test Plan',
+            'is_active' => true,
         ]);
     }
 
@@ -41,30 +41,30 @@ class SubscriptionAlertsWidgetNavigationTest extends TestCase
     {
         // Create tenant with expired subscription
         $expiredTenant = Tenant::factory()->create([
-            "name" => "Expired Tenant",
-            "domain" => "expired-test",
+            'name' => 'Expired Tenant',
+            'domain' => 'expired-test',
         ]);
 
         TenantSubscription::factory()->create([
-            "tenant_id" => $expiredTenant->id,
-            "subscription_plan_id" => $this->plan->id,
-            "status" => "expired",
-            "ends_at" => now()->subDays(5),
+            'tenant_id' => $expiredTenant->id,
+            'subscription_plan_id' => $this->plan->id,
+            'status' => 'expired',
+            'ends_at' => now()->subDays(5),
         ]);
 
         // Login as superadmin
-        $this->actingAs($this->superadmin, "superadmin");
+        $this->actingAs($this->superadmin, 'superadmin');
 
         // Get the admin dashboard page (simulated)
         // Since we cannot easily test the widget directly without complex setup,
         // we test the route generation directly
-        
-        $viewRoute = route("filament.admin.resources.tenants.view", $expiredTenant);
-        
+
+        $viewRoute = route('filament.admin.resources.tenants.view', $expiredTenant);
+
         // Verify the route contains "view" and not "edit"
-        $this->assertStringContainsString("view", $viewRoute);
-        $this->assertStringNotContainsString("edit", $viewRoute);
-        
+        $this->assertStringContainsString('view', $viewRoute);
+        $this->assertStringNotContainsString('edit', $viewRoute);
+
         // Verify the route can be accessed
         $response = $this->get($viewRoute);
         $response->assertSuccessful();
@@ -75,23 +75,23 @@ class SubscriptionAlertsWidgetNavigationTest extends TestCase
     {
         // Create tenant with subscription
         $tenant = Tenant::factory()->create([
-            "name" => "Test Tenant Navigation",
-            "domain" => "nav-test",
-            "contact_email" => "test@navigation.com",
+            'name' => 'Test Tenant Navigation',
+            'domain' => 'nav-test',
+            'contact_email' => 'test@navigation.com',
         ]);
 
         TenantSubscription::factory()->create([
-            "tenant_id" => $tenant->id,
-            "subscription_plan_id" => $this->plan->id,
-            "status" => "expired",
-            "ends_at" => now()->subDays(5),
+            'tenant_id' => $tenant->id,
+            'subscription_plan_id' => $this->plan->id,
+            'status' => 'expired',
+            'ends_at' => now()->subDays(5),
         ]);
 
         // Login as superadmin
-        $this->actingAs($this->superadmin, "superadmin");
+        $this->actingAs($this->superadmin, 'superadmin');
 
         // Navigate to view page
-        $viewRoute = route("filament.admin.resources.tenants.view", $tenant);
+        $viewRoute = route('filament.admin.resources.tenants.view', $tenant);
         $response = $this->get($viewRoute);
 
         $response->assertSuccessful();
@@ -105,23 +105,23 @@ class SubscriptionAlertsWidgetNavigationTest extends TestCase
     {
         // Create tenant with subscription expiring soon
         $expiringTenant = Tenant::factory()->create([
-            "name" => "Expiring Soon Navigation",
-            "domain" => "expiring-nav",
+            'name' => 'Expiring Soon Navigation',
+            'domain' => 'expiring-nav',
         ]);
 
         TenantSubscription::factory()->create([
-            "tenant_id" => $expiringTenant->id,
-            "subscription_plan_id" => $this->plan->id,
-            "status" => "active",
-            "ends_at" => now()->addDays(3),
+            'tenant_id' => $expiringTenant->id,
+            'subscription_plan_id' => $this->plan->id,
+            'status' => 'active',
+            'ends_at' => now()->addDays(3),
         ]);
 
         // Login as superadmin
-        $this->actingAs($this->superadmin, "superadmin");
+        $this->actingAs($this->superadmin, 'superadmin');
 
         // Get view route
-        $viewRoute = route("filament.admin.resources.tenants.view", $expiringTenant);
-        
+        $viewRoute = route('filament.admin.resources.tenants.view', $expiringTenant);
+
         // Verify navigation works
         $response = $this->get($viewRoute);
         $response->assertSuccessful();
@@ -133,22 +133,22 @@ class SubscriptionAlertsWidgetNavigationTest extends TestCase
     {
         // Create tenant with suspended subscription
         $suspendedTenant = Tenant::factory()->create([
-            "name" => "Suspended Navigation",
-            "domain" => "suspended-nav",
+            'name' => 'Suspended Navigation',
+            'domain' => 'suspended-nav',
         ]);
 
         TenantSubscription::factory()->create([
-            "tenant_id" => $suspendedTenant->id,
-            "subscription_plan_id" => $this->plan->id,
-            "status" => "suspended",
+            'tenant_id' => $suspendedTenant->id,
+            'subscription_plan_id' => $this->plan->id,
+            'status' => 'suspended',
         ]);
 
         // Login as superadmin
-        $this->actingAs($this->superadmin, "superadmin");
+        $this->actingAs($this->superadmin, 'superadmin');
 
         // Get view route
-        $viewRoute = route("filament.admin.resources.tenants.view", $suspendedTenant);
-        
+        $viewRoute = route('filament.admin.resources.tenants.view', $suspendedTenant);
+
         // Verify navigation works
         $response = $this->get($viewRoute);
         $response->assertSuccessful();
@@ -160,16 +160,16 @@ class SubscriptionAlertsWidgetNavigationTest extends TestCase
     {
         // Create tenant without subscription
         $noSubTenant = Tenant::factory()->create([
-            "name" => "No Subscription Navigation",
-            "domain" => "nosub-nav",
+            'name' => 'No Subscription Navigation',
+            'domain' => 'nosub-nav',
         ]);
 
         // Login as superadmin
-        $this->actingAs($this->superadmin, "superadmin");
+        $this->actingAs($this->superadmin, 'superadmin');
 
         // Get view route
-        $viewRoute = route("filament.admin.resources.tenants.view", $noSubTenant);
-        
+        $viewRoute = route('filament.admin.resources.tenants.view', $noSubTenant);
+
         // Verify navigation works
         $response = $this->get($viewRoute);
         $response->assertSuccessful();
@@ -181,23 +181,23 @@ class SubscriptionAlertsWidgetNavigationTest extends TestCase
     {
         // Create tenant with detailed subscription
         $tenant = Tenant::factory()->create([
-            "name" => "Subscription Details Test",
-            "domain" => "sub-details",
+            'name' => 'Subscription Details Test',
+            'domain' => 'sub-details',
         ]);
 
         $subscription = TenantSubscription::factory()->create([
-            "tenant_id" => $tenant->id,
-            "subscription_plan_id" => $this->plan->id,
-            "status" => "active",
-            "ends_at" => now()->addDays(15),
-            "billing_cycle" => "monthly",
+            'tenant_id' => $tenant->id,
+            'subscription_plan_id' => $this->plan->id,
+            'status' => 'active',
+            'ends_at' => now()->addDays(15),
+            'billing_cycle' => 'monthly',
         ]);
 
         // Login as superadmin
-        $this->actingAs($this->superadmin, "superadmin");
+        $this->actingAs($this->superadmin, 'superadmin');
 
         // Navigate to view page
-        $viewRoute = route("filament.admin.resources.tenants.view", $tenant);
+        $viewRoute = route('filament.admin.resources.tenants.view', $tenant);
         $response = $this->get($viewRoute);
 
         $response->assertSuccessful();
@@ -211,41 +211,41 @@ class SubscriptionAlertsWidgetNavigationTest extends TestCase
     {
         // Create multiple tenants
         $tenant1 = Tenant::factory()->create([
-            "name" => "Tenant One",
-            "domain" => "tenant-one",
+            'name' => 'Tenant One',
+            'domain' => 'tenant-one',
         ]);
 
         $tenant2 = Tenant::factory()->create([
-            "name" => "Tenant Two",
-            "domain" => "tenant-two",
+            'name' => 'Tenant Two',
+            'domain' => 'tenant-two',
         ]);
 
         // Create subscriptions for both
         TenantSubscription::factory()->create([
-            "tenant_id" => $tenant1->id,
-            "subscription_plan_id" => $this->plan->id,
-            "status" => "expired",
+            'tenant_id' => $tenant1->id,
+            'subscription_plan_id' => $this->plan->id,
+            'status' => 'expired',
         ]);
 
         TenantSubscription::factory()->create([
-            "tenant_id" => $tenant2->id,
-            "subscription_plan_id" => $this->plan->id,
-            "status" => "active",
-            "ends_at" => now()->addDays(20),
+            'tenant_id' => $tenant2->id,
+            'subscription_plan_id' => $this->plan->id,
+            'status' => 'active',
+            'ends_at' => now()->addDays(20),
         ]);
 
         // Login as superadmin
-        $this->actingAs($this->superadmin, "superadmin");
+        $this->actingAs($this->superadmin, 'superadmin');
 
         // Test navigation to tenant 1
-        $viewRoute1 = route("filament.admin.resources.tenants.view", $tenant1);
+        $viewRoute1 = route('filament.admin.resources.tenants.view', $tenant1);
         $response1 = $this->get($viewRoute1);
         $response1->assertSuccessful();
         $response1->assertSee($tenant1->name);
         $response1->assertDontSee($tenant2->name);
 
         // Test navigation to tenant 2
-        $viewRoute2 = route("filament.admin.resources.tenants.view", $tenant2);
+        $viewRoute2 = route('filament.admin.resources.tenants.view', $tenant2);
         $response2 = $this->get($viewRoute2);
         $response2->assertSuccessful();
         $response2->assertSee($tenant2->name);
@@ -257,21 +257,21 @@ class SubscriptionAlertsWidgetNavigationTest extends TestCase
     {
         // Create regular user (non-superadmin)
         $regularUser = User::factory()->create([
-            "name" => "Regular User",
-            "email" => "user@test.com",
-            "is_super_admin" => false,
+            'name' => 'Regular User',
+            'email' => 'user@test.com',
+            'is_super_admin' => false,
         ]);
 
         $tenant = Tenant::factory()->create([
-            "name" => "Test Tenant",
-            "domain" => "test-tenant",
+            'name' => 'Test Tenant',
+            'domain' => 'test-tenant',
         ]);
 
         // Login as regular user
-        $this->actingAs($regularUser, "superadmin");
+        $this->actingAs($regularUser, 'superadmin');
 
         // Try to access view route
-        $viewRoute = route("filament.admin.resources.tenants.view", $tenant);
+        $viewRoute = route('filament.admin.resources.tenants.view', $tenant);
         $response = $this->get($viewRoute);
 
         // Should be forbidden or redirected
@@ -282,16 +282,16 @@ class SubscriptionAlertsWidgetNavigationTest extends TestCase
     public function guest_user_cannot_access_view_routes()
     {
         $tenant = Tenant::factory()->create([
-            "name" => "Test Tenant",
-            "domain" => "test-tenant",
+            'name' => 'Test Tenant',
+            'domain' => 'test-tenant',
         ]);
 
         // Try to access view route without authentication
-        $viewRoute = route("filament.admin.resources.tenants.view", $tenant);
+        $viewRoute = route('filament.admin.resources.tenants.view', $tenant);
         $response = $this->get($viewRoute);
 
         // Should be redirected to login
-        $response->assertRedirect("/admin/login");
+        $response->assertRedirect('/admin/login');
     }
 
     /** @test */
@@ -299,24 +299,24 @@ class SubscriptionAlertsWidgetNavigationTest extends TestCase
     {
         // Create tenant and then soft delete it
         $deletedTenant = Tenant::factory()->create([
-            "name" => "Deleted Tenant",
-            "domain" => "deleted-tenant",
+            'name' => 'Deleted Tenant',
+            'domain' => 'deleted-tenant',
         ]);
 
         TenantSubscription::factory()->create([
-            "tenant_id" => $deletedTenant->id,
-            "subscription_plan_id" => $this->plan->id,
-            "status" => "expired",
+            'tenant_id' => $deletedTenant->id,
+            'subscription_plan_id' => $this->plan->id,
+            'status' => 'expired',
         ]);
 
         // Soft delete the tenant
         $deletedTenant->delete();
 
         // Login as superadmin
-        $this->actingAs($this->superadmin, "superadmin");
+        $this->actingAs($this->superadmin, 'superadmin');
 
         // Try to access view route for soft-deleted tenant
-        $viewRoute = route("filament.admin.resources.tenants.view", $deletedTenant);
+        $viewRoute = route('filament.admin.resources.tenants.view', $deletedTenant);
         $response = $this->get($viewRoute);
 
         // Should handle gracefully (either show archived info or 404)

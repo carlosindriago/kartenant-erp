@@ -2,10 +2,9 @@
 
 namespace Tests\Browser;
 
+use App\Models\Tenant;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
-use App\Models\User;
-use App\Models\Tenant;
 
 class TenantEditPageTest extends DuskTestCase
 {
@@ -18,8 +17,9 @@ class TenantEditPageTest extends DuskTestCase
             // Get a test tenant that should exist
             $tenant = Tenant::where('domain', 'data-protection-test-1764024534')->first();
 
-            if (!$tenant) {
+            if (! $tenant) {
                 $this->markTestSkipped('Test tenant not found');
+
                 return;
             }
 
@@ -39,7 +39,7 @@ class TenantEditPageTest extends DuskTestCase
                 ->pause(1000);
 
             // Check that page loads without JavaScript errors
-            $browser->script("window.testPassed = true;");
+            $browser->script('window.testPassed = true;');
 
             // Verify main form sections are present
             $browser->assertPresent('form')
@@ -61,7 +61,7 @@ class TenantEditPageTest extends DuskTestCase
                 'company_address',
                 'company_city',
                 'company_country',
-                'company_tax_id'
+                'company_tax_id',
             ];
 
             foreach ($formFields as $field) {
@@ -95,8 +95,9 @@ class TenantEditPageTest extends DuskTestCase
             // Get a test tenant
             $tenant = Tenant::where('domain', 'data-protection-test-1764024534')->first();
 
-            if (!$tenant) {
+            if (! $tenant) {
                 $this->markTestSkipped('Test tenant not found');
+
                 return;
             }
 
@@ -147,8 +148,9 @@ class TenantEditPageTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $tenant = Tenant::where('domain', 'data-protection-test-1764024534')->first();
 
-            if (!$tenant) {
+            if (! $tenant) {
                 $this->markTestSkipped('Test tenant not found');
+
                 return;
             }
 
@@ -176,7 +178,7 @@ class TenantEditPageTest extends DuskTestCase
             ");
 
             // Assert no critical JavaScript errors
-            $this->assertEmpty($errors[0], 'JavaScript errors found: ' . implode(', ', $errors[0]));
+            $this->assertEmpty($errors[0], 'JavaScript errors found: '.implode(', ', $errors[0]));
         });
     }
 }

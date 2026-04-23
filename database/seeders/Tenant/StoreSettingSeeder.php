@@ -3,6 +3,7 @@
 namespace Database\Seeders\Tenant;
 
 use App\Models\StoreSetting;
+use App\Models\Tenant;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -14,8 +15,9 @@ class StoreSettingSeeder extends Seeder
     public function run(): void
     {
         // Check if store_settings table exists
-        if (!DB::getSchemaBuilder()->hasTable('store_settings')) {
+        if (! DB::getSchemaBuilder()->hasTable('store_settings')) {
             $this->command->error('La tabla "store_settings" no existe. Por favor ejecuta la migración primero.');
+
             return;
         }
 
@@ -51,7 +53,7 @@ class StoreSettingSeeder extends Seeder
         // Create store settings if they don't exist
         $existingSettings = StoreSetting::first();
 
-        if (!$existingSettings) {
+        if (! $existingSettings) {
             StoreSetting::create($defaultSettings);
             $this->command->info('✅ StoreSettings por defecto creados exitosamente');
         } else {
@@ -149,9 +151,9 @@ class StoreSettingSeeder extends Seeder
      */
     public static function runForTenant(int $tenantId): void
     {
-        $tenant = \App\Models\Tenant::find($tenantId);
+        $tenant = Tenant::find($tenantId);
 
-        if (!$tenant) {
+        if (! $tenant) {
             throw new \Exception("Tenant con ID {$tenantId} no encontrado");
         }
 
@@ -159,7 +161,7 @@ class StoreSettingSeeder extends Seeder
         tenancy()->initialize($tenant);
 
         // Run the seeder
-        $seeder = new self();
+        $seeder = new self;
         $seeder->run();
 
         // Forget the tenant

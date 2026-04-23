@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -20,6 +20,6 @@ class CreateAdminUser extends CreateRecord
 
     protected function authorizeAccess(): void
     {
-        abort_unless(\App\Filament\Resources\AdminUserResource::canCreate(), 403);
+        abort_unless(AdminUserResource::canCreate(), 403);
     }
 }

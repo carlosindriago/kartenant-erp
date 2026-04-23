@@ -1,8 +1,8 @@
 <?php
 
+use App\Models\Tenant;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
-use App\Models\Tenant;
 
 class TenantEditButtonTest extends DuskTestCase
 {
@@ -15,30 +15,30 @@ class TenantEditButtonTest extends DuskTestCase
             try {
                 // Visit tenant edit page directly (will redirect to login, but we can check for component errors)
                 $browser->visit('/admin/tenants/data-protection-test-1764024534/edit')
-                        ->pause(5000); // Wait for any redirects
+                    ->pause(5000); // Wait for any redirects
 
                 // Take screenshot to see current state
                 $browser->screenshot('tenant-edit-button-test');
 
                 $currentUrl = $browser->driver->getCurrentURL();
-                
+
                 // Check if we are on login page (expected) or tenant edit page (if already logged in)
                 if (str_contains($currentUrl, '/admin/login')) {
                     echo "✅ Correctly redirected to login page\n";
-                    
+
                     // Try login with correct field names
                     $browser->type('email', 'admin@emporiodigital.com')
-                            ->type('password', 'password')
-                            ->press('Iniciar Sesión')
-                            ->waitForLocation('/admin', 10)
-                            ->assertPathIs('/admin');
+                        ->type('password', 'password')
+                        ->press('Iniciar Sesión')
+                        ->waitForLocation('/admin', 10)
+                        ->assertPathIs('/admin');
 
                     echo "✅ Login successful\n";
 
                     // Now navigate to tenant edit page
                     $browser->visit('/admin/tenants/data-protection-test-1764024534/edit')
-                            ->waitFor('fi-ta-form', 10)
-                            ->pause(2000);
+                        ->waitFor('fi-ta-form', 10)
+                        ->pause(2000);
 
                     // Take screenshot of the form
                     $browser->screenshot('tenant-edit-form-loaded');
@@ -62,7 +62,7 @@ class TenantEditButtonTest extends DuskTestCase
                         echo "✅ Cancel button found with Spanish label\n";
                     } else {
                         echo "❌ Cancel button not found\n";
-                        // Check if button exists with different label  
+                        // Check if button exists with different label
                         $altCancelButton = $browser->element('button:contains("Cancelar")');
                         if ($altCancelButton) {
                             echo "⚠️  Cancel button found with different label\n";
@@ -82,7 +82,7 @@ class TenantEditButtonTest extends DuskTestCase
                     echo "📸 Final screenshot saved\n";
                 }
 
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $browser->screenshot('tenant-edit-error');
                 echo "📸 Error screenshot saved\n";
                 throw $e;

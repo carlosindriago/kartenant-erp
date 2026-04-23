@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers\API\V1;
 
-use App\Http\Controllers\API\V1\BaseApiController;
 use App\Http\Requests\API\V1\StorePaymentProofRequest;
-use App\Http\Requests\API\V1\UpdatePaymentProofRequest;
 use App\Models\PaymentProof;
 use App\Models\PaymentSettings;
 use App\Models\Tenant;
@@ -12,22 +10,20 @@ use App\Models\TenantSubscription;
 use App\Models\User;
 use App\Services\PaymentProofService;
 use App\Services\SubscriptionService;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Tenant Billing API Controller
  *
  * Handles billing operations for authenticated tenants
  * Provides endpoints for payment proof management and subscription status
- *
- * @package App\Http\Controllers\API\V1
  */
 class TenantBillingController extends BaseApiController
 {
@@ -44,9 +40,6 @@ class TenantBillingController extends BaseApiController
      *
      * Returns current subscription status, recent payment proofs,
      * and billing summary for the authenticated tenant.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
@@ -56,7 +49,7 @@ class TenantBillingController extends BaseApiController
             /** @var User $user */
             $user = Auth::guard('tenant')->user();
 
-            if (!$tenant || !$user) {
+            if (! $tenant || ! $user) {
                 return $this->unauthorizedResponse('Tenant authentication required');
             }
 
@@ -137,9 +130,6 @@ class TenantBillingController extends BaseApiController
      *
      * Handles file uploads and payment data submission
      * Validates against payment settings and enforces tenant isolation
-     *
-     * @param StorePaymentProofRequest $request
-     * @return JsonResponse
      */
     public function store(StorePaymentProofRequest $request): JsonResponse
     {
@@ -149,7 +139,7 @@ class TenantBillingController extends BaseApiController
             /** @var User $user */
             $user = Auth::guard('tenant')->user();
 
-            if (!$tenant || !$user) {
+            if (! $tenant || ! $user) {
                 return $this->unauthorizedResponse('Tenant authentication required');
             }
 
@@ -165,7 +155,7 @@ class TenantBillingController extends BaseApiController
                     $subscription
                 );
 
-                if (!$uploadResult['success']) {
+                if (! $uploadResult['success']) {
                     return $this->validationErrorResponse(
                         $uploadResult['errors'],
                         'File upload validation failed'
@@ -178,7 +168,7 @@ class TenantBillingController extends BaseApiController
                     $subscription
                 );
 
-                if (!$validationResult['valid']) {
+                if (! $validationResult['valid']) {
                     return $this->validationErrorResponse(
                         $validationResult['errors'],
                         'Payment data validation failed'
@@ -255,10 +245,6 @@ class TenantBillingController extends BaseApiController
      *
      * Returns detailed information about a payment proof
      * Includes file URLs and download links
-     *
-     * @param Request $request
-     * @param int $id
-     * @return JsonResponse
      */
     public function show(Request $request, int $id): JsonResponse
     {
@@ -268,7 +254,7 @@ class TenantBillingController extends BaseApiController
             /** @var User $user */
             $user = Auth::guard('tenant')->user();
 
-            if (!$tenant || !$user) {
+            if (! $tenant || ! $user) {
                 return $this->unauthorizedResponse('Tenant authentication required');
             }
 
@@ -279,7 +265,7 @@ class TenantBillingController extends BaseApiController
                 ->with(['subscription', 'invoice', 'reviewer'])
                 ->first();
 
-            if (!$paymentProof) {
+            if (! $paymentProof) {
                 return $this->notFoundResponse('Payment proof not found');
             }
 
@@ -343,10 +329,6 @@ class TenantBillingController extends BaseApiController
      *
      * Allows tenants to delete their own payment proofs
      * Only allows deletion of pending payment proofs
-     *
-     * @param Request $request
-     * @param int $id
-     * @return JsonResponse
      */
     public function destroy(Request $request, int $id): JsonResponse
     {
@@ -356,7 +338,7 @@ class TenantBillingController extends BaseApiController
             /** @var User $user */
             $user = Auth::guard('tenant')->user();
 
-            if (!$tenant || !$user) {
+            if (! $tenant || ! $user) {
                 return $this->unauthorizedResponse('Tenant authentication required');
             }
 
@@ -366,7 +348,7 @@ class TenantBillingController extends BaseApiController
                 ->where('tenant_id', $tenant->id)
                 ->first();
 
-            if (!$paymentProof) {
+            if (! $paymentProof) {
                 return $this->notFoundResponse('Payment proof not found');
             }
 
@@ -382,7 +364,7 @@ class TenantBillingController extends BaseApiController
                 // Delete associated files
                 $filesDeleted = $this->paymentProofService->deletePaymentProofFiles($paymentProof);
 
-                if (!$filesDeleted) {
+                if (! $filesDeleted) {
                     Log::warning('Some files could not be deleted during payment proof removal', [
                         'payment_proof_id' => $paymentProof->id,
                         'tenant_id' => $paymentProof->tenant_id,
@@ -392,7 +374,7 @@ class TenantBillingController extends BaseApiController
                 // Soft delete payment proof
                 $deleted = $paymentProof->delete();
 
-                if (!$deleted) {
+                if (! $deleted) {
                     return $this->errorResponse(
                         message: 'Failed to delete payment proof',
                         code: 'PAYMENT_PROOF_DELETION_FAILED',
@@ -434,9 +416,6 @@ class TenantBillingController extends BaseApiController
      *
      * Returns paginated list of all payment proofs for the tenant
      * Includes filtering and sorting options
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function history(Request $request): JsonResponse
     {
@@ -446,7 +425,7 @@ class TenantBillingController extends BaseApiController
             /** @var User $user */
             $user = Auth::guard('tenant')->user();
 
-            if (!$tenant || !$user) {
+            if (! $tenant || ! $user) {
                 return $this->unauthorizedResponse('Tenant authentication required');
             }
 
@@ -503,7 +482,7 @@ class TenantBillingController extends BaseApiController
             });
 
             // Create a new collection with transformed data
-            $resource = new \Illuminate\Http\Resources\Json\ResourceCollection($transformedPayments);
+            $resource = new ResourceCollection($transformedPayments);
             $resource->resource = $payments;
 
             return $this->successResponseWithPagination(
@@ -547,7 +526,7 @@ class TenantBillingController extends BaseApiController
                     PaymentProof::STATUS_PENDING,
                     PaymentProof::STATUS_APPROVED,
                     PaymentProof::STATUS_REJECTED,
-                    PaymentProof::STATUS_APPROVED
+                    PaymentProof::STATUS_APPROVED,
                 ])
                 ->first();
 
@@ -590,13 +569,8 @@ class TenantBillingController extends BaseApiController
      *
      * Allows authenticated tenants to download their own payment proof files
      * Uses tenant isolation and file access validation
-     *
-     * @param Request $request
-     * @param int $id
-     * @param string $file_path
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse|JsonResponse
      */
-    public function downloadFile(Request $request, int $id, string $file_path): JsonResponse|\Symfony\Component\HttpFoundation\StreamedResponse
+    public function downloadFile(Request $request, int $id, string $file_path): JsonResponse|StreamedResponse
     {
         try {
             /** @var Tenant $tenant */
@@ -604,7 +578,7 @@ class TenantBillingController extends BaseApiController
             /** @var User $user */
             $user = Auth::guard('tenant')->user();
 
-            if (!$tenant || !$user) {
+            if (! $tenant || ! $user) {
                 return $this->unauthorizedResponse('Tenant authentication required');
             }
 
@@ -614,7 +588,7 @@ class TenantBillingController extends BaseApiController
                 ->where('tenant_id', $tenant->id)
                 ->first();
 
-            if (!$paymentProof) {
+            if (! $paymentProof) {
                 return $this->notFoundResponse('Payment proof not found');
             }
 
@@ -622,7 +596,7 @@ class TenantBillingController extends BaseApiController
             $filePath = urldecode($file_path);
 
             // Validate file path against payment proof's file paths
-            if (!in_array($filePath, $paymentProof->file_paths ?? [])) {
+            if (! in_array($filePath, $paymentProof->file_paths ?? [])) {
                 Log::warning('Unauthorized file access attempt via API', [
                     'tenant_id' => $tenant->id,
                     'user_id' => $user->id,
@@ -641,7 +615,7 @@ class TenantBillingController extends BaseApiController
                 $filePath
             );
 
-            if (!$response) {
+            if (! $response) {
                 return $this->notFoundResponse('File not found');
             }
 
@@ -655,7 +629,7 @@ class TenantBillingController extends BaseApiController
 
             // Set proper headers for file download
             $filename = basename($filePath);
-            $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+            $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
             $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
             $response->headers->set('Pragma', 'no-cache');
             $response->headers->set('Expires', '0');
@@ -694,7 +668,7 @@ class TenantBillingController extends BaseApiController
             })
             ->first();
 
-        if (!$subscription) {
+        if (! $subscription) {
             // Create new trial subscription
             $subscription = TenantSubscription::on('landlord')->create([
                 'tenant_id' => $tenant->id,

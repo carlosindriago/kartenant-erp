@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -47,7 +47,7 @@ class EmployeeWelcomeNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         /** @var User $notifiable */
-        
+
         return (new MailMessage)
             ->subject("🎉 Bienvenido a {$this->tenantName}")
             ->greeting("¡Hola {$notifiable->name}!")
@@ -66,7 +66,7 @@ class EmployeeWelcomeNotification extends Notification implements ShouldQueue
             ->line('4. Combina letras mayúsculas, minúsculas, números y símbolos')
             ->line('---')
             ->line('📋 **Información Adicional:**')
-            ->line("• Roles asignados: " . $notifiable->roles->pluck('name')->join(', '))
+            ->line('• Roles asignados: '.$notifiable->roles->pluck('name')->join(', '))
             ->when($this->documentNumber, function ($message) {
                 return $message->line("• Número de comprobante: **{$this->documentNumber}**");
             })

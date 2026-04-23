@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -21,7 +21,7 @@ class FilamentTenantAuthenticate
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -31,7 +31,7 @@ class FilamentTenantAuthenticate
         }
 
         // Check if user is authenticated with tenant guard
-        if (!Auth::guard('tenant')->check()) {
+        if (! Auth::guard('tenant')->check()) {
             // Store intended URL for redirect after login
             session()->put('url.intended', $request->fullUrl());
 
@@ -41,8 +41,9 @@ class FilamentTenantAuthenticate
 
         // Verify tenant context is properly established
         $tenant = tenant();
-        if (!$tenant || !$tenant->is_active) {
+        if (! $tenant || ! $tenant->is_active) {
             Auth::guard('tenant')->logout();
+
             return redirect()->route('tenant.login')
                 ->with('error', 'Tu cuenta ha sido desactivada. Contacta al soporte.');
         }

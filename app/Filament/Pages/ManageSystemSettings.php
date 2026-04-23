@@ -5,23 +5,28 @@ namespace App\Filament\Pages;
 use App\Models\SystemSettings;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\Tabs;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
-use Filament\Pages\Page;
 use Filament\Notifications\Notification;
+use Filament\Pages\Page;
 
 class ManageSystemSettings extends Page implements HasForms
 {
     use InteractsWithForms;
+
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+
     protected static ?string $navigationLabel = 'Configuración del Sistema';
+
     protected static ?string $title = 'Configuración del Sistema';
+
     protected static ?string $navigationGroup = 'Sistema';
+
     protected static ?int $navigationSort = 1;
 
     protected static string $view = 'filament.pages.manage-system-settings';
@@ -59,7 +64,7 @@ class ManageSystemSettings extends Page implements HasForms
                             ->icon('heroicon-o-shield-check')
                             ->schema($this->getSecuritySchema()),
                     ])
-                    ->columnSpanFull()
+                    ->columnSpanFull(),
             ])
             ->statePath('data');
     }
@@ -375,7 +380,7 @@ class ManageSystemSettings extends Page implements HasForms
     protected function getTimezones(): array
     {
         return collect(timezone_identifiers_list())
-            ->mapWithKeys(fn($tz) => [$tz => $tz])
+            ->mapWithKeys(fn ($tz) => [$tz => $tz])
             ->toArray();
     }
 }

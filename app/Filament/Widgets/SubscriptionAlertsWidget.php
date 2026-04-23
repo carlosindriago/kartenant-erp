@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,15 +12,13 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Tenant;
-use App\Services\TimeFormattingService;
 use Filament\Widgets\Widget;
-use Illuminate\Support\Facades\DB;
 
 class SubscriptionAlertsWidget extends Widget
 {
     protected static string $view = 'filament.widgets.subscription-alerts';
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     protected static ?int $sort = -10; // Show at top
 
@@ -31,6 +29,7 @@ class SubscriptionAlertsWidget extends Widget
     {
         // Use filament() helper for proper panel context with null checks
         $panel = filament()->getCurrentPanel();
+
         return $panel && $panel->getId() === 'admin' && filament()->auth()->check();
     }
 

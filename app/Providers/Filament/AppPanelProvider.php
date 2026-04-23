@@ -2,20 +2,22 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\App\Pages\BillingDashboard;
+use App\Filament\App\Pages\POS;
+use App\Filament\App\Pages\SubscriptionStatus;
+use App\Filament\App\Pages\UpgradePlan;
+use App\Http\Middleware\CheckSubscriptionStatus;
+use App\Http\Middleware\EnforcePlanLimits;
+use App\Http\Middleware\FilamentTenantAuthenticate;
+use App\Http\Middleware\MakeSpatieTenantCurrent;
+use App\Http\Middleware\RequirePasswordChange;
 use App\Models\Tenant;
-use App\Services\BugReportService;
 use Filament\Facades\Filament;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Navigation\NavigationGroup;
-use Filament\Notifications\Notification;
-use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -25,6 +27,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AppPanelProvider extends PanelProvider
@@ -65,28 +68,28 @@ class AppPanelProvider extends PanelProvider
             ->sidebarWidth('16rem') // Ancho cuando está expandido
             ->collapsedSidebarWidth('4rem') // Ancho cuando está colapsado
             ->navigationGroups([
-                \Filament\Navigation\NavigationGroup::make('Inventario')
+                NavigationGroup::make('Inventario')
                     ->collapsed(), // Colapsado por defecto
-                \Filament\Navigation\NavigationGroup::make('Punto de Venta')
+                NavigationGroup::make('Punto de Venta')
                     ->collapsed(),
-                \Filament\Navigation\NavigationGroup::make('Caja')
+                NavigationGroup::make('Caja')
                     ->collapsed(),
-                \Filament\Navigation\NavigationGroup::make('Administración')
+                NavigationGroup::make('Administración')
                     ->collapsed(),
-                \Filament\Navigation\NavigationGroup::make('Configuración')
+                NavigationGroup::make('Configuración')
                     ->collapsed(),
-                \Filament\Navigation\NavigationGroup::make('Seguridad')
+                NavigationGroup::make('Seguridad')
                     ->collapsed(),
-                \Filament\Navigation\NavigationGroup::make('Sistema')
+                NavigationGroup::make('Sistema')
                     ->collapsed(),
             ])
             ->discoverResources(in: app_path('Modules'), for: 'App\\Modules')
             ->discoverPages(in: app_path('Filament/App/Pages'), for: 'App\\Filament\\App\\Pages')
             ->pages([
-                \App\Filament\App\Pages\POS::class,
-                \App\Filament\App\Pages\SubscriptionStatus::class,
-                \App\Filament\App\Pages\BillingDashboard::class,
-                \App\Filament\App\Pages\UpgradePlan::class,
+                POS::class,
+                SubscriptionStatus::class,
+                BillingDashboard::class,
+                UpgradePlan::class,
             ])
             ->discoverWidgets(in: app_path('Modules'), for: 'App\\Modules')
             ->widgets([
@@ -102,15 +105,15 @@ class AppPanelProvider extends PanelProvider
                 // \App\Filament\App\Widgets\CashRegisterStatusWidget::class,
             ])
             ->userMenuItems(config('app.mode') === 'saas' ? [
-                'subscription' => \Filament\Navigation\MenuItem::make()
+                'subscription' => MenuItem::make()
                     ->label('Mi Suscripción')
                     ->icon('heroicon-o-credit-card')
-                    ->url(fn () => \App\Filament\App\Pages\SubscriptionStatus::getUrl(['tenant' => Filament::getTenant()]))
+                    ->url(fn () => SubscriptionStatus::getUrl(['tenant' => Filament::getTenant()]))
                     ->sort(10),
-                'upgrade' => \Filament\Navigation\MenuItem::make()
+                'upgrade' => MenuItem::make()
                     ->label('Actualizar Plan')
                     ->icon('heroicon-o-arrow-up-circle')
-                    ->url(fn () => \App\Filament\App\Pages\UpgradePlan::getUrl(['tenant' => Filament::getTenant()]))
+                    ->url(fn () => UpgradePlan::getUrl(['tenant' => Filament::getTenant()]))
                     ->sort(11),
             ] : [])
             ->middleware([
@@ -118,7 +121,7 @@ class AppPanelProvider extends PanelProvider
                 AddQueuedCookiesToResponse::class,
                 // CRITICAL: MakeSpatieTenantCurrent MUST run before StartSession
                 // to ensure tenant DB is configured before session loads
-                \App\Http\Middleware\MakeSpatieTenantCurrent::class,
+                MakeSpatieTenantCurrent::class,
                 StartSession::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
@@ -128,14 +131,14 @@ class AppPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
-                \App\Http\Middleware\FilamentTenantAuthenticate::class,
-                \App\Http\Middleware\RequirePasswordChange::class,
+                FilamentTenantAuthenticate::class,
+                RequirePasswordChange::class,
                 // Security questions feature disabled - table doesn't exist in tenant context
                 // \App\Http\Middleware\RequireSecurityQuestions::class,
 
                 // Subscription enforcement
-                \App\Http\Middleware\CheckSubscriptionStatus::class,
-                \App\Http\Middleware\EnforcePlanLimits::class,
+                CheckSubscriptionStatus::class,
+                EnforcePlanLimits::class,
             ])
             ->renderHook(
                 'panels::sidebar.nav.end',
@@ -151,7 +154,7 @@ class AppPanelProvider extends PanelProvider
             )
             ->renderHook(
                 'panels::body.end',
-                fn () => \Illuminate\Support\Facades\Blade::render('@livewire(\'bug-report-modal\')')
+                fn () => Blade::render('@livewire(\'bug-report-modal\')')
             )
             // FIX: Workaround para problema de navegación intermitente de Filament/Livewire
             ->renderHook(
@@ -167,7 +170,7 @@ class AppPanelProvider extends PanelProvider
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return 'Kartenant';
         }
 
@@ -187,7 +190,7 @@ class AppPanelProvider extends PanelProvider
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return null;
         }
 
@@ -206,7 +209,7 @@ class AppPanelProvider extends PanelProvider
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return null;
         }
 

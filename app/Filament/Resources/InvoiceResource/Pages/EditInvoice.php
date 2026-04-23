@@ -3,9 +3,14 @@
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Resources\InvoiceResource;
-use Filament\Actions;
-use Filament\Resources\Pages\EditRecord;
 use App\Models\Invoice;
+use App\Models\PaymentSettings;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Actions;
+use Filament\Notifications\Notification;
+use Filament\Notifications\NotificationAction;
+use Filament\Resources\Pages\EditRecord;
+use Symfony\Component\HttpFoundation\Response;
 
 class EditInvoice extends EditRecord
 {
@@ -28,10 +33,10 @@ class EditInvoice extends EditRecord
         }
 
         // Update line items if plan price changed
-        if (isset($data['plan_price']) && !isset($data['line_items'])) {
+        if (isset($data['plan_price']) && ! isset($data['line_items'])) {
             $data['line_items'] = [
                 [
-                    'description' => ($data['plan_name'] ?? $this->record->plan_name) . ' - ' . ($data['billing_cycle'] ?? $this->record->billing_cycle),
+                    'description' => ($data['plan_name'] ?? $this->record->plan_name).' - '.($data['billing_cycle'] ?? $this->record->billing_cycle),
                     'quantity' => 1,
                     'unit_price' => $data['plan_price'] ?? $this->record->plan_price,
                     'total' => $data['subtotal'] ?? $this->record->subtotal,
@@ -100,14 +105,14 @@ class EditInvoice extends EditRecord
         ];
     }
 
-    protected function generateAndDownloadPDF(): \Symfony\Component\HttpFoundation\Response
+    protected function generateAndDownloadPDF(): ?Response
     {
         try {
             // Generate PDF
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.invoices.invoice', [
+            $pdf = Pdf::loadView('pdf.invoices.invoice', [
                 'invoice' => $this->record,
                 'tenant' => $this->record->tenant,
-                'settings' => \App\Models\PaymentSettings::getDefault(),
+                'settings' => PaymentSettings::getDefault(),
             ]);
 
             // Generate filename
@@ -115,13 +120,15 @@ class EditInvoice extends EditRecord
 
             // Download the PDF
             return response()->streamDownload(
-                fn () => print($pdf->output()),
+                fn () => print ($pdf->output()),
                 $filename,
                 ['Content-Type' => 'application/pdf']
             );
 
         } catch (\Exception $e) {
-            $this->notify('error', 'Error al generar PDF: ' . $e->getMessage());
+            $this->notify('error', 'Error al generar PDF: '.$e->getMessage());
+
+            return null;
         }
     }
 
@@ -137,14 +144,14 @@ class EditInvoice extends EditRecord
         ];
     }
 
-    protected function getSavedNotification(): ?\Filament\Notifications\Notification
+    protected function getSavedNotification(): ?Notification
     {
-        return \Filament\Notifications\Notification::make()
+        return Notification::make()
             ->title('Factura Actualizada')
             ->body("La factura {$this->record->invoice_number} ha sido actualizada exitosamente.")
             ->success()
             ->actions([
-                \Filament\Notifications\NotificationAction::make('view')
+                NotificationAction::make('view')
                     ->label('Ver Factura')
                     ->url($this->getResource()::getUrl('view', ['record' => $this->record])),
             ]);

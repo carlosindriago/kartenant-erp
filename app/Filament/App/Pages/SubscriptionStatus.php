@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,8 +13,9 @@ namespace App\Filament\App\Pages;
 
 use App\Models\Tenant;
 use App\Services\SubscriptionLimitService;
-use Filament\Pages\Page;
 use Filament\Actions\Action;
+use Filament\Facades\Filament;
+use Filament\Pages\Page;
 
 class SubscriptionStatus extends Page
 {
@@ -46,7 +47,7 @@ class SubscriptionStatus extends Page
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return 'Sin plan activo';
         }
 
@@ -63,13 +64,13 @@ class SubscriptionStatus extends Page
                 ->label('Actualizar Plan')
                 ->icon('heroicon-o-arrow-up-circle')
                 ->color('success')
-                ->url(fn (): string => \App\Filament\App\Pages\UpgradePlan::getUrl(tenant: \Filament\Facades\Filament::getTenant())),
+                ->url(fn (): string => UpgradePlan::getUrl(tenant: Filament::getTenant())),
 
             Action::make('view_billing')
                 ->label('Centro de Facturación')
                 ->icon('heroicon-o-credit-card')
                 ->color('primary')
-                ->url(fn (): string => \App\Filament\App\Pages\BillingDashboard::getUrl(tenant: \Filament\Facades\Filament::getTenant())),
+                ->url(fn (): string => BillingDashboard::getUrl(tenant: Filament::getTenant())),
 
             Action::make('view_invoices')
                 ->label('Ver Facturas')
@@ -84,7 +85,7 @@ class SubscriptionStatus extends Page
     {
         $tenant = Tenant::current();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return [
                 'limits' => [],
                 'warnings' => [],

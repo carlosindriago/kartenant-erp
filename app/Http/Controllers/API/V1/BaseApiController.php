@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -27,10 +27,7 @@ class BaseApiController extends Controller
     /**
      * Return success response
      *
-     * @param mixed $data
-     * @param string|null $message
-     * @param int $statusCode
-     * @return JsonResponse
+     * @param  mixed  $data
      */
     protected function successResponse($data = null, ?string $message = null, int $statusCode = 200): JsonResponse
     {
@@ -61,10 +58,6 @@ class BaseApiController extends Controller
 
     /**
      * Return success response with pagination
-     *
-     * @param ResourceCollection $collection
-     * @param string|null $message
-     * @return JsonResponse
      */
     protected function successResponseWithPagination(ResourceCollection $collection, ?string $message = null): JsonResponse
     {
@@ -103,12 +96,6 @@ class BaseApiController extends Controller
 
     /**
      * Return error response
-     *
-     * @param string $message
-     * @param string $code
-     * @param array|null $details
-     * @param int $statusCode
-     * @return JsonResponse
      */
     protected function errorResponse(
         string $message,
@@ -137,10 +124,6 @@ class BaseApiController extends Controller
 
     /**
      * Return validation error response
-     *
-     * @param array $errors
-     * @param string $message
-     * @return JsonResponse
      */
     protected function validationErrorResponse(
         array $errors,
@@ -156,9 +139,6 @@ class BaseApiController extends Controller
 
     /**
      * Return not found error response
-     *
-     * @param string $message
-     * @return JsonResponse
      */
     protected function notFoundResponse(string $message = 'Recurso no encontrado'): JsonResponse
     {
@@ -171,9 +151,6 @@ class BaseApiController extends Controller
 
     /**
      * Return unauthorized error response
-     *
-     * @param string $message
-     * @return JsonResponse
      */
     protected function unauthorizedResponse(string $message = 'No autorizado'): JsonResponse
     {
@@ -186,9 +163,6 @@ class BaseApiController extends Controller
 
     /**
      * Return forbidden error response
-     *
-     * @param string $message
-     * @return JsonResponse
      */
     protected function forbiddenResponse(string $message = 'Acceso prohibido'): JsonResponse
     {
@@ -202,9 +176,7 @@ class BaseApiController extends Controller
     /**
      * Return created response
      *
-     * @param mixed $data
-     * @param string $message
-     * @return JsonResponse
+     * @param  mixed  $data
      */
     protected function createdResponse($data, string $message = 'Recurso creado exitosamente'): JsonResponse
     {
@@ -213,8 +185,6 @@ class BaseApiController extends Controller
 
     /**
      * Return no content response (for deletes)
-     *
-     * @return JsonResponse
      */
     protected function noContentResponse(): JsonResponse
     {

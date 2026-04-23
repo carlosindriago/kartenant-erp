@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Landlord\Permission;
 use App\Models\Landlord\Role;
+use Illuminate\Database\Seeder;
+use Spatie\Permission\PermissionRegistrar;
 
 class LandlordAdminSeeder extends Seeder
 {
@@ -12,8 +13,8 @@ class LandlordAdminSeeder extends Seeder
     {
         // Force Spatie Permission to use landlord models during this seeding run
         config([
-            'permission.models.permission' => \App\Models\Landlord\Permission::class,
-            'permission.models.role' => \App\Models\Landlord\Role::class,
+            'permission.models.permission' => Permission::class,
+            'permission.models.role' => Role::class,
             // Use a distinct cache key for landlord context, if configured elsewhere
             'permission.cache.key' => 'spatie.permission.cache.landlord',
         ]);
@@ -97,6 +98,6 @@ class LandlordAdminSeeder extends Seeder
         }
 
         // Clear Spatie permission cache to ensure new permissions & roles load correctly
-        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

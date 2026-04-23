@@ -3,9 +3,9 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
 
 class PasswordResetNotification extends Notification implements ShouldQueue
 {
@@ -21,7 +21,7 @@ class PasswordResetNotification extends Notification implements ShouldQueue
     /**
      * Create a new notification instance.
      *
-     * @param string $token
+     * @param  string  $token
      */
     public function __construct($token)
     {
@@ -31,7 +31,7 @@ class PasswordResetNotification extends Notification implements ShouldQueue
     /**
      * Get the notification's delivery channels.
      *
-     * @param mixed $notifiable
+     * @param  mixed  $notifiable
      * @return array
      */
     public function via($notifiable)
@@ -42,17 +42,17 @@ class PasswordResetNotification extends Notification implements ShouldQueue
     /**
      * Get the mail representation of the notification.
      *
-     * @param mixed $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * @param  mixed  $notifiable
+     * @return MailMessage
      */
     public function toMail($notifiable)
     {
         return (new MailMessage)
             ->subject('Restablecer Contraseña - Emporio Digital')
-            ->greeting('Hola ' . $notifiable->name)
+            ->greeting('Hola '.$notifiable->name)
             ->line('Recibes este email porque se solicitó un restablecimiento de contraseña para tu cuenta.')
-            ->action('Restablecer Contraseña', url(config('app.url') . '/reset-password/' . $this->token))
-            ->line('Este enlace de restablecimiento de contraseña expirará en ' . config('auth.passwords.'.config('auth.defaults.passwords').'.expire') . ' minutos.')
+            ->action('Restablecer Contraseña', url(config('app.url').'/reset-password/'.$this->token))
+            ->line('Este enlace de restablecimiento de contraseña expirará en '.config('auth.passwords.'.config('auth.defaults.passwords').'.expire').' minutos.')
             ->line('Si no solicitaste un restablecimiento de contraseña, no es necesario realizar ninguna acción.')
             ->salutation('Saludos, el equipo de Emporio Digital');
     }
@@ -60,7 +60,7 @@ class PasswordResetNotification extends Notification implements ShouldQueue
     /**
      * Get the array representation of the notification.
      *
-     * @param mixed $notifiable
+     * @param  mixed  $notifiable
      * @return array
      */
     public function toArray($notifiable)

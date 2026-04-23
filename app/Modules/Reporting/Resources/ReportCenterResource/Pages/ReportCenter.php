@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,33 +12,37 @@
 namespace App\Modules\Reporting\Resources\ReportCenterResource\Pages;
 
 use App\Modules\Reporting\Resources\ReportCenterResource;
-use App\Modules\Reporting\Services\InventoryReportService;
 use App\Modules\Reporting\Services\ABCAnalysisService;
+use App\Modules\Reporting\Services\InventoryReportService;
 use App\Modules\Reporting\Services\ProfitabilityService;
 use App\Modules\Reporting\Services\TurnoverService;
-use Filament\Resources\Pages\Page;
+use Filament\Actions\Action;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Actions\Action;
+use Filament\Forms\Form;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Carbon;
+use Filament\Resources\Pages\Page;
 
 class ReportCenter extends Page implements HasForms
 {
     use InteractsWithForms;
 
     protected static string $resource = ReportCenterResource::class;
+
     protected static string $view = 'reporting::pages.report-center';
+
     protected static ?string $title = 'Centro de Reportes Avanzados';
 
     public ?array $data = [];
 
     // Data properties for each report type
     public ?array $inventoryValueData = null;
+
     public ?array $abcAnalysisData = null;
+
     public ?array $profitabilityData = null;
+
     public ?array $turnoverData = null;
 
     // Active tab

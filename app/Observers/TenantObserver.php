@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,6 +12,7 @@
 namespace App\Observers;
 
 use App\Models\Tenant;
+use App\Models\TenantSetting;
 use App\Services\TenantActivityService;
 use App\Services\TenantStatsService;
 use Illuminate\Support\Facades\Artisan;
@@ -41,7 +42,7 @@ class TenantObserver
         // Crear registro inicial de configuración del tenant con valores por defecto
         // Esto asegura que cada nuevo tenant tenga su configuración lista para usar
         $tenant->execute(function () use ($tenant) {
-            \App\Models\TenantSetting::create([
+            TenantSetting::create([
                 'tenant_id' => $tenant->id,
                 'allow_cashier_void_last_sale' => true,
                 'cashier_void_time_limit_minutes' => 5,
@@ -55,7 +56,7 @@ class TenantObserver
             $creator = Auth::user();
 
             // Set default status if not provided
-            if (!$tenant->status) {
+            if (! $tenant->status) {
                 $tenant->update(['status' => Tenant::STATUS_TRIAL]);
             }
 
@@ -64,7 +65,7 @@ class TenantObserver
 
         } catch (\Exception $e) {
             // Log error but don't break the tenant creation
-            \Log::error("Failed to log tenant creation: " . $e->getMessage());
+            \Log::error('Failed to log tenant creation: '.$e->getMessage());
         }
     }
 
@@ -102,7 +103,7 @@ class TenantObserver
             $changedFields = $tenant->getDirty();
             unset($changedFields['status'], $changedFields['trial_ends_at'], $changedFields['updated_at']);
 
-            if (!empty($changedFields)) {
+            if (! empty($changedFields)) {
                 TenantActivityService::logSettingsUpdated(
                     tenant: $tenant,
                     changedFields: $changedFields,
@@ -115,7 +116,7 @@ class TenantObserver
 
         } catch (\Exception $e) {
             // Log error but don't break the tenant update
-            \Log::error("Failed to log tenant update: " . $e->getMessage());
+            \Log::error('Failed to log tenant update: '.$e->getMessage());
         }
     }
 
@@ -135,7 +136,7 @@ class TenantObserver
 
         } catch (\Exception $e) {
             // Log error but don't break the tenant deletion
-            \Log::error("Failed to log tenant deletion: " . $e->getMessage());
+            \Log::error('Failed to log tenant deletion: '.$e->getMessage());
         }
     }
 
@@ -152,7 +153,7 @@ class TenantObserver
 
         } catch (\Exception $e) {
             // Log error but don't break the tenant restoration
-            \Log::error("Failed to log tenant restoration: " . $e->getMessage());
+            \Log::error('Failed to log tenant restoration: '.$e->getMessage());
         }
     }
 
@@ -183,7 +184,7 @@ class TenantObserver
 
         } catch (\Exception $e) {
             // Log error but don't break the tenant deletion
-            \Log::error("Failed to log tenant permanent deletion: " . $e->getMessage());
+            \Log::error('Failed to log tenant permanent deletion: '.$e->getMessage());
         }
     }
 

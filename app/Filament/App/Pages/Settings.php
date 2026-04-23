@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,23 +12,30 @@
 namespace App\Filament\App\Pages;
 
 use App\Models\TenantSetting;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\HtmlString;
 
 class Settings extends Page implements HasForms
 {
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+
     protected static ?string $navigationLabel = 'Configuración';
+
     protected static ?string $title = 'Configuración del Sistema';
+
     protected static ?string $navigationGroup = 'Sistema';
+
     protected static ?int $navigationSort = 99;
 
     protected static string $view = 'filament.app.pages.settings';
@@ -83,9 +90,9 @@ class Settings extends Page implements HasForms
                     ->collapsed()
                     ->icon('heroicon-o-light-bulb')
                     ->schema([
-                        \Filament\Forms\Components\Placeholder::make('info')
+                        Placeholder::make('info')
                             ->label('')
-                            ->content(new \Illuminate\Support\HtmlString('
+                            ->content(new HtmlString('
 <div class="space-y-4 text-sm">
     <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r">
         <h4 class="font-bold text-blue-900 dark:text-blue-100 mb-2">🔄 Anular Venta (Para Cajeros)</h4>
@@ -189,17 +196,17 @@ class Settings extends Page implements HasForms
     protected function getFormActions(): array
     {
         return [
-            \Filament\Actions\Action::make('save')
+            Action::make('save')
                 ->label('Guardar Configuración')
                 ->action('save'),
         ];
     }
-    
+
     public function hasLogo(): bool
     {
         return false;
     }
-    
+
     protected function hasFullWidthFormActions(): bool
     {
         return false;

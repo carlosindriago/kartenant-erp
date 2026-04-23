@@ -1,8 +1,8 @@
 <?php
 
+use App\Models\Tenant;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
-use App\Models\Tenant;
 
 class TenantButtonPositionTest extends DuskTestCase
 {
@@ -15,20 +15,20 @@ class TenantButtonPositionTest extends DuskTestCase
             try {
                 // Login as superadmin first
                 $browser->visit('/admin/login')
-                        ->type('data.email', 'admin@emporiodigital.com')
-                        ->type('data.password', 'password')
-                        ->press('Iniciar Sesión')
-                        ->waitForLocation('/admin', 10)
-                        ->assertPathIs('/admin');
+                    ->type('data.email', 'admin@emporiodigital.com')
+                    ->type('data.password', 'password')
+                    ->press('Iniciar Sesión')
+                    ->waitForLocation('/admin', 10)
+                    ->assertPathIs('/admin');
 
                 // Navigate to tenant edit page using domain
                 $browser->visit('/admin/tenants/data-protection-test-1764024534/edit')
-                        ->waitFor('fi-ta-form', 10)
-                        ->pause(2000); // Wait for form to fully load
+                    ->waitFor('fi-ta-form', 10)
+                    ->pause(2000); // Wait for form to fully load
 
                 // Check if we are on the edit page
                 $browser->assertSee('Editar Tenant')
-                        ->assertPresent('fi-ta-form');
+                    ->assertPresent('fi-ta-form');
 
                 // Take initial screenshot
                 $browser->screenshot('tenant-edit-form-before-scroll');
@@ -60,16 +60,16 @@ class TenantButtonPositionTest extends DuskTestCase
                 // Test Cancel button functionality
                 if ($cancelButtonPresent) {
                     $browser->press('Cancelar')
-                            ->pause(2000);
+                        ->pause(2000);
 
                     // Verify redirection to tenant view
                     $currentUrl = $browser->driver->getCurrentURL();
                     if (str_contains($currentUrl, '/admin/tenants/data-protection-test-1764024534') &&
-                        !str_contains($currentUrl, '/edit')) {
+                        ! str_contains($currentUrl, '/edit')) {
                         echo "✅ Cancel button correctly redirects to tenant view page\n";
                     } else {
                         echo "❌ Cancel button did not redirect properly\n";
-                        echo "   Current URL: " . $currentUrl . "\n";
+                        echo '   Current URL: '.$currentUrl."\n";
                     }
                 }
 
@@ -79,7 +79,7 @@ class TenantButtonPositionTest extends DuskTestCase
 
                 $this->assertTrue(true, 'Button positioning test completed');
 
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Take error screenshot
                 $browser->screenshot('tenant-edit-button-position-error');
                 echo "📸 Error screenshot saved to: tests/Browser/screenshots/tenant-edit-button-position-error.png\n";

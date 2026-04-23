@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -14,6 +14,7 @@ namespace App\Http\Middleware;
 use App\Models\Tenant;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MakeSpatieTenantCurrent
 {
@@ -28,7 +29,7 @@ class MakeSpatieTenantCurrent
         $isTenantSubdomain = count($hostParts) >= 3;
 
         // Only block authentication paths on apex domain or when not in tenant context
-        if ((in_array($requestPath, $blockedPaths) || str_starts_with($requestPath, 'password/')) && !$isTenantSubdomain) {
+        if ((in_array($requestPath, $blockedPaths) || str_starts_with($requestPath, 'password/')) && ! $isTenantSubdomain) {
             \Log::alert('Authentication bypass attempt detected and blocked', [
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
@@ -55,12 +56,12 @@ class MakeSpatieTenantCurrent
         // --- BYPASS OPEN-CORE (MODO STANDALONE) ---
         if (config('app.mode') === 'standalone') {
             // Buscamos o creamos el Tenant de la comunidad (ID 1)
-            $tenant = \App\Models\Tenant::firstOrCreate(
+            $tenant = Tenant::firstOrCreate(
                 ['id' => 1],
                 [
-                    'name' => 'Comunidad Open Source', 
+                    'name' => 'Comunidad Open Source',
                     // Añade aquí otros campos obligatorios que tenga tu tabla tenants (ej. domain)
-                    'domain' => 'localhost', 
+                    'domain' => 'localhost',
                 ]
             );
 
@@ -80,8 +81,10 @@ class MakeSpatieTenantCurrent
             if ($request->is('app') || $request->is('app/*')) {
                 $scheme = $request->isSecure() ? 'https' : 'http';
                 $target = sprintf('%s://%s/?tenant_required=1', $scheme, $host);
+
                 return redirect()->away($target);
             }
+
             return $next($request);
         }
         $tenant = Tenant::query()->where('domain', $host)->first();
@@ -95,15 +98,16 @@ class MakeSpatieTenantCurrent
         if ($tenant) {
             // Make this tenant current for Spatie Multitenancy
             $tenant->makeCurrent();
-            
+
             // Force purge the tenant connection to ensure fresh connection with updated config
-            \Illuminate\Support\Facades\DB::purge('tenant');
+            DB::purge('tenant');
         } else {
             // No tenant found on subdomain: redirect to apex with a friendly flag
             $apex = implode('.', array_slice($parts, 1));
             $scheme = $request->isSecure() ? 'https' : 'http';
             $slug = $parts[0] ?? '';
             $target = sprintf('%s://%s/?tenant_not_found=1&t=%s', $scheme, $apex, urlencode((string) $slug));
+
             return redirect()->away($target);
         }
 

@@ -8,48 +8,70 @@ class BillingSettings extends Settings
 {
     // General billing settings
     public bool $auto_invoicing_enabled;
+
     public bool $automatic_suspension_enabled;
+
     public int $grace_period_days;
+
     public int $suspension_after_days;
+
     public int $deletion_after_days;
 
     // Reminder settings
     public bool $payment_reminders_enabled;
+
     public int $first_reminder_days_before;
+
     public int $second_reminder_days_before;
+
     public int $final_reminder_days_after;
 
     // Trial settings
     public bool $trial_extensions_enabled;
+
     public int $max_trial_extension_days;
+
     public bool $auto_trial_extension_enabled;
+
     public int $auto_trial_extension_days;
 
     // Currency and tax
     public string $default_currency;
+
     public float $tax_rate;
+
     public bool $tax_included;
+
     public string $tax_name;
 
     // Invoice settings
     public bool $auto_generate_invoices;
+
     public int $invoice_generation_days_before;
+
     public bool $email_invoices_enabled;
+
     public bool $email_receipts_enabled;
 
     // Notification settings
     public array $notification_emails;
+
     public bool $slack_notifications_enabled;
+
     public ?string $slack_webhook_url;
 
     // Subscription limits
     public int $max_active_subscriptions_per_tenant;
+
     public bool $allow_plan_changes;
+
     public bool $allow_multiple_subscriptions;
 
     // Payment processing
     public bool $manual_approval_required;
+
     public int $approval_timeout_hours;
+
     public string $default_payment_method;
 
     public static function group(): string
@@ -91,7 +113,8 @@ class BillingSettings extends Settings
      */
     public function shouldSuspendTenant(\DateTime $dueDate): bool
     {
-        $now = new \DateTime();
+        $now = new \DateTime;
+
         return $now > $this->getSuspensionDate($dueDate);
     }
 
@@ -100,7 +123,8 @@ class BillingSettings extends Settings
      */
     public function shouldDeleteTenant(\DateTime $dueDate): bool
     {
-        $now = new \DateTime();
+        $now = new \DateTime;
+
         return $now > $this->getDeletionDate($dueDate);
     }
 
@@ -131,7 +155,7 @@ class BillingSettings extends Settings
      */
     public function getTaxRatePercentage(): string
     {
-        return ($this->tax_rate * 100) . '%';
+        return ($this->tax_rate * 100).'%';
     }
 
     /**

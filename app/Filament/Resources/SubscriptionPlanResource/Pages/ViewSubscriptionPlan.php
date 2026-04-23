@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,11 +13,9 @@ namespace App\Filament\Resources\SubscriptionPlanResource\Pages;
 
 use App\Filament\Resources\SubscriptionPlanResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
-use Filament\Forms;
-use Filament\Notifications\Notification;
+use Filament\Resources\Pages\ViewRecord;
 
 class ViewSubscriptionPlan extends ViewRecord
 {
@@ -86,14 +84,13 @@ class ViewSubscriptionPlan extends ViewRecord
                                     ->size('lg')
                                     ->weight('bold')
                                     ->helperText(fn ($record) => $record->getYearlySavingsPercentage() > 0
-                                        ? 'Ahorro de ' . $record->getYearlySavingsPercentage() . '% al pagar anual'
+                                        ? 'Ahorro de '.$record->getYearlySavingsPercentage().'% al pagar anual'
                                         : null),
 
                                 Infolists\Components\TextEntry::make('trial_period')
                                     ->label('Período de Prueba')
-                                    ->formatStateUsing(fn ($record) =>
-                                        $record->has_trial
-                                            ? $record->trial_days . ' días gratis'
+                                    ->formatStateUsing(fn ($record) => $record->has_trial
+                                            ? $record->trial_days.' días gratis'
                                             : 'Sin período de prueba')
                                     ->badge()
                                     ->color(fn ($record) => $record->has_trial ? 'success' : 'gray'),
@@ -107,15 +104,14 @@ class ViewSubscriptionPlan extends ViewRecord
                             ->schema([
                                 Infolists\Components\TextEntry::make('overage_strategy')
                                     ->label('Estrategia de Límites')
-                                    ->formatStateUsing(fn ($state): string =>
-                                        match($state) {
-                                            'strict' => '🔴 Estricta (Bloqueo inmediato)',
-                                            'soft' => '🟢 Flexible (Permite tolerancia)',
-                                            default => '⚪ No configurada'
-                                        }
+                                    ->formatStateUsing(fn ($state): string => match ($state) {
+                                        'strict' => '🔴 Estricta (Bloqueo inmediato)',
+                                        'soft' => '🟢 Flexible (Permite tolerancia)',
+                                        default => '⚪ No configurada'
+                                    }
                                     )
                                     ->badge()
-                                    ->color(fn ($state) => match($state) {
+                                    ->color(fn ($state) => match ($state) {
                                         'strict' => 'danger',
                                         'soft' => 'success',
                                         default => 'gray'
@@ -124,7 +120,7 @@ class ViewSubscriptionPlan extends ViewRecord
 
                                 Infolists\Components\TextEntry::make('overage_tolerance')
                                     ->label('Tolerancia de Exceso')
-                                    ->formatStateUsing(fn ($state) => $state ? $state . '%' : 'N/A')
+                                    ->formatStateUsing(fn ($state) => $state ? $state.'%' : 'N/A')
                                     ->badge()
                                     ->color('warning')
                                     ->visible(fn ($record) => $record->overage_strategy === 'soft')
@@ -137,7 +133,7 @@ class ViewSubscriptionPlan extends ViewRecord
                                 $strategy = $record->overage_strategy ?? 'not_configured';
                                 $tolerance = $record->overage_tolerance ?? 0;
 
-                                return match($strategy) {
+                                return match ($strategy) {
                                     'strict' => '⚡ **Bloqueo Estricto**: Las acciones administrativas se bloquean inmediatamente al alcanzar cualquier límite. El POS continúa operando normalmente.',
                                     'soft' => "💪 **Tolerancia Flexible**: Permite exceder los límites hasta un {$tolerance}% adicional. Ideal para picos de negocio temporales. El POS nunca se bloquea.",
                                     default => '❌ **Sin Configurar**: La estrategia de límites no ha sido configurada. Edita el plan para definirla.'
@@ -154,8 +150,13 @@ class ViewSubscriptionPlan extends ViewRecord
                                         $baseLimit = $record->getConfigurableLimit('users');
                                         $effectiveLimit = $record->getEffectiveLimit('users');
 
-                                        if (!$baseLimit || $baseLimit <= 0) return '∞ Ilimitado';
-                                        if ($effectiveLimit === $baseLimit) return (string) $baseLimit;
+                                        if (! $baseLimit || $baseLimit <= 0) {
+                                            return '∞ Ilimitado';
+                                        }
+                                        if ($effectiveLimit === $baseLimit) {
+                                            return (string) $baseLimit;
+                                        }
+
                                         return "{$baseLimit} → {$effectiveLimit}";
                                     })
                                     ->badge()
@@ -168,8 +169,13 @@ class ViewSubscriptionPlan extends ViewRecord
                                         $baseLimit = $record->getConfigurableLimit('products');
                                         $effectiveLimit = $record->getEffectiveLimit('products');
 
-                                        if (!$baseLimit || $baseLimit <= 0) return '∞ Ilimitado';
-                                        if ($effectiveLimit === $baseLimit) return (string) $baseLimit;
+                                        if (! $baseLimit || $baseLimit <= 0) {
+                                            return '∞ Ilimitado';
+                                        }
+                                        if ($effectiveLimit === $baseLimit) {
+                                            return (string) $baseLimit;
+                                        }
+
                                         return "{$baseLimit} → {$effectiveLimit}";
                                     })
                                     ->badge()
@@ -182,8 +188,13 @@ class ViewSubscriptionPlan extends ViewRecord
                                         $baseLimit = $record->getConfigurableLimit('monthly_sales');
                                         $effectiveLimit = $record->getEffectiveLimit('monthly_sales');
 
-                                        if (!$baseLimit || $baseLimit <= 0) return '∞ Ilimitado';
-                                        if ($effectiveLimit === $baseLimit) return (string) $baseLimit;
+                                        if (! $baseLimit || $baseLimit <= 0) {
+                                            return '∞ Ilimitado';
+                                        }
+                                        if ($effectiveLimit === $baseLimit) {
+                                            return (string) $baseLimit;
+                                        }
+
                                         return "{$baseLimit} → {$effectiveLimit}";
                                     })
                                     ->badge()
@@ -196,18 +207,21 @@ class ViewSubscriptionPlan extends ViewRecord
                                         $baseLimit = $record->getConfigurableLimit('storage_mb');
                                         $effectiveLimit = $record->getEffectiveLimit('storage_mb');
 
-                                        if (!$baseLimit || $baseLimit <= 0) return '∞ Ilimitado';
+                                        if (! $baseLimit || $baseLimit <= 0) {
+                                            return '∞ Ilimitado';
+                                        }
                                         if ($effectiveLimit === $baseLimit) {
                                             return $baseLimit >= 1024
-                                                ? number_format($baseLimit / 1024, 1) . ' GB'
-                                                : $baseLimit . ' MB';
+                                                ? number_format($baseLimit / 1024, 1).' GB'
+                                                : $baseLimit.' MB';
                                         }
                                         $baseDisplay = $baseLimit >= 1024
-                                            ? number_format($baseLimit / 1024, 1) . ' GB'
-                                            : $baseLimit . ' MB';
+                                            ? number_format($baseLimit / 1024, 1).' GB'
+                                            : $baseLimit.' MB';
                                         $effectiveDisplay = $effectiveLimit >= 1024
-                                            ? number_format($effectiveLimit / 1024, 1) . ' GB'
-                                            : $effectiveLimit . ' MB';
+                                            ? number_format($effectiveLimit / 1024, 1).' GB'
+                                            : $effectiveLimit.' MB';
+
                                         return "{$baseDisplay} → {$effectiveDisplay}";
                                     })
                                     ->badge()
@@ -218,12 +232,13 @@ class ViewSubscriptionPlan extends ViewRecord
                         Infolists\Components\TextEntry::make('limits_explanation')
                             ->label('Leyenda de Límites')
                             ->state(function ($record): string {
-                                if (!$record->hasConfigurableLimits()) {
+                                if (! $record->hasConfigurableLimits()) {
                                     return '⚠️ **Sin límites configurados**: Este plan no tiene límites definidos. Edita el plan para configurarlos.';
                                 }
 
                                 if ($record->allowsOverage()) {
                                     $tolerance = $record->overage_tolerance ?? 0;
+
                                     return "📊 **Formato**: `base → efectivo`  \n🎯 **Base**: Límite estándar  \n⚡ **Efectivo**: Límite con tolerancia del {$tolerance}%  \n💡 El sistema avisa al superar el límite base pero permite continuar hasta el efectivo.";
                                 }
 
@@ -243,7 +258,7 @@ class ViewSubscriptionPlan extends ViewRecord
                             ->bulleted()
                             ->limitList(20),
                     ])
-                    ->visible(fn ($record) => !empty($record->enabled_modules)),
+                    ->visible(fn ($record) => ! empty($record->enabled_modules)),
 
                 Infolists\Components\Section::make('Características del Plan')
                     ->schema([
@@ -251,11 +266,12 @@ class ViewSubscriptionPlan extends ViewRecord
                             ->label('Features')
                             ->formatStateUsing(function ($record): string {
                                 $features = $record->getFormattedFeatures();
-                                return empty($features) ? '' : implode("\n", array_map(fn($feature) => "• {$feature}", $features));
+
+                                return empty($features) ? '' : implode("\n", array_map(fn ($feature) => "• {$feature}", $features));
                             })
                             ->markdown(),
                     ])
-                    ->visible(fn ($record) => !empty($record->getFormattedFeatures())),
+                    ->visible(fn ($record) => ! empty($record->getFormattedFeatures())),
 
                 Infolists\Components\Section::make('Configuración Avanzada')
                     ->schema([

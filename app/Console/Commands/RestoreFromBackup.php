@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -42,8 +42,9 @@ class RestoreFromBackup extends Command
         // Find backup log
         $backupLog = BackupLog::find($backupLogId);
 
-        if (!$backupLog) {
+        if (! $backupLog) {
             $this->error("❌ Backup log #{$backupLogId} not found");
+
             return self::FAILURE;
         }
 
@@ -65,6 +66,7 @@ class RestoreFromBackup extends Command
 
         if ($backupLog->status !== 'success') {
             $this->error('❌ Cannot restore from a failed backup');
+
             return self::FAILURE;
         }
 
@@ -72,8 +74,9 @@ class RestoreFromBackup extends Command
         $this->info('📊 Analyzing backup contents...');
         $preview = $restoreService->previewBackup($backupLog);
 
-        if (!$preview['success']) {
+        if (! $preview['success']) {
             $this->error("❌ Error previewing backup: {$preview['error']}");
+
             return self::FAILURE;
         }
 
@@ -88,10 +91,10 @@ class RestoreFromBackup extends Command
         $this->table(['Table', 'Records'], $tableData);
 
         // Confirmation
-        if (!$force) {
+        if (! $force) {
             $this->newLine();
             $this->warn('⚠️  WARNING: This will REPLACE the current database!');
-            $this->warn('⚠️  All data since ' . $backupLog->created_at->format('Y-m-d H:i:s') . ' will be LOST!');
+            $this->warn('⚠️  All data since '.$backupLog->created_at->format('Y-m-d H:i:s').' will be LOST!');
             $this->warn('⚠️  A safety backup will be created automatically.');
             $this->newLine();
 
@@ -100,13 +103,15 @@ class RestoreFromBackup extends Command
 
             if ($confirmation !== $databaseName) {
                 $this->error('❌ Confirmation failed. Aborting.');
+
                 return self::FAILURE;
             }
 
             $finalConfirm = $this->confirm('Are you ABSOLUTELY SURE you want to continue?');
 
-            if (!$finalConfirm) {
+            if (! $finalConfirm) {
                 $this->info('✅ Restore cancelled');
+
                 return self::SUCCESS;
             }
         }

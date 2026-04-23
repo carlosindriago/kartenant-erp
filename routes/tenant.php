@@ -1,13 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\EnsureTenantContext;
-use App\Http\Middleware\AuthenticateTenantUser;
-use App\Http\Middleware\EnforceTenantIsolation;
 use App\Http\Controllers\Tenant\AuthController;
-use App\Http\Controllers\Tenant\WelcomeController;
-use App\Http\Controllers\Tenant\StoreSettingController;
 use App\Http\Controllers\Tenant\BillingController;
+use App\Http\Controllers\Tenant\StoreSettingController;
+use App\Http\Controllers\Tenant\WelcomeController;
+use App\Http\Middleware\EnforceTenantIsolation;
+use App\Http\Middleware\EnsureTenantContext;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,9 +37,10 @@ Route::middleware([EnsureTenantContext::class])->group(function () {
     */
 
     // DEBUG: Temporary route to test tenant routing
-    Route::get('/test-auth', function() {
-        \Log::info('TEST AUTH ROUTE ACCESSED', ['tenant' => tenant()?->domain]);
-        return 'AuthController route working! Tenant: ' . tenant()?->domain;
+    Route::get('/test-auth', function () {
+        Log::info('TEST AUTH ROUTE ACCESSED', ['tenant' => tenant()?->domain]);
+
+        return 'AuthController route working! Tenant: '.tenant()?->domain;
     })->name('tenant.test.auth');
 
     // Login routes
@@ -61,7 +61,7 @@ Route::middleware([EnsureTenantContext::class])->group(function () {
     // - emporiodigital.test/ -> LandingPageController
     // - {tenant}.emporiodigital.test/ -> TenantLandingController
     // Keeping these here would cause conflicts and 500 errors on apex domain
-    
+
     // Tenant public home page - StoreSettings-powered landing page
     // Route::get('/', [WelcomeController::class, 'index'])->name('tenant.welcome');
 

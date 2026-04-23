@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,6 +12,7 @@ class TenantModule extends Model
     use SoftDeletes;
 
     protected $connection = 'landlord';
+
     protected $table = 'tenant_modules';
 
     protected $fillable = [
@@ -75,16 +77,21 @@ class TenantModule extends Model
 
     // Status Constants
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_INACTIVE = 'inactive';
+
     public const STATUS_SUSPENDED = 'suspended';
+
     public const STATUS_CANCELLED = 'cancelled';
+
     public const STATUS_EXPIRED = 'expired';
+
     public const STATUS_PENDING = 'pending';
 
     // Status Methods
     public function getStatusColor(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_ACTIVE => 'success',
             self::STATUS_INACTIVE => 'gray',
             self::STATUS_SUSPENDED => 'warning',
@@ -97,7 +104,7 @@ class TenantModule extends Model
 
     public function getStatusLabel(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_ACTIVE => 'Activo',
             self::STATUS_INACTIVE => 'Inactivo',
             self::STATUS_SUSPENDED => 'Suspendido',
@@ -137,7 +144,7 @@ class TenantModule extends Model
     // Expiration Methods
     public function isExpiringSoon(int $days = 7): bool
     {
-        if (!$this->expires_at) {
+        if (! $this->expires_at) {
             return false;
         }
 
@@ -146,7 +153,7 @@ class TenantModule extends Model
 
     public function getDaysUntilExpiry(): ?int
     {
-        if (!$this->expires_at) {
+        if (! $this->expires_at) {
             return null;
         }
 
@@ -168,7 +175,7 @@ class TenantModule extends Model
         $currency = $this->currency_override ?? $this->module->currency;
         $price = $this->getPrice();
 
-        return $currency . ' ' . number_format($price, 2);
+        return $currency.' '.number_format($price, 2);
     }
 
     public function getCurrency(): string
@@ -227,7 +234,7 @@ class TenantModule extends Model
 
         // Update usage statistics
         foreach ($usageData as $metric => $value) {
-            if (!isset($currentStats[$metric])) {
+            if (! isset($currentStats[$metric])) {
                 $currentStats[$metric] = 0;
             }
 
@@ -252,7 +259,7 @@ class TenantModule extends Model
         ]);
     }
 
-    public function getLastUsageDate(): ?\Carbon\Carbon
+    public function getLastUsageDate(): ?Carbon
     {
         return $this->last_used_at;
     }
@@ -289,7 +296,7 @@ class TenantModule extends Model
     // Feature Access Methods
     public function hasAccessToFeature(string $feature): bool
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return false;
         }
 
@@ -298,7 +305,7 @@ class TenantModule extends Model
 
     public function canPerformAction(string $action): bool
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return false;
         }
 
@@ -338,7 +345,7 @@ class TenantModule extends Model
         ]);
     }
 
-    public function renew(?\Carbon\Carbon $newExpiresAt = null): bool
+    public function renew(?Carbon $newExpiresAt = null): bool
     {
         $expiresAt = $newExpiresAt ?? $this->calculateNewExpiryDate();
 
@@ -349,11 +356,11 @@ class TenantModule extends Model
         ]);
     }
 
-    private function calculateNewExpiryDate(): \Carbon\Carbon
+    private function calculateNewExpiryDate(): Carbon
     {
         $currentDate = $this->expires_at ?? now();
 
-        return match($this->billing_cycle) {
+        return match ($this->billing_cycle) {
             'monthly' => $currentDate->addMonth(),
             'yearly' => $currentDate->addYear(),
             default => $currentDate->addMonth(),
@@ -402,7 +409,7 @@ class TenantModule extends Model
         return 0;
     }
 
-    public function getNextBillingDate(): ?\Carbon\Carbon
+    public function getNextBillingDate(): ?Carbon
     {
         if ($this->billing_cycle === 'once') {
             return null;
@@ -415,7 +422,7 @@ class TenantModule extends Model
         // Calculate next billing date based on starts_at and billing cycle
         $billingDate = $this->starts_at;
 
-        return match($this->billing_cycle) {
+        return match ($this->billing_cycle) {
             'monthly' => $billingDate->addMonth(),
             'yearly' => $billingDate->addYear(),
             default => null,
@@ -450,7 +457,7 @@ class TenantModule extends Model
     {
         $issues = [];
 
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             $issues[] = 'El módulo ya está inactivo.';
         }
 
@@ -489,10 +496,10 @@ class TenantModule extends Model
 
     public function isFree(): bool
     {
-        return !$this->isPaid();
+        return ! $this->isPaid();
     }
 
-    public function getInstallDate(): \Carbon\Carbon
+    public function getInstallDate(): Carbon
     {
         return $this->created_at;
     }
@@ -504,17 +511,17 @@ class TenantModule extends Model
 
     public function hasCustomConfiguration(): bool
     {
-        return !empty($this->configuration);
+        return ! empty($this->configuration);
     }
 
     public function hasCustomLimits(): bool
     {
-        return !empty($this->limits_override);
+        return ! empty($this->limits_override);
     }
 
     public function hasUsageData(): bool
     {
-        return !empty($this->usage_stats);
+        return ! empty($this->usage_stats);
     }
 
     public function getModuleCategory(): string

@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -42,13 +42,13 @@ class TenantResource extends JsonResource
             // Conditionally include settings if loaded
             'settings' => $this->when(
                 $this->relationLoaded('settings'),
-                fn() => $this->settings
+                fn () => $this->settings
             ),
 
             // Include subscription plan info if exists
             'plan' => $this->when(
                 isset($this->plan),
-                fn() => $this->plan
+                fn () => $this->plan
             ),
         ];
     }

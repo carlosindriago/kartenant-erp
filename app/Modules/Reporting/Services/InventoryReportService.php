@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,16 +13,14 @@ namespace App\Modules\Reporting\Services;
 
 use App\Modules\Inventory\Models\Product;
 use App\Modules\Inventory\Models\StockMovement;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class InventoryReportService
 {
     /**
      * Calculate total current inventory value
-     *
-     * @return array
      */
     public function calculateTotalInventoryValue(): array
     {
@@ -56,19 +54,17 @@ class InventoryReportService
 
     /**
      * Get inventory value by category
-     *
-     * @return Collection
      */
     public function getInventoryValueByCategory(): Collection
     {
         return Product::select(
-                'categories.id',
-                'categories.name as category_name',
-                DB::raw('COUNT(products.id) as product_count'),
-                DB::raw('SUM(products.stock) as total_units'),
-                DB::raw('SUM(products.stock * products.price) as total_value'),
-                DB::raw('SUM(products.stock * products.cost_price) as total_cost')
-            )
+            'categories.id',
+            'categories.name as category_name',
+            DB::raw('COUNT(products.id) as product_count'),
+            DB::raw('SUM(products.stock) as total_units'),
+            DB::raw('SUM(products.stock * products.price) as total_value'),
+            DB::raw('SUM(products.stock * products.cost_price) as total_cost')
+        )
             ->join('categories', 'products.category_id', '=', 'categories.id')
             ->where('products.stock', '>', 0)
             ->groupBy('categories.id', 'categories.name')
@@ -82,15 +78,13 @@ class InventoryReportService
                 $item->average_value_per_product = $item->product_count > 0
                     ? $item->total_value / $item->product_count
                     : 0;
+
                 return $item;
             });
     }
 
     /**
      * Get inventory value trend for last N days
-     *
-     * @param int $days
-     * @return array
      */
     public function getInventoryValueTrend(int $days = 30): array
     {
@@ -111,10 +105,6 @@ class InventoryReportService
 
     /**
      * Compare inventory between two periods
-     *
-     * @param Carbon $startDate
-     * @param Carbon $endDate
-     * @return array
      */
     public function compareInventoryPeriods(Carbon $startDate, Carbon $endDate): array
     {
@@ -148,9 +138,6 @@ class InventoryReportService
 
     /**
      * Get historical inventory value at a specific date
-     *
-     * @param Carbon $date
-     * @return float
      */
     protected function getHistoricalInventoryValue(Carbon $date): float
     {
@@ -175,22 +162,19 @@ class InventoryReportService
 
     /**
      * Get products with highest value
-     *
-     * @param int $limit
-     * @return Collection
      */
     public function getTopValueProducts(int $limit = 10): Collection
     {
         return Product::select(
-                'id',
-                'name',
-                'sku',
-                'stock',
-                'price',
-                'cost_price',
-                DB::raw('stock * price as total_value'),
-                DB::raw('stock * cost_price as total_cost')
-            )
+            'id',
+            'name',
+            'sku',
+            'stock',
+            'price',
+            'cost_price',
+            DB::raw('stock * price as total_value'),
+            DB::raw('stock * cost_price as total_cost')
+        )
             ->where('stock', '>', 0)
             ->orderByDesc('total_value')
             ->limit($limit)
@@ -200,6 +184,7 @@ class InventoryReportService
                 $product->profit_margin = $product->total_value > 0
                     ? (($product->total_value - $product->total_cost) / $product->total_value) * 100
                     : 0;
+
                 return $product;
             });
     }

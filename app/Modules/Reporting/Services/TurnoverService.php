@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -15,7 +15,6 @@ use App\Modules\Inventory\Models\Product;
 use App\Modules\Inventory\Models\StockMovement;
 use App\Modules\POS\Models\SaleItem;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 class TurnoverService
 {
@@ -24,16 +23,12 @@ class TurnoverService
      *
      * Turnover Rate = Units Sold / Average Units in Stock
      * Days Sales of Inventory (DSI) = (Average Stock / Units Sold) * Days
-     *
-     * @param int $productId
-     * @param int $days
-     * @return array
      */
     public function calculateTurnoverRate(int $productId, int $days = 30): array
     {
         $product = Product::find($productId);
 
-        if (!$product) {
+        if (! $product) {
             return [
                 'error' => 'Product not found',
             ];
@@ -100,10 +95,6 @@ class TurnoverService
 
     /**
      * Get slow-moving products (low turnover)
-     *
-     * @param int $days
-     * @param int $limit
-     * @return Collection
      */
     public function getSlowMovingProducts(int $days = 90, int $limit = 20): Collection
     {
@@ -111,29 +102,26 @@ class TurnoverService
 
         $slowMovers = $products->map(function ($product) use ($days) {
             $turnover = $this->calculateTurnoverRate($product->id, $days);
+
             return [
                 'product' => $product,
                 'turnover_data' => $turnover,
             ];
         })
-        ->filter(function ($item) {
-            return isset($item['turnover_data']['units_sold']) && $item['turnover_data']['units_sold'] >= 0;
-        })
-        ->sortBy(function ($item) {
-            return $item['turnover_data']['turnover_rate'];
-        })
-        ->take($limit)
-        ->values();
+            ->filter(function ($item) {
+                return isset($item['turnover_data']['units_sold']) && $item['turnover_data']['units_sold'] >= 0;
+            })
+            ->sortBy(function ($item) {
+                return $item['turnover_data']['turnover_rate'];
+            })
+            ->take($limit)
+            ->values();
 
         return $slowMovers;
     }
 
     /**
      * Get fast-moving products (high turnover)
-     *
-     * @param int $days
-     * @param int $limit
-     * @return Collection
      */
     public function getFastMovingProducts(int $days = 30, int $limit = 20): Collection
     {
@@ -141,42 +129,38 @@ class TurnoverService
 
         $fastMovers = $products->map(function ($product) use ($days) {
             $turnover = $this->calculateTurnoverRate($product->id, $days);
+
             return [
                 'product' => $product,
                 'turnover_data' => $turnover,
             ];
         })
-        ->filter(function ($item) {
-            return isset($item['turnover_data']['units_sold'])
-                && $item['turnover_data']['units_sold'] > 0
-                && $item['turnover_data']['turnover_rate'] > 0;
-        })
-        ->sortByDesc(function ($item) {
-            return $item['turnover_data']['turnover_rate'];
-        })
-        ->take($limit)
-        ->values();
+            ->filter(function ($item) {
+                return isset($item['turnover_data']['units_sold'])
+                    && $item['turnover_data']['units_sold'] > 0
+                    && $item['turnover_data']['turnover_rate'] > 0;
+            })
+            ->sortByDesc(function ($item) {
+                return $item['turnover_data']['turnover_rate'];
+            })
+            ->take($limit)
+            ->values();
 
         return $fastMovers;
     }
 
     /**
      * Get days sales of inventory for a product
-     *
-     * @param int $productId
-     * @return float
      */
     public function getDaysSalesOfInventory(int $productId): float
     {
         $turnover = $this->calculateTurnoverRate($productId, 30);
+
         return $turnover['days_sales_of_inventory'] ?? 0;
     }
 
     /**
      * Get turnover summary for all products
-     *
-     * @param int $days
-     * @return array
      */
     public function getTurnoverSummary(int $days = 30): array
     {
@@ -185,7 +169,7 @@ class TurnoverService
         $turnovers = $products->map(function ($product) use ($days) {
             return $this->calculateTurnoverRate($product->id, $days);
         })->filter(function ($turnover) {
-            return !isset($turnover['error']);
+            return ! isset($turnover['error']);
         });
 
         $fastMovers = $turnovers->where('turnover_rate', '>=', 2)->count();
@@ -209,10 +193,6 @@ class TurnoverService
 
     /**
      * Get turnover comparison between periods
-     *
-     * @param int $period1Days
-     * @param int $period2Days
-     * @return array
      */
     public function compareTurnoverPeriods(int $period1Days = 30, int $period2Days = 90): array
     {
@@ -233,10 +213,6 @@ class TurnoverService
 
     /**
      * Get stock status description
-     *
-     * @param float $dsi
-     * @param int $unitsSold
-     * @return string
      */
     protected function getStockStatus(float $dsi, int $unitsSold): string
     {
@@ -257,11 +233,6 @@ class TurnoverService
 
     /**
      * Get recommendation based on turnover data
-     *
-     * @param float $dsi
-     * @param int $unitsSold
-     * @param int $currentStock
-     * @return string
      */
     protected function getRecommendation(float $dsi, int $unitsSold, int $currentStock): string
     {

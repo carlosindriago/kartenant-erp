@@ -4,14 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentTransactionResource\Pages;
 use App\Models\PaymentTransaction;
-use App\Models\User;
 use Filament\Forms;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\Section;
-use Filament\Notifications\Notification;
 
 class PaymentTransactionResource extends Resource
 {
@@ -42,12 +41,12 @@ class PaymentTransactionResource extends Resource
                                     ->relationship('tenant', 'name')
                                     ->required()
                                     ->searchable(),
-                                
+
                                 Forms\Components\Select::make('subscription_id')
                                     ->label('Suscripción')
                                     ->relationship('subscription', 'id')
                                     ->searchable(),
-                                
+
                                 Forms\Components\Select::make('gateway_driver')
                                     ->label('Gateway')
                                     ->options([
@@ -57,7 +56,7 @@ class PaymentTransactionResource extends Resource
                                     ])
                                     ->required(),
                             ]),
-                        
+
                         Forms\Components\Grid::make(3)
                             ->schema([
                                 Forms\Components\TextInput::make('amount')
@@ -65,7 +64,7 @@ class PaymentTransactionResource extends Resource
                                     ->numeric()
                                     ->prefix('$')
                                     ->required(),
-                                
+
                                 Forms\Components\Select::make('currency')
                                     ->label('Moneda')
                                     ->options([
@@ -75,7 +74,7 @@ class PaymentTransactionResource extends Resource
                                         'MXN' => 'MXN',
                                     ])
                                     ->required(),
-                                
+
                                 Forms\Components\Select::make('status')
                                     ->label('Estado')
                                     ->options([
@@ -87,10 +86,10 @@ class PaymentTransactionResource extends Resource
                                     ])
                                     ->required(),
                             ]),
-                        
+
                         Forms\Components\TextInput::make('transaction_id')
                             ->label('ID de Transacción Externa'),
-                        
+
                         Forms\Components\FileUpload::make('proof_of_payment')
                             ->label('Comprobante de Pago')
                             ->image()
@@ -109,7 +108,7 @@ class PaymentTransactionResource extends Resource
                     ->label('Tenant')
                     ->searchable()
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('gateway_driver')
                     ->label('Gateway')
                     ->badge()
@@ -119,12 +118,12 @@ class PaymentTransactionResource extends Resource
                         'stripe' => 'success',
                         default => 'gray',
                     }),
-                
+
                 Tables\Columns\TextColumn::make('amount')
                     ->label('Monto')
                     ->money(fn ($record) => $record->currency)
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
@@ -137,18 +136,18 @@ class PaymentTransactionResource extends Resource
                         default => 'gray',
                     })
                     ->sortable(),
-                
+
                 Tables\Columns\ImageColumn::make('proof_of_payment')
                     ->label('Comprobante')
                     ->square()
                     ->defaultImageUrl(fn () => null)
                     ->visibility('private'),
-                
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Fecha')
                     ->dateTime()
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('approver.name')
                     ->label('Aprobado Por')
                     ->placeholder('N/A'),
@@ -160,7 +159,7 @@ class PaymentTransactionResource extends Resource
                         PaymentTransaction::STATUS_APPROVED => 'Aprobado',
                         PaymentTransaction::STATUS_REJECTED => 'Rechazado',
                     ]),
-                
+
                 Tables\Filters\SelectFilter::make('gateway_driver')
                     ->label('Gateway')
                     ->options([
@@ -172,7 +171,7 @@ class PaymentTransactionResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                
+
                 Tables\Actions\Action::make('approve')
                     ->label('Aprobar')
                     ->icon('heroicon-o-check-circle')
@@ -184,14 +183,14 @@ class PaymentTransactionResource extends Resource
                     ->action(function ($record) {
                         $user = auth('superadmin')->user();
                         $record->approve($user);
-                        
+
                         Notification::make()
                             ->title('Pago aprobado exitosamente')
                             ->success()
-                            ->body("La suscripción ha sido activada.")
+                            ->body('La suscripción ha sido activada.')
                             ->send();
                     }),
-                
+
                 Tables\Actions\Action::make('reject')
                     ->label('Rechazar')
                     ->icon('heroicon-o-x-circle')
@@ -207,11 +206,11 @@ class PaymentTransactionResource extends Resource
                     ->action(function ($record, array $data) {
                         $user = auth('superadmin')->user();
                         $record->reject($user, $data['reason']);
-                        
+
                         Notification::make()
                             ->title('Pago rechazado')
                             ->warning()
-                            ->body("Se ha notificado al tenant.")
+                            ->body('Se ha notificado al tenant.')
                             ->send();
                     }),
             ])
@@ -235,6 +234,7 @@ class PaymentTransactionResource extends Resource
     public static function canViewAny(): bool
     {
         $user = auth('superadmin')->user();
+
         return $user?->is_super_admin ?? false;
     }
 
@@ -243,6 +243,7 @@ class PaymentTransactionResource extends Resource
         try {
             // Ensure we're using the landlord connection for admin panel
             $count = PaymentTransaction::on('landlord')->pending()->count();
+
             return $count > 0 ? (string) $count : null;
         } catch (\Exception $e) {
             // If table doesn't exist or connection fails, don't show badge
@@ -255,6 +256,7 @@ class PaymentTransactionResource extends Resource
         try {
             // Ensure we're using the landlord connection for admin panel
             $count = PaymentTransaction::on('landlord')->pending()->count();
+
             return $count > 0 ? 'warning' : 'gray';
         } catch (\Exception $e) {
             // If table doesn't exist or connection fails, use default color

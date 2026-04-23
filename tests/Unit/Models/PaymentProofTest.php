@@ -3,14 +3,14 @@
 namespace Tests\Unit\Models;
 
 use App\Models\PaymentProof;
+use App\Models\PaymentTransaction;
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
-use App\Models\PaymentTransaction;
 use App\Models\User;
-use Database\Factories\PaymentProofFactory;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class PaymentProofTest extends TestCase
@@ -37,7 +37,7 @@ class PaymentProofTest extends TestCase
     /** @test */
     public function payment_proof_can_be_instantiated()
     {
-        $paymentProof = new PaymentProof();
+        $paymentProof = new PaymentProof;
 
         $this->assertInstanceOf(PaymentProof::class, $paymentProof);
         $this->assertEquals('landlord', $paymentProof->getConnectionName());
@@ -47,7 +47,7 @@ class PaymentProofTest extends TestCase
     /** @test */
     public function payment_proof_has_correct_fillable_attributes()
     {
-        $paymentProof = new PaymentProof();
+        $paymentProof = new PaymentProof;
         $fillable = $paymentProof->getFillable();
 
         $expectedFillable = [
@@ -80,7 +80,7 @@ class PaymentProofTest extends TestCase
     /** @test */
     public function payment_proof_has_correct_casts()
     {
-        $paymentProof = new PaymentProof();
+        $paymentProof = new PaymentProof;
         $casts = $paymentProof->getCasts();
 
         $this->assertArrayHasKey('amount', $casts);
@@ -101,7 +101,7 @@ class PaymentProofTest extends TestCase
     /** @test */
     public function payment_proof_uses_landlord_connection()
     {
-        $paymentProof = new PaymentProof();
+        $paymentProof = new PaymentProof;
 
         $this->assertEquals('landlord', $paymentProof->getConnectionName());
     }
@@ -167,7 +167,7 @@ class PaymentProofTest extends TestCase
     /** @test */
     public function payment_proof_validates_required_fields()
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         // Attempt to create without required fields
         PaymentProof::create([]);
@@ -177,8 +177,8 @@ class PaymentProofTest extends TestCase
     public function payment_proof_handles_file_uploads()
     {
         $filePaths = [
-            'payment_proofs/' . uniqid() . '.jpg',
-            'payment_proofs/' . uniqid() . '.pdf',
+            'payment_proofs/'.uniqid().'.jpg',
+            'payment_proofs/'.uniqid().'.pdf',
         ];
 
         $paymentProof = PaymentProof::factory()->create([

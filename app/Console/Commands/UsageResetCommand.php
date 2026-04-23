@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Tenant;
 use App\Services\TenantUsageService;
 use Illuminate\Console\Command;
-use App\Models\Tenant;
 
 class UsageResetCommand extends Command
 {
@@ -28,8 +28,9 @@ class UsageResetCommand extends Command
     private function resetTenantUsage(int $tenantId, TenantUsageService $usageService): void
     {
         $tenant = Tenant::find($tenantId);
-        if (!$tenant) {
+        if (! $tenant) {
             $this->error("Tenant with ID {$tenantId} not found");
+
             return;
         }
 

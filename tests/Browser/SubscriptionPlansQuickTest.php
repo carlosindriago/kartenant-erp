@@ -2,9 +2,9 @@
 
 namespace Tests\Browser;
 
+use App\Models\User;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
-use App\Models\User;
 
 class SubscriptionPlansQuickTest extends DuskTestCase
 {
@@ -14,16 +14,16 @@ class SubscriptionPlansQuickTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/subscription-plans')
-                    ->pause(3000)
-                    ->screenshot('01_initial_page_load');
+                ->visit('/admin/subscription-plans')
+                ->pause(3000)
+                ->screenshot('01_initial_page_load');
 
             // Check what's actually visible in the table
             $browser->assertSee('Planes de Suscripción');
 
             // Count visible rows
             $visibleRows = $browser->elements('tbody tr');
-            echo "Visible rows: " . count($visibleRows) . "\n";
+            echo 'Visible rows: '.count($visibleRows)."\n";
 
             // Check if sort_order shows 0 for any visible rows
             for ($i = 1; $i <= min(count($visibleRows), 5); $i++) {
@@ -39,7 +39,7 @@ class SubscriptionPlansQuickTest extends DuskTestCase
                         }
                     }
                 } catch (\Exception $e) {
-                    echo "Error reading row {$i}: " . $e->getMessage() . "\n";
+                    echo "Error reading row {$i}: ".$e->getMessage()."\n";
                 }
             }
 
@@ -48,15 +48,15 @@ class SubscriptionPlansQuickTest extends DuskTestCase
                 $selectAllCheckbox = $browser->element('input[type="checkbox"]');
                 if ($selectAllCheckbox) {
                     $browser->click($selectAllCheckbox)
-                            ->pause(1000)
-                            ->screenshot('03_bulk_selection_attempt');
+                        ->pause(1000)
+                        ->screenshot('03_bulk_selection_attempt');
 
                     // Check bulk actions dropdown
                     $bulkActionsButton = $browser->element('button[aria-label="Bulk actions"]');
                     if ($bulkActionsButton) {
                         $browser->click($bulkActionsButton)
-                                ->pause(1000)
-                                ->screenshot('04_bulk_actions_dropdown');
+                            ->pause(1000)
+                            ->screenshot('04_bulk_actions_dropdown');
 
                         // Check if delete bulk action is visible/enabled
                         $deleteBulkAction = $browser->elements('button');
@@ -68,21 +68,21 @@ class SubscriptionPlansQuickTest extends DuskTestCase
                                 echo "Found delete button with text: '{$buttonText}'\n";
 
                                 $isDisabled = $button->getAttribute('disabled') || $button->getAttribute('aria-disabled');
-                                echo "Delete button disabled: " . ($isDisabled ? 'YES' : 'NO') . "\n";
+                                echo 'Delete button disabled: '.($isDisabled ? 'YES' : 'NO')."\n";
 
                                 $browser->screenshot('05_delete_bulk_action_found');
                                 break;
                             }
                         }
 
-                        if (!$deleteButtonFound) {
+                        if (! $deleteButtonFound) {
                             echo "No delete bulk action found in dropdown\n";
                             $browser->screenshot('06_no_delete_bulk_action');
                         }
                     }
                 }
             } catch (\Exception $e) {
-                echo "Error during bulk actions test: " . $e->getMessage() . "\n";
+                echo 'Error during bulk actions test: '.$e->getMessage()."\n";
             }
 
             // Check pagination info

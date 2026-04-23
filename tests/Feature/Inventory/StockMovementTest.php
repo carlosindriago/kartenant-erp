@@ -7,6 +7,7 @@ use App\Modules\Inventory\Models\Product;
 use App\Modules\Inventory\Models\StockMovement;
 use App\Modules\Inventory\Models\Supplier;
 use App\Services\StockMovementService;
+use Barryvdh\DomPDF\PDF;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Multitenancy\Models\Tenant;
 use Tests\TestCase;
@@ -16,8 +17,11 @@ class StockMovementTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Tenant $tenant;
+
     protected Product $product;
+
     protected StockMovementService $service;
 
     protected function setUp(): void
@@ -281,7 +285,7 @@ class StockMovementTest extends TestCase
         $movement->pdf_format = 'a4';
         $pdf = $movement->generatePdf();
 
-        $this->assertInstanceOf(\Barryvdh\DomPDF\PDF::class, $pdf);
+        $this->assertInstanceOf(PDF::class, $pdf);
     }
 
     /** @test */
@@ -297,7 +301,7 @@ class StockMovementTest extends TestCase
         $movement->pdf_format = 'thermal';
         $pdf = $movement->generatePdf();
 
-        $this->assertInstanceOf(\Barryvdh\DomPDF\PDF::class, $pdf);
+        $this->assertInstanceOf(PDF::class, $pdf);
     }
 
     /** @test */

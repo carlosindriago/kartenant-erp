@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Resources;
 
-use App\Models\User;
+use App\Filament\Resources\TenantResource;
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class TenantResourceStaticMethodsTest extends TestCase
@@ -14,6 +14,7 @@ class TenantResourceStaticMethodsTest extends TestCase
     use RefreshDatabase;
 
     protected User $regularUser;
+
     protected Tenant $tenant;
 
     protected function setUp(): void
@@ -48,7 +49,7 @@ class TenantResourceStaticMethodsTest extends TestCase
     public function get_locked_accounts_count_returns_zero_with_no_locks()
     {
         // This tests the critical fix: calling static method without $this context
-        $count = \App\Filament\Resources\TenantResource::getLockedAccountsCount($this->tenant);
+        $count = TenantResource::getLockedAccountsCount($this->tenant);
 
         $this->assertEquals(0, $count);
         $this->assertIsInt($count);
@@ -58,10 +59,10 @@ class TenantResourceStaticMethodsTest extends TestCase
     public function get_locked_accounts_count_returns_correct_with_locks()
     {
         // Add some locked accounts
-        Cache::put('2fa_lockout:' . $this->regularUser->id, true, 3600);
+        Cache::put('2fa_lockout:'.$this->regularUser->id, true, 3600);
 
         // This should not throw "Using $this when not in object context" error
-        $count = \App\Filament\Resources\TenantResource::getLockedAccountsCount($this->tenant);
+        $count = TenantResource::getLockedAccountsCount($this->tenant);
 
         $this->assertEquals(1, $count);
     }
@@ -70,7 +71,7 @@ class TenantResourceStaticMethodsTest extends TestCase
     public function unlock_tenant_accounts_works_with_no_locks()
     {
         // This should not throw exception or error
-        \App\Filament\Resources\TenantResource::unlockTenantAccounts($this->tenant);
+        TenantResource::unlockTenantAccounts($this->tenant);
 
         // Should simply complete without error
         $this->assertTrue(true);
@@ -80,19 +81,19 @@ class TenantResourceStaticMethodsTest extends TestCase
     public function unlock_tenant_accounts_clears_existing_locks()
     {
         // Lock the user first
-        Cache::put('2fa_lockout:' . $this->regularUser->id, true, 3600);
-        Cache::put('2fa_attempts:' . $this->regularUser->id, 3, 3600);
+        Cache::put('2fa_lockout:'.$this->regularUser->id, true, 3600);
+        Cache::put('2fa_attempts:'.$this->regularUser->id, 3, 3600);
 
         // Verify lock exists
-        $this->assertTrue(Cache::has('2fa_lockout:' . $this->regularUser->id));
-        $this->assertTrue(Cache::has('2fa_attempts:' . $this->regularUser->id));
+        $this->assertTrue(Cache::has('2fa_lockout:'.$this->regularUser->id));
+        $this->assertTrue(Cache::has('2fa_attempts:'.$this->regularUser->id));
 
         // This should not throw "Using $this when not in object context" error
-        \App\Filament\Resources\TenantResource::unlockTenantAccounts($this->tenant);
+        TenantResource::unlockTenantAccounts($this->tenant);
 
         // Verify lock is cleared
-        $this->assertFalse(Cache::has('2fa_lockout:' . $this->regularUser->id));
-        $this->assertFalse(Cache::has('2fa_attempts:' . $this->regularUser->id));
+        $this->assertFalse(Cache::has('2fa_lockout:'.$this->regularUser->id));
+        $this->assertFalse(Cache::has('2fa_attempts:'.$this->regularUser->id));
     }
 
     /** @test */
@@ -101,8 +102,9 @@ class TenantResourceStaticMethodsTest extends TestCase
         // This simulates the exact issue that was fixed
         $closure = function () {
             // These calls would previously fail with "Using $this when not in object context"
-            $count = \App\Filament\Resources\TenantResource::getLockedAccountsCount($this->tenant);
-            \App\Filament\Resources\TenantResource::unlockTenantAccounts($this->tenant);
+            $count = TenantResource::getLockedAccountsCount($this->tenant);
+            TenantResource::unlockTenantAccounts($this->tenant);
+
             return $count;
         };
 
@@ -121,22 +123,25 @@ class TenantResourceStaticMethodsTest extends TestCase
     public function static_methods_handle_exceptions_gracefully()
     {
         // Test with invalid tenant object
-        $invalidTenant = new class {
-            public function __get($property) {
+        $invalidTenant = new class
+        {
+            public function __get($property)
+            {
                 throw new \Exception("Invalid property: {$property}");
             }
 
-            public function users() {
-                throw new \Exception("Cannot access users");
+            public function users()
+            {
+                throw new \Exception('Cannot access users');
             }
         };
 
         // Should handle exceptions and return default values
-        $count = \App\Filament\Resources\TenantResource::getLockedAccountsCount($invalidTenant);
+        $count = TenantResource::getLockedAccountsCount($invalidTenant);
         $this->assertEquals(0, $count);
 
         // Should not throw exception
-        \App\Filament\Resources\TenantResource::unlockTenantAccounts($invalidTenant);
+        TenantResource::unlockTenantAccounts($invalidTenant);
         $this->assertTrue(true);
     }
 
@@ -144,23 +149,23 @@ class TenantResourceStaticMethodsTest extends TestCase
     public function other_statistics_methods_work_as_static()
     {
         // Test other static methods that use similar callback patterns
-        $fileCount = \App\Filament\Resources\TenantResource::getTenantFileCount(
-            fn() => $this->tenant->id
+        $fileCount = TenantResource::getTenantFileCount(
+            fn () => $this->tenant->id
         );
         $this->assertIsInt($fileCount);
 
-        $userCount = \App\Filament\Resources\TenantResource::getTenantUserCount(
-            fn() => $this->tenant->id
+        $userCount = TenantResource::getTenantUserCount(
+            fn () => $this->tenant->id
         );
         $this->assertIsInt($userCount);
 
-        $lastActivity = \App\Filament\Resources\TenantResource::getTenantLastActivity(
-            fn() => $this->tenant->id
+        $lastActivity = TenantResource::getTenantLastActivity(
+            fn () => $this->tenant->id
         );
         $this->assertIsString($lastActivity);
 
-        $healthScore = \App\Filament\Resources\TenantResource::calculateTenantHealthScore(
-            fn() => $this->tenant
+        $healthScore = TenantResource::calculateTenantHealthScore(
+            fn () => $this->tenant
         );
         $this->assertIsInt($healthScore);
         $this->assertGreaterThanOrEqual(0, $healthScore);

@@ -5,11 +5,10 @@ namespace App\Console\Commands;
 use App\Models\Module;
 use App\Models\Tenant;
 use App\Models\TenantModule;
-use App\Services\ModuleService;
-use App\Services\ModuleCacheService;
 use App\Services\BillingService;
+use App\Services\ModuleCacheService;
+use App\Services\ModuleService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 
 class ModuleCommand extends Command
 {
@@ -42,7 +41,7 @@ class ModuleCommand extends Command
     {
         $action = $this->argument('action');
 
-        return match($action) {
+        return match ($action) {
             'install' => $this->installModule(),
             'uninstall' => $this->uninstallModule(),
             'list' => $this->listModules(),
@@ -65,25 +64,29 @@ class ModuleCommand extends Command
         $tenantIdentifier = $this->option('tenant');
         $moduleIdentifier = $this->option('module');
 
-        if (!$tenantIdentifier || !$moduleIdentifier) {
+        if (! $tenantIdentifier || ! $moduleIdentifier) {
             $this->error('Both --tenant and --module options are required for install action');
+
             return self::FAILURE;
         }
 
         $tenant = $this->getTenant($tenantIdentifier);
-        if (!$tenant) {
+        if (! $tenant) {
             $this->error("Tenant not found: {$tenantIdentifier}");
+
             return self::FAILURE;
         }
 
         $module = $this->getModule($moduleIdentifier);
-        if (!$module) {
+        if (! $module) {
             $this->error("Module not found: {$moduleIdentifier}");
+
             return self::FAILURE;
         }
 
         if ($this->option('dry-run')) {
             $this->info("[DRY RUN] Would install module '{$module->name}' for tenant '{$tenant->name}'");
+
             return self::SUCCESS;
         }
 
@@ -100,10 +103,12 @@ class ModuleCommand extends Command
             }
 
             $this->info("Module '{$module->name}' installed successfully for tenant '{$tenant->name}'");
+
             return self::SUCCESS;
 
         } catch (\Exception $e) {
             $this->error("Failed to install module: {$e->getMessage()}");
+
             return self::FAILURE;
         }
     }
@@ -116,30 +121,35 @@ class ModuleCommand extends Command
         $tenantIdentifier = $this->option('tenant');
         $moduleIdentifier = $this->option('module');
 
-        if (!$tenantIdentifier || !$moduleIdentifier) {
+        if (! $tenantIdentifier || ! $moduleIdentifier) {
             $this->error('Both --tenant and --module options are required for uninstall action');
+
             return self::FAILURE;
         }
 
         $tenant = $this->getTenant($tenantIdentifier);
-        if (!$tenant) {
+        if (! $tenant) {
             $this->error("Tenant not found: {$tenantIdentifier}");
+
             return self::FAILURE;
         }
 
         $module = $this->getModule($moduleIdentifier);
-        if (!$module) {
+        if (! $module) {
             $this->error("Module not found: {$moduleIdentifier}");
+
             return self::FAILURE;
         }
 
         if ($this->option('dry-run')) {
             $this->info("[DRY RUN] Would uninstall module '{$module->name}' from tenant '{$tenant->name}'");
+
             return self::SUCCESS;
         }
 
-        if (!$this->option('force') && !$this->confirm("Are you sure you want to uninstall '{$module->name}' from '{$tenant->name}'?")) {
+        if (! $this->option('force') && ! $this->confirm("Are you sure you want to uninstall '{$module->name}' from '{$tenant->name}'?")) {
             $this->info('Operation cancelled');
+
             return self::SUCCESS;
         }
 
@@ -148,14 +158,17 @@ class ModuleCommand extends Command
 
             if ($success) {
                 $this->info("Module '{$module->name}' uninstalled successfully from tenant '{$tenant->name}'");
+
                 return self::SUCCESS;
             } else {
-                $this->error("Failed to uninstall module");
+                $this->error('Failed to uninstall module');
+
                 return self::FAILURE;
             }
 
         } catch (\Exception $e) {
             $this->error("Failed to uninstall module: {$e->getMessage()}");
+
             return self::FAILURE;
         }
     }
@@ -170,8 +183,9 @@ class ModuleCommand extends Command
         if ($tenantIdentifier) {
             // List modules for specific tenant
             $tenant = $this->getTenant($tenantIdentifier);
-            if (!$tenant) {
+            if (! $tenant) {
                 $this->error("Tenant not found: {$tenantIdentifier}");
+
                 return self::FAILURE;
             }
 
@@ -202,7 +216,7 @@ class ModuleCommand extends Command
 
         } else {
             // List all modules
-            $this->info("All Available Modules:");
+            $this->info('All Available Modules:');
             $this->info(str_repeat('-', 50));
 
             $modules = Module::active()->ordered()->get();
@@ -244,8 +258,9 @@ class ModuleCommand extends Command
 
         if ($tenantIdentifier) {
             $tenant = $this->getTenant($tenantIdentifier);
-            if (!$tenant) {
+            if (! $tenant) {
                 $this->error("Tenant not found: {$tenantIdentifier}");
+
                 return self::FAILURE;
             }
 
@@ -254,8 +269,9 @@ class ModuleCommand extends Command
 
         } elseif ($moduleIdentifier) {
             $module = $this->getModule($moduleIdentifier);
-            if (!$module) {
+            if (! $module) {
                 $this->error("Module not found: {$moduleIdentifier}");
+
                 return self::FAILURE;
             }
 
@@ -276,7 +292,7 @@ class ModuleCommand extends Command
                 }
             });
 
-            $this->info("All module cache cleared");
+            $this->info('All module cache cleared');
         }
 
         return self::SUCCESS;
@@ -292,6 +308,7 @@ class ModuleCommand extends Command
         $this->moduleCacheService->warmupCacheForAllTenants();
 
         $this->info('✅ Module cache warmed up successfully');
+
         return self::SUCCESS;
     }
 
@@ -355,7 +372,7 @@ class ModuleCommand extends Command
             foreach ($tenants as $tenant) {
                 $violations = $tenant->checkModuleLimits();
 
-                if (!empty($violations)) {
+                if (! empty($violations)) {
                     $violationsFound = true;
                     $this->warn("\n⚠️  Tenant: {$tenant->name}");
                     foreach ($violations as $violation) {
@@ -365,8 +382,8 @@ class ModuleCommand extends Command
             }
         });
 
-        if (!$violationsFound) {
-            $this->info("✅ No limit violations found");
+        if (! $violationsFound) {
+            $this->info('✅ No limit violations found');
         }
 
         return self::SUCCESS;
@@ -390,9 +407,10 @@ class ModuleCommand extends Command
 
         // Optimize cache
         $this->moduleCacheService->optimizeCache();
-        $this->info("🔧 Cache optimized");
+        $this->info('🔧 Cache optimized');
 
-        $this->info("✅ Cleanup completed");
+        $this->info('✅ Cleanup completed');
+
         return self::SUCCESS;
     }
 

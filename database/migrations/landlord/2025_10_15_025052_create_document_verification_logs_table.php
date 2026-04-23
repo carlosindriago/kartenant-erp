@@ -19,13 +19,13 @@ return new class extends Migration
             $table->timestamp('verified_at')->comment('Cuándo se verificó');
             $table->string('result', 20)->comment('valid, invalid, expired');
             $table->timestamps();
-            
+
             // Foreign key
             $table->foreign('verification_id')
                 ->references('id')
                 ->on('document_verifications')
                 ->onDelete('cascade');
-            
+
             // Índices
             $table->index('verification_id', 'idx_verification_id');
             $table->index('verified_at', 'idx_verified_at');

@@ -5,7 +5,6 @@ namespace Tests\Feature\POS;
 use App\Models\User;
 use App\Modules\Inventory\Models\Product;
 use App\Modules\POS\Models\CashRegister;
-use App\Modules\POS\Models\Customer;
 use App\Modules\POS\Models\Sale;
 use App\Modules\POS\Models\SaleItem;
 use App\Modules\POS\Models\SaleReturn;
@@ -19,8 +18,11 @@ class SaleReturnTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Tenant $tenant;
+
     protected Sale $sale;
+
     protected Product $product;
 
     protected function setUp(): void

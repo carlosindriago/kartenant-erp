@@ -3,11 +3,11 @@
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Resources\InvoiceResource;
-use Filament\Actions;
-use Filament\Resources\Pages\CreateRecord;
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
-use App\Models\SubscriptionPlan;
+use Filament\Notifications\Notification;
+use Filament\Notifications\NotificationAction;
+use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
 class CreateInvoice extends CreateRecord
@@ -24,7 +24,7 @@ class CreateInvoice extends CreateRecord
         }
 
         // Calculate totals if not provided
-        if (isset($data['subtotal']) && !isset($data['total_amount'])) {
+        if (isset($data['subtotal']) && ! isset($data['total_amount'])) {
             $taxAmount = $data['subtotal'] * 0.16; // 16% tax
             $data['tax_amount'] = $taxAmount;
             $data['total_amount'] = $data['subtotal'] + $taxAmount;
@@ -52,7 +52,7 @@ class CreateInvoice extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         // Create line items if not provided
-        if (!isset($data['line_items'])) {
+        if (! isset($data['line_items'])) {
             $data['line_items'] = [
                 [
                     'description' => $data['plan_name'] ?? 'Servicio',
@@ -100,18 +100,18 @@ class CreateInvoice extends CreateRecord
         ];
     }
 
-    protected function getCreatedNotification(): ?\Filament\Notifications\Notification
+    protected function getCreatedNotification(): ?Notification
     {
-        return \Filament\Notifications\Notification::make()
+        return Notification::make()
             ->title('Factura Creada')
             ->body("La factura {$this->record->invoice_number} ha sido creada exitosamente.")
             ->success()
             ->actions([
-                \Filament\Notifications\NotificationAction::make('view')
+                NotificationAction::make('view')
                     ->label('Ver Factura')
                     ->url($this->getResource()::getUrl('view', ['record' => $this->record])),
 
-                \Filament\Notifications\NotificationAction::make('download')
+                NotificationAction::make('download')
                     ->label('Descargar PDF')
                     ->url(route('invoices.download', $this->record))
                     ->openUrlInNewTab(),

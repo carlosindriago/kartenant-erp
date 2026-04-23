@@ -6,9 +6,16 @@ use App\Filament\Tenant\Resources\TenantUsageResource;
 use App\Models\TenantUsage;
 use App\Models\UsageAlert;
 use App\Services\TenantUsageService;
+use App\Services\UsageAlertService;
 use Filament\Actions;
+use Filament\Infolists\Components\Grid;
+use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Pages\ViewRecord;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class ViewTenantUsage extends ViewRecord
 {
@@ -34,7 +41,7 @@ class ViewTenantUsage extends ViewRecord
                 ->visible(fn (TenantUsage $record) => $record->status !== 'normal')
                 ->action(function (TenantUsage $record) {
                     // Send test alert
-                    \App\Services\UsageAlertService::class::sendTestAlert($record->tenant_id, $record->status);
+                    UsageAlertService::class::sendTestAlert($record->tenant_id, $record->status);
                     $this->notify('success', 'Alerta de prueba enviada');
                 }),
 
@@ -58,6 +65,7 @@ class ViewTenantUsage extends ViewRecord
     public function getTitle(): string
     {
         $record = $this->getRecord();
+
         return "Uso del Plan - {$record->getPeriodLabel()}";
     }
 
@@ -75,11 +83,11 @@ class ViewTenantUsage extends ViewRecord
         $record = $this->getRecord();
 
         return [
-            'overview' => \Filament\Infolists\Infolist::make()
+            'overview' => Infolist::make()
                 ->schema([
-                    \Filament\Infolists\Components\Section::make('Resumen de Uso')
+                    Section::make('Resumen de Uso')
                         ->schema([
-                            \Filament\Infolists\Components\TextEntry::make('status')
+                            TextEntry::make('status')
                                 ->label('Estado General')
                                 ->badge()
                                 ->color(fn (string $state): string => match ($state) {
@@ -95,12 +103,12 @@ class ViewTenantUsage extends ViewRecord
                                     'critical' => '🚨 Crítico',
                                 }),
 
-                            \Filament\Infolists\Components\TextEntry::make('days_remaining')
+                            TextEntry::make('days_remaining')
                                 ->label('Días Restantes')
-                                ->getStateUsing(fn (TenantUsage $record) => $record->getDaysRemainingInPeriod() . ' días')
+                                ->getStateUsing(fn (TenantUsage $record) => $record->getDaysRemainingInPeriod().' días')
                                 ->color(fn (TenantUsage $record) => $record->isNearPeriodEnd() ? 'danger' : 'primary'),
 
-                            \Filament\Infolists\Components\IconEntry::make('upgrade_required_next_cycle')
+                            IconEntry::make('upgrade_required_next_cycle')
                                 ->label('Actualización Requerida')
                                 ->boolean()
                                 ->trueIcon('heroicon-o-exclamation-triangle')
@@ -110,11 +118,11 @@ class ViewTenantUsage extends ViewRecord
                         ])
                         ->columns(3),
 
-                    \Filament\Infolists\Components\Section::make('Uso por Métrica')
+                    Section::make('Uso por Métrica')
                         ->schema([
-                            \Filament\Infolists\Components\Grid::make(2)
+                            Grid::make(2)
                                 ->schema([
-                                    \Filament\Infolists\Components\TextEntry::make('sales_usage')
+                                    TextEntry::make('sales_usage')
                                         ->label('Ventas')
                                         ->getStateUsing(function (TenantUsage $record) {
                                             $current = $record->sales_count;
@@ -128,13 +136,12 @@ class ViewTenantUsage extends ViewRecord
                                             return "**{$current} / {$limitText}** ({$percentage}%)\n\nRestantes: {$remainingText}";
                                         })
                                         ->markdown()
-                                        ->color(fn (TenantUsage $record) =>
-                                            $record->getZoneForMetric('sales') === 'critical' ? 'danger' :
+                                        ->color(fn (TenantUsage $record) => $record->getZoneForMetric('sales') === 'critical' ? 'danger' :
                                             ($record->getZoneForMetric('sales') === 'overdraft' ? 'warning' :
                                             ($record->getZoneForMetric('sales') === 'warning' ? 'warning' : 'success'))
                                         ),
 
-                                    \Filament\Infolists\Components\TextEntry::make('products_usage')
+                                    TextEntry::make('products_usage')
                                         ->label('Productos')
                                         ->getStateUsing(function (TenantUsage $record) {
                                             $current = $record->products_count;
@@ -148,13 +155,12 @@ class ViewTenantUsage extends ViewRecord
                                             return "**{$current} / {$limitText}** ({$percentage}%)\n\nRestantes: {$remainingText}";
                                         })
                                         ->markdown()
-                                        ->color(fn (TenantUsage $record) =>
-                                            $record->getZoneForMetric('products') === 'critical' ? 'danger' :
+                                        ->color(fn (TenantUsage $record) => $record->getZoneForMetric('products') === 'critical' ? 'danger' :
                                             ($record->getZoneForMetric('products') === 'overdraft' ? 'warning' :
                                             ($record->getZoneForMetric('products') === 'warning' ? 'warning' : 'success'))
                                         ),
 
-                                    \Filament\Infolists\Components\TextEntry::make('users_usage')
+                                    TextEntry::make('users_usage')
                                         ->label('Usuarios')
                                         ->getStateUsing(function (TenantUsage $record) {
                                             $current = $record->users_count;
@@ -168,13 +174,12 @@ class ViewTenantUsage extends ViewRecord
                                             return "**{$current} / {$limitText}** ({$percentage}%)\n\nRestantes: {$remainingText}";
                                         })
                                         ->markdown()
-                                        ->color(fn (TenantUsage $record) =>
-                                            $record->getZoneForMetric('users') === 'critical' ? 'danger' :
+                                        ->color(fn (TenantUsage $record) => $record->getZoneForMetric('users') === 'critical' ? 'danger' :
                                             ($record->getZoneForMetric('users') === 'overdraft' ? 'warning' :
                                             ($record->getZoneForMetric('users') === 'warning' ? 'warning' : 'success'))
                                         ),
 
-                                    \Filament\Infolists\Components\TextEntry::make('storage_usage')
+                                    TextEntry::make('storage_usage')
                                         ->label('Almacenamiento')
                                         ->getStateUsing(function (TenantUsage $record) {
                                             $current = $record->storage_size_mb;
@@ -182,27 +187,26 @@ class ViewTenantUsage extends ViewRecord
                                             $percentage = $record->storage_percentage;
                                             $remaining = $record->getRemaining('storage');
 
-                                            $limitText = $limit ? number_format($limit) . ' MB' : 'Ilimitado';
-                                            $remainingText = $limit !== null ? number_format($remaining) . ' MB' : 'Ilimitado';
+                                            $limitText = $limit ? number_format($limit).' MB' : 'Ilimitado';
+                                            $remainingText = $limit !== null ? number_format($remaining).' MB' : 'Ilimitado';
 
                                             return "**{$current} MB / {$limitText}** ({$percentage}%)\n\nRestantes: {$remainingText}";
                                         })
                                         ->markdown()
-                                        ->color(fn (TenantUsage $record) =>
-                                            $record->getZoneForMetric('storage') === 'critical' ? 'danger' :
+                                        ->color(fn (TenantUsage $record) => $record->getZoneForMetric('storage') === 'critical' ? 'danger' :
                                             ($record->getZoneForMetric('storage') === 'overdraft' ? 'warning' :
                                             ($record->getZoneForMetric('storage') === 'warning' ? 'warning' : 'success'))
                                         ),
                                 ]),
                         ]),
 
-                    \Filament\Infolists\Components\Section::make('Información del Sistema')
+                    Section::make('Información del Sistema')
                         ->schema([
-                            \Filament\Infolists\Components\TextEntry::make('last_calculated_at')
+                            TextEntry::make('last_calculated_at')
                                 ->label('Último Cálculo')
                                 ->dateTime('d/m/Y H:i:s'),
 
-                            \Filament\Infolists\Components\TextEntry::make('last_alert_sent_at')
+                            TextEntry::make('last_alert_sent_at')
                                 ->label('Última Alerta Enviada')
                                 ->dateTime('d/m/Y H:i:s')
                                 ->placeholder('Ninguna'),
@@ -210,17 +214,17 @@ class ViewTenantUsage extends ViewRecord
                         ->columns(2),
                 ]),
 
-            'alerts' => \Filament\Tables\Table::make()
+            'alerts' => Table::make()
                 ->query(
                     UsageAlert::where('tenant_usage_id', $record->id)
                         ->latest()
                 )
                 ->columns([
-                    \Filament\Tables\Columns\TextColumn::make('created_at')
+                    TextColumn::make('created_at')
                         ->label('Fecha')
                         ->dateTime('d/m/Y H:i')
                         ->sortable(),
-                    \Filament\Tables\Columns\TextColumn::make('alert_type')
+                    TextColumn::make('alert_type')
                         ->label('Tipo')
                         ->badge()
                         ->color(fn (string $state): string => match ($state) {
@@ -233,7 +237,7 @@ class ViewTenantUsage extends ViewRecord
                             'overdraft' => 'Excedido',
                             'critical' => 'Crítico',
                         }),
-                    \Filament\Tables\Columns\TextColumn::make('metric_type')
+                    TextColumn::make('metric_type')
                         ->label('Métrica')
                         ->formatStateUsing(fn (string $state) => match ($state) {
                             'sales' => 'Ventas',
@@ -243,20 +247,25 @@ class ViewTenantUsage extends ViewRecord
                             'overall' => 'General',
                             default => ucfirst($state),
                         }),
-                    \Filament\Tables\Columns\TextColumn::make('percentage')
+                    TextColumn::make('percentage')
                         ->label('Porcentaje')
                         ->suffix('%')
                         ->formatStateUsing(fn ($state) => number_format($state, 1))
                         ->color(fn ($record) => $record->percentage > 100 ? 'danger' : ($record->percentage >= 80 ? 'warning' : 'success')),
-                    \Filament\Tables\Columns\TextColumn::make('delivery_status')
+                    TextColumn::make('delivery_status')
                         ->label('Estado de Envío')
                         ->badge()
                         ->getStateUsing(function ($record) {
                             $delivered = in_array('sent', $record->delivery_status ?? []);
                             $failed = in_array('failed', $record->delivery_status ?? []);
 
-                            if ($delivered && !$failed) return 'Enviado';
-                            if ($failed) return 'Parcialmente Fallado';
+                            if ($delivered && ! $failed) {
+                                return 'Enviado';
+                            }
+                            if ($failed) {
+                                return 'Parcialmente Fallado';
+                            }
+
                             return 'Pendiente';
                         })
                         ->color(fn (string $state): string => match ($state) {

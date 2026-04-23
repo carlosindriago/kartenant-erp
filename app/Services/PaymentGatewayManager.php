@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Contracts\PaymentGatewayInterface;
 use App\Models\PaymentGatewaySetting;
 use App\Models\SystemSetting;
-use App\Services\PaymentGateways\ManualTransferDriver;
 use App\Services\PaymentGateways\LemonSqueezyDriver;
+use App\Services\PaymentGateways\ManualTransferDriver;
 
 class PaymentGatewayManager
 {
@@ -23,7 +23,7 @@ class PaymentGatewayManager
             ->where('is_active', true)
             ->first();
 
-        if (!$gateway) {
+        if (! $gateway) {
             // Fallback to manual transfer
             return new ManualTransferDriver([]);
         }
@@ -38,7 +38,7 @@ class PaymentGatewayManager
     {
         $gateway = PaymentGatewaySetting::where('driver_name', $driverName)->first();
 
-        if (!$gateway) {
+        if (! $gateway) {
             throw new \InvalidArgumentException("Gateway '{$driverName}' not found");
         }
 
@@ -83,7 +83,7 @@ class PaymentGatewayManager
         // Activate the specified gateway
         $gateway = PaymentGatewaySetting::where('driver_name', $driverName)->first();
 
-        if (!$gateway) {
+        if (! $gateway) {
             return false;
         }
 

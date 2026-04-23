@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -12,6 +12,7 @@
 namespace App\Filament\Pages\Auth;
 
 use App\Services\AuditLogger;
+use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -23,11 +24,14 @@ use Illuminate\Support\Facades\Hash;
 
 class ForcePasswordChange extends SimplePage implements HasForms
 {
-    use InteractsWithForms, HasRoutes;
+    use HasRoutes, InteractsWithForms;
 
     protected static string $routePath = '/force-password-change';
+
     protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $title = 'Cambio de contraseña requerido';
+
     protected static string $view = 'filament.pages.auth.force-password-change';
 
     public ?array $data = [];
@@ -65,7 +69,7 @@ class ForcePasswordChange extends SimplePage implements HasForms
     protected function getFormActions(): array
     {
         return [
-            \Filament\Actions\Action::make('update')
+            Action::make('update')
                 ->label('Actualizar contraseña')
                 ->submit('updatePassword'),
         ];

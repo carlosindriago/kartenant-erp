@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class EmployeeManagementPermissionsSeeder extends Seeder
 {
@@ -25,11 +26,11 @@ class EmployeeManagementPermissionsSeeder extends Seeder
             ['name' => 'create_employee_registration', 'guard_name' => $guard],
             ['name' => 'deactivate_employee', 'guard_name' => $guard],
             ['name' => 'reactivate_employee', 'guard_name' => $guard],
-            
+
             // Comprobantes y verificación
             ['name' => 'download_employee_certificates', 'guard_name' => $guard],
             ['name' => 'verify_employee_documents', 'guard_name' => $guard],
-            
+
             // Auditoría y reportes
             ['name' => 'view_employee_history', 'guard_name' => $guard],
             ['name' => 'view_employee_audit_trail', 'guard_name' => $guard],
@@ -48,8 +49,8 @@ class EmployeeManagementPermissionsSeeder extends Seeder
         }
 
         // Limpiar cache de permisos
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-        
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
         $this->assignPermissionsToRoles($guard);
 
         $this->command->info('✅ Permisos de gestión de empleados creados exitosamente');
@@ -76,11 +77,11 @@ class EmployeeManagementPermissionsSeeder extends Seeder
                     'view_employee_history',
                     'view_employee_audit_trail',
                 ])->where('guard_name', $guard)->get();
-                
+
                 $admin->givePermissionTo($permissions);
                 $this->command->info('  ✓ Admin: Todos los permisos de empleados asignados');
             } catch (\Exception $e) {
-                $this->command->warn('  ⚠ Error asignando permisos a Admin: ' . $e->getMessage());
+                $this->command->warn('  ⚠ Error asignando permisos a Admin: '.$e->getMessage());
             }
         }
 
@@ -98,11 +99,11 @@ class EmployeeManagementPermissionsSeeder extends Seeder
                     'view_employee_history',
                     'view_employee_audit_trail',
                 ])->where('guard_name', $guard)->get();
-                
+
                 $gerente->givePermissionTo($permissions);
                 $this->command->info('  ✓ Gerente: Permisos de empleados asignados');
             } catch (\Exception $e) {
-                $this->command->warn('  ⚠ Error asignando permisos a Gerente: ' . $e->getMessage());
+                $this->command->warn('  ⚠ Error asignando permisos a Gerente: '.$e->getMessage());
             }
         }
 
@@ -111,7 +112,7 @@ class EmployeeManagementPermissionsSeeder extends Seeder
             $rrhh = Role::firstOrCreate(
                 ['name' => 'rrhh', 'guard_name' => $guard]
             );
-            
+
             $permissions = Permission::whereIn('name', [
                 'view_employee_events',
                 'create_employee_registration',
@@ -122,11 +123,11 @@ class EmployeeManagementPermissionsSeeder extends Seeder
                 'view_employee_history',
                 'view_employee_audit_trail',
             ])->where('guard_name', $guard)->get();
-            
+
             $rrhh->givePermissionTo($permissions);
             $this->command->info('  ✓ RRHH: Rol y permisos creados');
         } catch (\Exception $e) {
-            $this->command->warn('  ⚠ Error creando rol RRHH: ' . $e->getMessage());
+            $this->command->warn('  ⚠ Error creando rol RRHH: '.$e->getMessage());
         }
 
         // SUPERVISOR: Solo ver eventos y descargar certificados
@@ -138,11 +139,11 @@ class EmployeeManagementPermissionsSeeder extends Seeder
                     'download_employee_certificates',
                     'view_employee_history',
                 ])->where('guard_name', $guard)->get();
-                
+
                 $supervisor->givePermissionTo($permissions);
                 $this->command->info('  ✓ Supervisor: Permisos de visualización asignados');
             } catch (\Exception $e) {
-                $this->command->warn('  ⚠ Error asignando permisos a Supervisor: ' . $e->getMessage());
+                $this->command->warn('  ⚠ Error asignando permisos a Supervisor: '.$e->getMessage());
             }
         }
     }

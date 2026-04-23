@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -19,7 +19,7 @@ use Filament\Resources\Pages\ListRecords;
 class ListProducts extends ListRecords
 {
     protected static string $resource = ProductResource::class;
-    
+
     /**
      * Recordatorio de Contexto: Asegura que el tenant esté activo antes de cargar registros
      */
@@ -27,7 +27,7 @@ class ListProducts extends ListRecords
     {
         // Recordatorio de contexto - asegura que el tenant esté activo
         Filament::getTenant()?->makeCurrent();
-        
+
         parent::mount();
     }
 

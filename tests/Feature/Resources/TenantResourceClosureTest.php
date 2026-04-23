@@ -2,11 +2,12 @@
 
 namespace Tests\Feature\Resources;
 
-use App\Models\User;
+use App\Filament\Resources\TenantResource;
 use App\Models\Tenant;
+use App\Models\User;
+use Filament\Tables\Table;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class TenantResourceClosureTest extends TestCase
@@ -14,6 +15,7 @@ class TenantResourceClosureTest extends TestCase
     use RefreshDatabase;
 
     protected User $regularUser;
+
     protected Tenant $tenant;
 
     protected function setUp(): void
@@ -50,8 +52,8 @@ class TenantResourceClosureTest extends TestCase
         // This test validates the fix for the closure context issue
         // We're testing that the action closures use `self::method()` instead of `$this->method()`
 
-        $resource = new \App\Filament\Resources\TenantResource();
-        $table = $resource->table(\Filament\Tables\Table::make());
+        $resource = new TenantResource;
+        $table = $resource->table(Table::make());
 
         // Get the unlock accounts action
         $actions = collect($table->getActions());
@@ -68,17 +70,17 @@ class TenantResourceClosureTest extends TestCase
         // Before the fix, this would fail with "Using $this when not in object context"
 
         $user = $this->regularUser;
-        Cache::put('2fa_lockout:' . $user->id, true, 3600);
+        Cache::put('2fa_lockout:'.$user->id, true, 3600);
 
         // Verify lock exists
-        $this->assertTrue(Cache::has('2fa_lockout:' . $user->id));
+        $this->assertTrue(Cache::has('2fa_lockout:'.$user->id));
 
         // Simulate the action closure that was fixed
         $actionClosure = function ($record) {
             // This was the problematic line that was fixed:
             // Before: $this->unlockTenantAccounts($record); // Would fail
             // After:  self::unlockTenantAccounts($record); // Works
-            return \App\Filament\Resources\TenantResource::unlockTenantAccounts($record);
+            return TenantResource::unlockTenantAccounts($record);
         };
 
         // Execute closure with bound context (like Filament does)
@@ -91,13 +93,13 @@ class TenantResourceClosureTest extends TestCase
             $this->assertTrue(true, 'Closure executed without "Using $this when not in object context" error');
         } catch (\Error $e) {
             if (str_contains($e->getMessage(), 'Using $this when not in object context')) {
-                $this->fail('The closure context fix did not work: ' . $e->getMessage());
+                $this->fail('The closure context fix did not work: '.$e->getMessage());
             }
             throw $e;
         }
 
         // Verify the lock was cleared (the method actually worked)
-        $this->assertFalse(Cache::has('2fa_lockout:' . $user->id));
+        $this->assertFalse(Cache::has('2fa_lockout:'.$user->id));
     }
 
     /** @test */
@@ -106,12 +108,12 @@ class TenantResourceClosureTest extends TestCase
         // Test the badge closure that uses getLockedAccountsCount
 
         $user = $this->regularUser;
-        Cache::put('2fa_lockout:' . $user->id, true, 3600);
+        Cache::put('2fa_lockout:'.$user->id, true, 3600);
 
         // Simulate the badge closure
         $badgeClosure = function ($record) {
             // This was also fixed to use self:: instead of $this->
-            return \App\Filament\Resources\TenantResource::getLockedAccountsCount($record);
+            return TenantResource::getLockedAccountsCount($record);
         };
 
         // Execute closure with bound context (like Filament does)
@@ -124,7 +126,7 @@ class TenantResourceClosureTest extends TestCase
             $this->assertEquals(1, $result, 'Badge closure should return correct lock count');
         } catch (\Error $e) {
             if (str_contains($e->getMessage(), 'Using $this when not in object context')) {
-                $this->fail('The badge closure fix did not work: ' . $e->getMessage());
+                $this->fail('The badge closure fix did not work: '.$e->getMessage());
             }
             throw $e;
         }
@@ -136,12 +138,13 @@ class TenantResourceClosureTest extends TestCase
         // Test the color closure that determines button color based on lock count
 
         $user = $this->regularUser;
-        Cache::put('2fa_lockout:' . $user->id, true, 3600);
+        Cache::put('2fa_lockout:'.$user->id, true, 3600);
 
         // Simulate the color closure
         $colorClosure = function ($record) {
             // This determines if button should be 'danger' (has locks) or 'gray' (no locks)
-            $lockedCount = \App\Filament\Resources\TenantResource::getLockedAccountsCount($record);
+            $lockedCount = TenantResource::getLockedAccountsCount($record);
+
             return $lockedCount > 0 ? 'danger' : 'gray';
         };
 
@@ -154,13 +157,13 @@ class TenantResourceClosureTest extends TestCase
             $this->assertEquals('danger', $result, 'Color closure should return "danger" when there are locks');
         } catch (\Error $e) {
             if (str_contains($e->getMessage(), 'Using $this when not in object context')) {
-                $this->fail('The color closure fix did not work: ' . $e->getMessage());
+                $this->fail('The color closure fix did not work: '.$e->getMessage());
             }
             throw $e;
         }
 
         // Test with no locks
-        Cache::forget('2fa_lockout:' . $user->id);
+        Cache::forget('2fa_lockout:'.$user->id);
         $result = $boundClosure->call($mockContext, $this->tenant);
         $this->assertEquals('gray', $result, 'Color closure should return "gray" when there are no locks');
     }
@@ -170,7 +173,7 @@ class TenantResourceClosureTest extends TestCase
     {
         // Test multiple closures being called in sequence (like in real Filament usage)
 
-        Cache::put('2fa_lockout:' . $this->regularUser->id, true, 3600);
+        Cache::put('2fa_lockout:'.$this->regularUser->id, true, 3600);
 
         $actions = [];
 
@@ -178,15 +181,16 @@ class TenantResourceClosureTest extends TestCase
         $actions[] = [
             'name' => 'unlock_accounts',
             'badge' => function ($record) {
-                return \App\Filament\Resources\TenantResource::getLockedAccountsCount($record);
+                return TenantResource::getLockedAccountsCount($record);
             },
             'color' => function ($record) {
-                return \App\Filament\Resources\TenantResource::getLockedAccountsCount($record) > 0 ? 'danger' : 'gray';
+                return TenantResource::getLockedAccountsCount($record) > 0 ? 'danger' : 'gray';
             },
             'action' => function ($record) {
-                \App\Filament\Resources\TenantResource::unlockTenantAccounts($record);
+                TenantResource::unlockTenantAccounts($record);
+
                 return true;
-            }
+            },
         ];
 
         // Execute all actions in same context
@@ -207,7 +211,7 @@ class TenantResourceClosureTest extends TestCase
                     }
                 } catch (\Error $e) {
                     if (str_contains($e->getMessage(), 'Using $this when not in object context')) {
-                        $this->fail("Closure {$type} failed with context error: " . $e->getMessage());
+                        $this->fail("Closure {$type} failed with context error: ".$e->getMessage());
                     }
                     throw $e;
                 }
@@ -215,7 +219,7 @@ class TenantResourceClosureTest extends TestCase
         }
 
         // Verify locks were cleared by action execution
-        $this->assertFalse(Cache::has('2fa_lockout:' . $this->regularUser->id));
+        $this->assertFalse(Cache::has('2fa_lockout:'.$this->regularUser->id));
     }
 
     /** @test */
@@ -223,18 +227,20 @@ class TenantResourceClosureTest extends TestCase
     {
         // Test closures with invalid tenant data
 
-        $invalidTenant = new class {
-            public function users() {
-                throw new \Exception("Cannot access users");
+        $invalidTenant = new class
+        {
+            public function users()
+            {
+                throw new \Exception('Cannot access users');
             }
         };
 
         $badgeClosure = function ($record) {
-            return \App\Filament\Resources\TenantResource::getLockedAccountsCount($record);
+            return TenantResource::getLockedAccountsCount($record);
         };
 
         $actionClosure = function ($record) {
-            \App\Filament\Resources\TenantResource::unlockTenantAccounts($record);
+            TenantResource::unlockTenantAccounts($record);
         };
 
         $mockContext = new class {};
@@ -262,13 +268,13 @@ class TenantResourceClosureTest extends TestCase
         $this->tenant->users()->attach([$user2->id, $user3->id]);
 
         // Lock all users
-        Cache::put('2fa_lockout:' . $this->regularUser->id, true, 3600);
-        Cache::put('2fa_lockout:' . $user2->id, true, 3600);
-        Cache::put('2fa_lockout:' . $user3->id, true, 3600);
+        Cache::put('2fa_lockout:'.$this->regularUser->id, true, 3600);
+        Cache::put('2fa_lockout:'.$user2->id, true, 3600);
+        Cache::put('2fa_lockout:'.$user3->id, true, 3600);
 
         // Test badge closure
         $badgeClosure = function ($record) {
-            return \App\Filament\Resources\TenantResource::getLockedAccountsCount($record);
+            return TenantResource::getLockedAccountsCount($record);
         };
 
         $mockContext = new class {};
@@ -278,15 +284,15 @@ class TenantResourceClosureTest extends TestCase
 
         // Test action closure
         $actionClosure = function ($record) {
-            \App\Filament\Resources\TenantResource::unlockTenantAccounts($record);
+            TenantResource::unlockTenantAccounts($record);
         };
 
         $boundAction = $actionClosure->bindTo($mockContext);
         $boundAction->call($mockContext, $this->tenant);
 
         // Verify all locks were cleared
-        $this->assertFalse(Cache::has('2fa_lockout:' . $this->regularUser->id));
-        $this->assertFalse(Cache::has('2fa_lockout:' . $user2->id));
-        $this->assertFalse(Cache::has('2fa_lockout:' . $user3->id));
+        $this->assertFalse(Cache::has('2fa_lockout:'.$this->regularUser->id));
+        $this->assertFalse(Cache::has('2fa_lockout:'.$user2->id));
+        $this->assertFalse(Cache::has('2fa_lockout:'.$user3->id));
     }
 }

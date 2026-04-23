@@ -124,7 +124,7 @@ class UserAuditLog extends Model
      */
     public function getActionDescriptionAttribute(): string
     {
-        return match($this->action) {
+        return match ($this->action) {
             'user_created' => 'Usuario creado',
             'user_updated' => 'Usuario actualizado',
             'user_deleted' => 'Usuario eliminado',

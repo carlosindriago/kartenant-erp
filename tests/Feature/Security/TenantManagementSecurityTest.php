@@ -2,20 +2,16 @@
 
 namespace Tests\Feature\Security;
 
-use Tests\TestCase;
-use App\Models\User;
+use App\Models\SecurityAuditLog;
 use App\Models\Tenant;
+use App\Models\User;
+use App\Services\TenantBackupService;
 use App\Services\TenantSecurityService;
-use App\Http\Middleware\TenantSecurityMiddleware;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Event;
-use Carbon\Carbon;
-use Filament\Notifications\Notification as FilamentNotification;
+use Tests\TestCase;
 
 /**
  * Comprehensive Security Tests for Tenant Management
@@ -34,7 +30,9 @@ class TenantManagementSecurityTest extends TestCase
     use RefreshDatabase;
 
     private User $superAdmin;
+
     private Tenant $tenant;
+
     private TenantSecurityService $securityService;
 
     protected function setUp(): void
@@ -89,12 +87,12 @@ class TenantManagementSecurityTest extends TestCase
         $this->assertFalse(Cache::add($rateLimitKey, true, Carbon::now()->addHour()));
 
         // Test rate limiting middleware
-        $response = $this->post('/admin/tenants/' . $this->tenant->id . '/deactivate', [
+        $response = $this->post('/admin/tenants/'.$this->tenant->id.'/deactivate', [
             'admin_password' => 'secure-password-123',
             'confirm_tenant_name' => $this->tenant->name,
             'reason' => 'Test rate limiting',
             'understand_consequences' => true,
-            'otp_code' => 'DEACTIVATE' . strtoupper(substr($this->tenant->name, 0, 4)),
+            'otp_code' => 'DEACTIVATE'.strtoupper(substr($this->tenant->name, 0, 4)),
         ]);
 
         // Should be rate limited
@@ -105,12 +103,12 @@ class TenantManagementSecurityTest extends TestCase
     public function it_requires_valid_admin_password_for_sensitive_operations()
     {
         // Attempt with wrong password
-        $response = $this->post('/admin/tenants/' . $this->tenant->id . '/deactivate', [
+        $response = $this->post('/admin/tenants/'.$this->tenant->id.'/deactivate', [
             'admin_password' => 'wrong-password',
             'confirm_tenant_name' => $this->tenant->name,
             'reason' => 'Test password validation',
             'understand_consequences' => true,
-            'otp_code' => 'DEACTIVATE' . strtoupper(substr($this->tenant->name, 0, 4)),
+            'otp_code' => 'DEACTIVATE'.strtoupper(substr($this->tenant->name, 0, 4)),
         ]);
 
         $response->assertSessionHasErrors('admin_password');
@@ -124,7 +122,7 @@ class TenantManagementSecurityTest extends TestCase
     public function it_generates_and_validates_context_specific_otp_codes()
     {
         // Generate OTP for deactivation
-        $expectedOTP = 'DEACTIVATE' . strtoupper(substr($this->tenant->name, 0, 4));
+        $expectedOTP = 'DEACTIVATE'.strtoupper(substr($this->tenant->name, 0, 4));
 
         // Test correct OTP
         $this->assertTrue(
@@ -149,21 +147,21 @@ class TenantManagementSecurityTest extends TestCase
     public function it_prevents_tenant_name_typo_attacks()
     {
         $similarNames = [
-            $this->tenant->name . ' ', // trailing space
-            ' ' . $this->tenant->name, // leading space
+            $this->tenant->name.' ', // trailing space
+            ' '.$this->tenant->name, // leading space
             strtoupper($this->tenant->name), // different case
             strtolower($this->tenant->name), // different case
-            $this->tenant->name . 'x', // extra character
+            $this->tenant->name.'x', // extra character
             substr($this->tenant->name, 0, -1), // missing character
         ];
 
         foreach ($similarNames as $wrongName) {
-            $response = $this->post('/admin/tenants/' . $this->tenant->id . '/deactivate', [
+            $response = $this->post('/admin/tenants/'.$this->tenant->id.'/deactivate', [
                 'admin_password' => 'secure-password-123',
                 'confirm_tenant_name' => $wrongName,
                 'reason' => 'Test typo prevention',
                 'understand_consequences' => true,
-                'otp_code' => 'DEACTIVATE' . strtoupper(substr($this->tenant->name, 0, 4)),
+                'otp_code' => 'DEACTIVATE'.strtoupper(substr($this->tenant->name, 0, 4)),
             ]);
 
             $response->assertSessionHasErrors('confirm_tenant_name');
@@ -186,7 +184,7 @@ class TenantManagementSecurityTest extends TestCase
 
         // Immediately try critical operation from what appears to be Tokyo
         $this->withHeader('X-Forwarded-For', '203.0.113.1')
-            ->post('/admin/tenants/' . $this->tenant->id . '/archive', [
+            ->post('/admin/tenants/'.$this->tenant->id.'/archive', [
                 'admin_password' => 'secure-password-123',
                 'confirm_tenant_name' => $this->tenant->name,
                 'impact_assessment' => 'Test impossible travel detection',
@@ -196,7 +194,7 @@ class TenantManagementSecurityTest extends TestCase
                 'legal_rationale' => 'Test',
                 'understand_irreversibility' => true,
                 'accept_liability' => true,
-                'otp_code' => 'ARCHIVE' . strtoupper(substr($this->tenant->name, 0, 4)),
+                'otp_code' => 'ARCHIVE'.strtoupper(substr($this->tenant->name, 0, 4)),
             ]);
 
         // Should detect impossible travel and block the operation
@@ -246,12 +244,12 @@ class TenantManagementSecurityTest extends TestCase
         ];
 
         foreach ($maliciousInputs as $maliciousInput) {
-            $response = $this->post('/admin/tenants/' . $this->tenant->id . '/deactivate', [
+            $response = $this->post('/admin/tenants/'.$this->tenant->id.'/deactivate', [
                 'admin_password' => 'secure-password-123',
                 'confirm_tenant_name' => $maliciousInput,
                 'reason' => $maliciousInput,
                 'understand_consequences' => true,
-                'otp_code' => 'DEACTIVATE' . strtoupper(substr($this->tenant->name, 0, 4)),
+                'otp_code' => 'DEACTIVATE'.strtoupper(substr($this->tenant->name, 0, 4)),
             ]);
 
             // Should validate input and reject malicious content
@@ -268,12 +266,12 @@ class TenantManagementSecurityTest extends TestCase
     public function it_creates_comprehensive_audit_trail_for_critical_operations()
     {
         // Perform tenant deactivation
-        $this->post('/admin/tenants/' . $this->tenant->id . '/deactivate', [
+        $this->post('/admin/tenants/'.$this->tenant->id.'/deactivate', [
             'admin_password' => 'secure-password-123',
             'confirm_tenant_name' => $this->tenant->name,
             'reason' => 'Test audit trail completeness',
             'understand_consequences' => true,
-            'otp_code' => 'DEACTIVATE' . strtoupper(substr($this->tenant->name, 0, 4)),
+            'otp_code' => 'DEACTIVATE'.strtoupper(substr($this->tenant->name, 0, 4)),
         ]);
 
         // Verify comprehensive audit log was created
@@ -287,7 +285,7 @@ class TenantManagementSecurityTest extends TestCase
         ]);
 
         // Verify detailed audit data
-        $auditLog = \App\Models\SecurityAuditLog::latest()->first();
+        $auditLog = SecurityAuditLog::latest()->first();
         $this->assertNotNull($auditLog);
         $this->assertNotNull($auditLog->device_fingerprint);
         $this->assertNotNull($auditLog->location_data);
@@ -303,19 +301,19 @@ class TenantManagementSecurityTest extends TestCase
         $concurrentRequests = 5;
 
         for ($i = 0; $i < $concurrentRequests; $i++) {
-            $response = $this->post('/admin/tenants/' . $this->tenant->id . '/deactivate', [
+            $response = $this->post('/admin/tenants/'.$this->tenant->id.'/deactivate', [
                 'admin_password' => 'secure-password-123',
                 'confirm_tenant_name' => $this->tenant->name,
                 'reason' => "Concurrent test {$i}",
                 'understand_consequences' => true,
-                'otp_code' => 'DEACTIVATE' . strtoupper(substr($this->tenant->name, 0, 4)),
+                'otp_code' => 'DEACTIVATE'.strtoupper(substr($this->tenant->name, 0, 4)),
             ]);
 
             $responses->push($response);
         }
 
         // Only one should succeed, others should be rate limited or rejected
-        $successful = $responses->filter(fn($r) => $r->isSuccessful());
+        $successful = $responses->filter(fn ($r) => $r->isSuccessful());
         $this->assertLessThanOrEqual(1, $successful->count());
 
         // Verify concurrent operations were tracked
@@ -331,23 +329,23 @@ class TenantManagementSecurityTest extends TestCase
         // Test that critical operations require HTTPS
         config(['app.env' => 'production']);
 
-        $response = $this->post('/admin/tenants/' . $this->tenant->id . '/deactivate', [
+        $response = $this->post('/admin/tenants/'.$this->tenant->id.'/deactivate', [
             'admin_password' => 'secure-password-123',
             'confirm_tenant_name' => $this->tenant->name,
             'reason' => 'Test HTTPS requirement',
             'understand_consequences' => true,
-            'otp_code' => 'DEACTIVATE' . strtoupper(substr($this->tenant->name, 0, 4)),
+            'otp_code' => 'DEACTIVATE'.strtoupper(substr($this->tenant->name, 0, 4)),
         ], ['HTTPS' => 'on']);
 
         $response->assertStatus(302); // Should redirect or process successfully
 
         // Test without HTTPS (should be blocked in production)
-        $response = $this->post('/admin/tenants/' . $this->tenant->id . '/deactivate', [
+        $response = $this->post('/admin/tenants/'.$this->tenant->id.'/deactivate', [
             'admin_password' => 'secure-password-123',
             'confirm_tenant_name' => $this->tenant->name,
             'reason' => 'Test HTTPS requirement',
             'understand_consequences' => true,
-            'otp_code' => 'DEACTIVATE' . strtoupper(substr($this->tenant->name, 0, 4)),
+            'otp_code' => 'DEACTIVATE'.strtoupper(substr($this->tenant->name, 0, 4)),
         ]);
 
         // In production mode without HTTPS, should be rejected
@@ -366,12 +364,12 @@ class TenantManagementSecurityTest extends TestCase
         $originalSessionId = session()->getId();
 
         // Perform critical operation
-        $this->post('/admin/tenants/' . $this->tenant->id . '/deactivate', [
+        $this->post('/admin/tenants/'.$this->tenant->id.'/deactivate', [
             'admin_password' => 'secure-password-123',
             'confirm_tenant_name' => $this->tenant->name,
             'reason' => 'Test session security',
             'understand_consequences' => true,
-            'otp_code' => 'DEACTIVATE' . strtoupper(substr($this->tenant->name, 0, 4)),
+            'otp_code' => 'DEACTIVATE'.strtoupper(substr($this->tenant->name, 0, 4)),
         ]);
 
         // Session ID should remain the same (no session fixation)
@@ -385,12 +383,12 @@ class TenantManagementSecurityTest extends TestCase
     public function it_prevents_csrf_attacks_on_critical_operations()
     {
         // Test missing CSRF token
-        $response = $this->post('/admin/tenants/' . $this->tenant->id . '/deactivate', [
+        $response = $this->post('/admin/tenants/'.$this->tenant->id.'/deactivate', [
             'admin_password' => 'secure-password-123',
             'confirm_tenant_name' => $this->tenant->name,
             'reason' => 'Test CSRF protection',
             'understand_consequences' => true,
-            'otp_code' => 'DEACTIVATE' . strtoupper(substr($this->tenant->name, 0, 4)),
+            'otp_code' => 'DEACTIVATE'.strtoupper(substr($this->tenant->name, 0, 4)),
         ], [], ['X-Requested-With' => 'XMLHttpRequest']); // Simulate AJAX without CSRF
 
         $response->assertStatus(419); // CSRF token mismatch
@@ -402,18 +400,18 @@ class TenantManagementSecurityTest extends TestCase
         // Test extremely long inputs
         $longReason = str_repeat('A', 10000); // Exceeds reasonable limits
 
-        $response = $this->post('/admin/tenants/' . $this->tenant->id . '/deactivate', [
+        $response = $this->post('/admin/tenants/'.$this->tenant->id.'/deactivate', [
             'admin_password' => 'secure-password-123',
             'confirm_tenant_name' => $this->tenant->name,
             'reason' => $longReason,
             'understand_consequences' => true,
-            'otp_code' => 'DEACTIVATE' . strtoupper(substr($this->tenant->name, 0, 4)),
+            'otp_code' => 'DEACTIVATE'.strtoupper(substr($this->tenant->name, 0, 4)),
         ]);
 
         $response->assertSessionHasErrors('reason');
 
         // Test empty inputs where required
-        $response = $this->post('/admin/tenants/' . $this->tenant->id . '/deactivate', [
+        $response = $this->post('/admin/tenants/'.$this->tenant->id.'/deactivate', [
             'admin_password' => '',
             'confirm_tenant_name' => '',
             'reason' => '',
@@ -426,7 +424,7 @@ class TenantManagementSecurityTest extends TestCase
             'confirm_tenant_name',
             'reason',
             'understand_consequences',
-            'otp_code'
+            'otp_code',
         ]);
     }
 
@@ -434,7 +432,7 @@ class TenantManagementSecurityTest extends TestCase
     public function it_validates_backup_creation_before_critical_operations()
     {
         // Mock backup service to test backup requirement
-        $backupService = $this->mock(\App\Services\TenantBackupService::class);
+        $backupService = $this->mock(TenantBackupService::class);
         $backupService->shouldReceive('backupDatabase')
             ->once()
             ->andReturn([
@@ -444,7 +442,7 @@ class TenantManagementSecurityTest extends TestCase
             ]);
 
         // Perform tenant archival (requires backup)
-        $response = $this->post('/admin/tenants/' . $this->tenant->id . '/archive', [
+        $response = $this->post('/admin/tenants/'.$this->tenant->id.'/archive', [
             'admin_password' => 'secure-password-123',
             'confirm_tenant_name' => $this->tenant->name,
             'impact_assessment' => 'Test backup requirement',
@@ -454,7 +452,7 @@ class TenantManagementSecurityTest extends TestCase
             'legal_rationale' => 'Test backup validation',
             'understand_irreversibility' => true,
             'accept_liability' => true,
-            'otp_code' => 'ARCHIVE' . strtoupper(substr($this->tenant->name, 0, 4)),
+            'otp_code' => 'ARCHIVE'.strtoupper(substr($this->tenant->name, 0, 4)),
         ]);
 
         $backupService->shouldHaveReceived('backupDatabase');
@@ -475,7 +473,7 @@ class TenantManagementSecurityTest extends TestCase
         for ($i = 0; $i < 5; $i++) {
             $this->post('/admin/login', [
                 'email' => $this->superAdmin->email,
-                'password' => 'wrong-password-' . $i,
+                'password' => 'wrong-password-'.$i,
             ]);
         }
 

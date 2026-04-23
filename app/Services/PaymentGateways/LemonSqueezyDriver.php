@@ -27,12 +27,12 @@ class LemonSqueezyDriver implements PaymentGatewayInterface
 
     public function isConfigured(): bool
     {
-        return !empty($this->config['api_key']) && !empty($this->config['store_id']);
+        return ! empty($this->config['api_key']) && ! empty($this->config['store_id']);
     }
 
     public function createCheckoutSession(TenantSubscription $subscription): array
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             throw new \Exception('Lemon Squeezy no está configurado correctamente');
         }
 

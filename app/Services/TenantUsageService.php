@@ -6,15 +6,16 @@ use App\Models\Tenant;
 use App\Models\TenantUsage;
 use App\Models\UsageMetricsLog;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
-use Carbon\Carbon;
 
 class TenantUsageService
 {
     private const CACHE_TTL = 3600; // 1 hour
+
     private const COUNTER_TTL = 86400 * 32; // 32 days (covers current + next month)
+
     private const CACHE_PREFIX = 'tenant_usage:';
+
     private const COUNTER_PREFIX = 'usage_counter:';
 
     /**
@@ -22,7 +23,7 @@ class TenantUsageService
      */
     public function getCurrentUsage(int $tenantId, bool $refresh = false): TenantUsage
     {
-        $cacheKey = self::CACHE_PREFIX . "current:{$tenantId}";
+        $cacheKey = self::CACHE_PREFIX."current:{$tenantId}";
 
         if ($refresh) {
             Cache::forget($cacheKey);
@@ -55,7 +56,7 @@ class TenantUsageService
             // Queue the database update for async processing with tenant context
             Queue::push(function () use ($tenantId, $metricType, $value, $source, $entityType, $entityId, $metadata) {
                 // Set tenant context for queued job
-                tenancy()->initialize(\App\Models\Tenant::find($tenantId));
+                tenancy()->initialize(Tenant::find($tenantId));
                 $this->processUsageIncrement($tenantId, $metricType, $value, $source, $entityType, $entityId, $metadata);
             });
         }
@@ -64,7 +65,7 @@ class TenantUsageService
         try {
             UsageMetricsLog::create([
                 'tenant_id' => $tenantId,
-                'metric_type' => $metricType . '_created',
+                'metric_type' => $metricType.'_created',
                 'entity_type' => $entityType,
                 'entity_id' => $entityId,
                 'value' => $value,
@@ -87,7 +88,7 @@ class TenantUsageService
         Cache::increment($key, $value);
 
         // Set expiry if this is a new key
-        if (!Cache::has($key)) {
+        if (! Cache::has($key)) {
             Cache::put($key, $value, self::COUNTER_TTL);
         }
     }
@@ -98,6 +99,7 @@ class TenantUsageService
     public function getRedisCounter(int $tenantId, string $metricType): int
     {
         $key = $this->getCounterKey($tenantId, $metricType);
+
         return (int) Cache::get($key, 0);
     }
 
@@ -133,7 +135,7 @@ class TenantUsageService
 
             // Debug: log what we're trying to increment
             if (app()->environment('local', 'testing')) {
-                logger()->debug("Processing usage increment", [
+                logger()->debug('Processing usage increment', [
                     'tenant_id' => $tenantId,
                     'metric_type' => $metricType,
                     'value' => $value,
@@ -201,7 +203,7 @@ class TenantUsageService
             ->forPeriod($year, $month)
             ->first();
 
-        if (!$usage) {
+        if (! $usage) {
             $usage = TenantUsage::create([
                 'tenant_id' => $tenantId,
                 'year' => $year,
@@ -247,12 +249,12 @@ class TenantUsageService
      */
     public function canPerformAction(int $tenantId, string $action): bool
     {
-        $cacheKey = self::CACHE_PREFIX . "can:{$tenantId}:{$action}";
+        $cacheKey = self::CACHE_PREFIX."can:{$tenantId}:{$action}";
 
         return Cache::remember($cacheKey, 300, function () use ($tenantId, $action) { // 5 minutes cache
             $usage = $this->getCurrentUsage($tenantId);
 
-            return match($action) {
+            return match ($action) {
                 'create_product' => $usage->canCreateProduct(),
                 'create_user' => $usage->canCreateUser(),
                 'make_sale' => $usage->canMakeSale(), // Always true
@@ -367,8 +369,8 @@ class TenantUsageService
     public function clearCache(int $tenantId): void
     {
         $patterns = [
-            self::CACHE_PREFIX . "current:{$tenantId}",
-            self::CACHE_PREFIX . "can:{$tenantId}:*",
+            self::CACHE_PREFIX."current:{$tenantId}",
+            self::CACHE_PREFIX."can:{$tenantId}:*",
         ];
 
         foreach ($patterns as $pattern) {
@@ -394,7 +396,7 @@ class TenantUsageService
      */
     private function getCounterKey(int $tenantId, string $metricType): string
     {
-        return self::COUNTER_PREFIX . "{$tenantId}:{$metricType}:" . now()->format('Y-m');
+        return self::COUNTER_PREFIX."{$tenantId}:{$metricType}:".now()->format('Y-m');
     }
 
     /**

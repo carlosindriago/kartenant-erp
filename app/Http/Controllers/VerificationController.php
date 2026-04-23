@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -13,17 +13,16 @@ namespace App\Http\Controllers;
 
 use App\Services\DocumentHashService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class VerificationController extends Controller
 {
     protected DocumentHashService $hashService;
-    
+
     public function __construct(DocumentHashService $hashService)
     {
         $this->hashService = $hashService;
     }
-    
+
     /**
      * Muestra el formulario de verificación
      */
@@ -31,28 +30,28 @@ class VerificationController extends Controller
     {
         return view('verification.index');
     }
-    
+
     /**
      * Verifica un documento por hash (URL directa o escaneo QR)
      */
     public function verify(string $hash)
     {
         // Validar formato de hash
-        if (!preg_match('/^[a-f0-9]{64}$/', $hash)) {
+        if (! preg_match('/^[a-f0-9]{64}$/', $hash)) {
             return view('verification.result', [
                 'result' => 'invalid_format',
                 'message' => 'El código de verificación no tiene un formato válido.',
                 'hash' => $hash,
             ]);
         }
-        
+
         // Verificar el documento
         $verification = $this->hashService->verifyHash(
             $hash,
             request()->ip(),
             request()->userAgent()
         );
-        
+
         // Si no se encontró
         if ($verification['result'] === 'not_found') {
             return view('verification.result', [
@@ -61,10 +60,10 @@ class VerificationController extends Controller
                 'hash' => $hash,
             ]);
         }
-        
+
         // Documento encontrado - mostrar información
         $documentVerification = $verification['verification'];
-        
+
         return view('verification.result', [
             'result' => $verification['result'],
             'message' => $verification['message'],
@@ -74,7 +73,7 @@ class VerificationController extends Controller
             'document_type' => $this->getDocumentTypeLabel($documentVerification->document_type),
         ]);
     }
-    
+
     /**
      * API endpoint para verificación programática
      */
@@ -83,13 +82,13 @@ class VerificationController extends Controller
         $request->validate([
             'hash' => 'required|string|size:64|regex:/^[a-f0-9]{64}$/',
         ]);
-        
+
         $verification = $this->hashService->verifyHash(
             $request->hash,
             $request->ip(),
             $request->userAgent()
         );
-        
+
         if ($verification['result'] === 'not_found') {
             return response()->json([
                 'valid' => false,
@@ -97,9 +96,9 @@ class VerificationController extends Controller
                 'message' => $verification['message'],
             ], 404);
         }
-        
+
         $doc = $verification['verification'];
-        
+
         return response()->json([
             'valid' => $verification['result'] === 'valid',
             'result' => $verification['result'],
@@ -114,7 +113,7 @@ class VerificationController extends Controller
             ],
         ]);
     }
-    
+
     /**
      * Obtiene etiqueta legible del tipo de documento
      */
@@ -128,7 +127,7 @@ class VerificationController extends Controller
             'invoice' => 'Factura',
             'receipt' => 'Recibo',
         ];
-        
+
         return $labels[$type] ?? ucfirst(str_replace('_', ' ', $type));
     }
 }

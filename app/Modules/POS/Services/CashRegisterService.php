@@ -2,16 +2,18 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Modules\POS\Services;
 
+use App\Models\User;
 use App\Modules\POS\Models\CashRegister;
+use App\Notifications\CashRegisterForcedClosureNotification;
 use Illuminate\Support\Facades\DB;
 
 class CashRegisterService
@@ -22,16 +24,16 @@ class CashRegisterService
     public function openRegister(float $initialAmount, ?string $notes = null): CashRegister
     {
         $user = auth('tenant')->user() ?? auth('web')->user();
-        
+
         // Verificar que EL USUARIO no tenga ya una caja abierta
         if (CashRegister::userHasOpenRegister($user->id)) {
             throw new \Exception('Ya tienes una caja abierta. Debes cerrarla antes de abrir una nueva.');
         }
-        
+
         DB::beginTransaction();
-        
+
         try {
-            
+
             $cashRegister = CashRegister::create([
                 'opened_at' => now(),
                 'opened_by_user_id' => $user->id,
@@ -39,7 +41,7 @@ class CashRegisterService
                 'status' => 'open',
                 'opening_notes' => $notes,
             ]);
-            
+
             // Auditoría
             activity()
                 ->causedBy($user)
@@ -52,17 +54,17 @@ class CashRegisterService
                     'notes' => $notes,
                 ])
                 ->log('💵 Apertura de Caja');
-            
+
             DB::commit();
-            
+
             return $cashRegister;
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;
         }
     }
-    
+
     /**
      * Cierra una caja con arqueo
      */
@@ -75,19 +77,19 @@ class CashRegisterService
         if ($cashRegister->isClosed()) {
             throw new \Exception('Esta caja ya está cerrada.');
         }
-        
+
         DB::beginTransaction();
-        
+
         try {
             $user = auth('tenant')->user() ?? auth('web')->user();
-            
+
             // Calcular monto esperado
             $expectedAmount = $cashRegister->calculateExpectedAmount();
             $difference = $actualAmount - $expectedAmount;
-            
+
             // Obtener resumen de ventas
             $salesSummary = $cashRegister->getSalesSummary();
-            
+
             // Actualizar caja
             $cashRegister->update([
                 'closed_at' => now(),
@@ -99,10 +101,10 @@ class CashRegisterService
                 'status' => 'closed',
                 'closing_notes' => $notes,
             ]);
-            
+
             // Generar hash de seguridad único e inmutable para el reporte
             $cashRegister->ensureVerificationHash();
-            
+
             // Auditoría detallada
             activity()
                 ->causedBy($user)
@@ -121,17 +123,17 @@ class CashRegisterService
                     'notes' => $notes,
                 ])
                 ->log('🔒 Cierre de Caja');
-            
+
             DB::commit();
-            
+
             return $cashRegister->fresh();
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;
         }
     }
-    
+
     /**
      * Obtiene el reporte de ingresos del día
      */
@@ -141,13 +143,13 @@ class CashRegisterService
         if ($cashRegister->isClosed()) {
             $cashRegister->ensureVerificationHash();
         }
-        
+
         $salesSummary = $cashRegister->getSalesSummary();
-        
+
         // Calcular el total esperado en efectivo (inicial + ventas completadas en efectivo)
         // NOTA: NO se restan las ventas canceladas porque el dinero ya fue devuelto al cliente
         $expectedCashTotal = $cashRegister->initial_amount + $salesSummary['cash_sales'];
-        
+
         return [
             'register_info' => [
                 'register_number' => $cashRegister->register_number,
@@ -184,16 +186,15 @@ class CashRegisterService
             ],
         ];
     }
-    
+
     /**
      * Cierre forzado de caja por administrador
-     * 
-     * @param CashRegister $cashRegister Caja a cerrar
-     * @param float $actualAmount Monto contado
-     * @param string $reason Motivo del cierre forzado
-     * @param int $forcedByUserId Usuario administrador que fuerza el cierre
-     * @param array|null $cashBreakdown Desglose de efectivo (opcional)
-     * @return CashRegister
+     *
+     * @param  CashRegister  $cashRegister  Caja a cerrar
+     * @param  float  $actualAmount  Monto contado
+     * @param  string  $reason  Motivo del cierre forzado
+     * @param  int  $forcedByUserId  Usuario administrador que fuerza el cierre
+     * @param  array|null  $cashBreakdown  Desglose de efectivo (opcional)
      */
     public function forceClosureByAdmin(
         CashRegister $cashRegister,
@@ -205,7 +206,7 @@ class CashRegisterService
         if ($cashRegister->isClosed()) {
             throw new \Exception('Esta caja ya está cerrada.');
         }
-        
+
         return DB::transaction(function () use (
             $cashRegister,
             $actualAmount,
@@ -213,15 +214,15 @@ class CashRegisterService
             $forcedByUserId,
             $cashBreakdown
         ) {
-            $forcedByUser = \App\Models\User::find($forcedByUserId);
-            
+            $forcedByUser = User::find($forcedByUserId);
+
             // Calcular monto esperado
             $expectedAmount = $cashRegister->calculateExpectedAmount();
             $difference = $actualAmount - $expectedAmount;
-            
+
             // Obtener el usuario dueño de la caja
-            $cashierUser = \App\Models\User::find($cashRegister->opened_by_user_id);
-            
+            $cashierUser = User::find($cashRegister->opened_by_user_id);
+
             // Actualizar caja con información de cierre forzado
             $cashRegister->update([
                 'closed_at' => now(),
@@ -236,7 +237,7 @@ class CashRegisterService
                 'forced_by_user_id' => $forcedByUserId,
                 'forced_reason' => $reason,
             ]);
-            
+
             // Log de actividad detallado
             activity()
                 ->causedBy($forcedByUser)
@@ -254,12 +255,12 @@ class CashRegisterService
                     'forced_at' => now()->format('Y-m-d H:i:s'),
                 ])
                 ->log('⚠️ Cierre Forzado de Caja por Administrador');
-            
+
             // Enviar notificación al cajero afectado
             if ($cashierUser) {
                 try {
                     // Intentar enviar notificación (requiere tabla notifications en tenant DB)
-                    $cashierUser->notify(new \App\Notifications\CashRegisterForcedClosureNotification(
+                    $cashierUser->notify(new CashRegisterForcedClosureNotification(
                         $cashRegister,
                         $reason,
                         $forcedByUser->name
@@ -273,22 +274,22 @@ class CashRegisterService
                     ]);
                 }
             }
-            
+
             return $cashRegister->fresh();
         });
     }
-    
+
     /**
      * Valida si se puede realizar una venta (debe haber caja abierta)
      */
     public function validateRegisterForSale(): CashRegister
     {
         $currentRegister = CashRegister::getCurrentOpen();
-        
-        if (!$currentRegister) {
+
+        if (! $currentRegister) {
             throw new \Exception('Debe abrir una caja antes de realizar ventas.');
         }
-        
+
         return $currentRegister;
     }
 }

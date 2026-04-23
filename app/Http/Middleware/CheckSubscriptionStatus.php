@@ -2,9 +2,9 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
@@ -14,9 +14,10 @@ namespace App\Http\Middleware;
 use App\Models\Tenant;
 use App\Services\SubscriptionLimitService;
 use Closure;
+use Filament\Notifications\Actions\Action;
+use Filament\Notifications\Notification;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Filament\Notifications\Notification;
 
 class CheckSubscriptionStatus
 {
@@ -37,7 +38,7 @@ class CheckSubscriptionStatus
         $tenant = Tenant::current();
 
         // Skip if not in tenant context
-        if (!$tenant) {
+        if (! $tenant) {
             return $next($request);
         }
 
@@ -86,10 +87,10 @@ class CheckSubscriptionStatus
             if ($daysRemaining !== null && abs($daysRemaining) <= 3) {
                 Notification::make()
                     ->title('Período de Prueba por Vencer')
-                    ->body("Tu período de prueba vence en " . abs($daysRemaining) . " día(s). Actualiza tu método de pago para continuar sin interrupciones.")
+                    ->body('Tu período de prueba vence en '.abs($daysRemaining).' día(s). Actualiza tu método de pago para continuar sin interrupciones.')
                     ->warning()
                     ->actions([
-                        \Filament\Notifications\Actions\Action::make('upgrade')
+                        Action::make('upgrade')
                             ->label('Actualizar Plan')
                             ->url(route('filament.app.pages.upgrade-plan', ['tenant' => $tenant]))
                             ->markAsRead(),
@@ -99,7 +100,7 @@ class CheckSubscriptionStatus
         }
 
         // Warn if subscription is expiring soon (last 7 days)
-        if ($limitService->hasActiveSubscription() && !$limitService->isOnTrial()) {
+        if ($limitService->hasActiveSubscription() && ! $limitService->isOnTrial()) {
             $daysUntilExpiration = $limitService->getAllLimitsStatus()['subscription']['days_until_expiration'];
 
             if ($daysUntilExpiration !== null && $daysUntilExpiration <= 7 && $daysUntilExpiration > 0) {

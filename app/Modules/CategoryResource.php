@@ -2,42 +2,39 @@
 
 /**
  * Kartenant - Ferretero Ágil
- * 
+ *
  * Este archivo es parte de Kartenant.
- * 
+ *
  * @copyright Copyright (c) 2025-2026 Kartenant
  * @license   GNU AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.txt>
  */
 
 namespace App\Modules;
 
-use App\Modules\CategoryResource\Pages;
-use App\Modules\CategoryResource\RelationManagers;
 use App\Models\Category;
+use App\Modules\CategoryResource\Pages;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
-    
+
     protected static ?string $navigationLabel = 'Categorías';
-    
+
     protected static ?string $modelLabel = 'Categoría';
-    
+
     protected static ?string $pluralModelLabel = 'Categorías';
-    
+
     protected static ?string $navigationGroup = 'Configuración';
-    
+
     protected static ?int $navigationSort = 2;
-    
+
     // Categories are tenant-specific but don't have user ownership
     // Disable Filament's tenant scoping to avoid ownership relationship checks
     protected static bool $isScopedToTenant = false;

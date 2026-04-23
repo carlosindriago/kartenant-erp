@@ -2,9 +2,16 @@
 
 namespace App\Filament\Actions;
 
+use App\Models\BackupLog;
+use App\Models\Tenant;
+use App\Services\TenantBackupService;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DividerAction;
+use Illuminate\Support\Facades\Hash;
 
 trait HasStandardActionGroup
 {
@@ -30,6 +37,7 @@ trait HasStandardActionGroup
                     if (method_exists($this, 'getDashboardUrl')) {
                         return $this->getDashboardUrl();
                     }
+
                     return null;
                 })
                 ->openUrlInNewTab()
@@ -287,42 +295,42 @@ trait HasStandardActionGroup
                 ->requiresConfirmation()
                 ->modalHeading('🔄 Restaurar Tenant Archivado')
                 ->modalDescription(function ($record) {
-                    return "**¿Estás seguro de restaurar la tienda '{$record->name}'?**\n\n" .
-                           "Esta acción:\n" .
-                           "• Reactivará el tenant y todos sus datos\n" .
-                           "• Restaurará el acceso para los usuarios\n" .
-                           "• Requerirá verificación de seguridad\n" .
-                           "• Generará un backup previo a la restauración";
+                    return "**¿Estás seguro de restaurar la tienda '{$record->name}'?**\n\n".
+                           "Esta acción:\n".
+                           "• Reactivará el tenant y todos sus datos\n".
+                           "• Restaurará el acceso para los usuarios\n".
+                           "• Requerirá verificación de seguridad\n".
+                           '• Generará un backup previo a la restauración';
                 })
                 ->modalSubmitActionLabel('Restaurar Tenant')
                 ->form([
-                    \Filament\Forms\Components\Textarea::make('restore_reason')
+                    Textarea::make('restore_reason')
                         ->label('Motivo de la Restauración')
                         ->required()
                         ->rows(3)
                         ->placeholder('Describe por qué estás restaurando este tenant...')
                         ->helperText('Esta información quedará registrada en la auditoría.'),
 
-                    \Filament\Forms\Components\TextInput::make('admin_password')
+                    TextInput::make('admin_password')
                         ->label('Contraseña de Administrador')
                         ->required()
                         ->password()
                         ->revealable()
                         ->helperText('Confirma tu identidad para realizar esta acción crítica.'),
 
-                    \Filament\Forms\Components\TextInput::make('confirm_tenant_name')
+                    TextInput::make('confirm_tenant_name')
                         ->label('Confirmar Nombre de la Tienda')
                         ->required()
                         ->placeholder(function ($record) {
-                            return "Escribe exactamente: " . $record->name;
+                            return 'Escribe exactamente: '.$record->name;
                         })
                         ->helperText('Escribe el nombre exacto de la tienda para confirmar.'),
 
-                    \Filament\Forms\Components\Checkbox::make('understand_consequences')
+                    Checkbox::make('understand_consequences')
                         ->label('Entiendo las consecuencias de restaurar este tenant.')
                         ->required(),
 
-                    \Filament\Forms\Components\Checkbox::make('backup_before_restore')
+                    Checkbox::make('backup_before_restore')
                         ->label('Crear backup antes de restaurar (recomendado)')
                         ->default(true),
                 ])
@@ -396,37 +404,37 @@ trait HasStandardActionGroup
                 ->requiresConfirmation()
                 ->modalHeading('⚠️ ELIMINAR PERMANENTEMENTE')
                 ->modalDescription(function ($record) {
-                    return "**ADVERTENCIA: Esta acción es IRREVERSIBLE**\n\n" .
-                           "Eliminar permanentemente el tenant '{$record->name}' significa:\n\n" .
-                           "• Todos los datos serán borrados para siempre\n" .
-                           "• No se podrá recuperar ninguna información\n" .
-                           "• Los backups podrían ser eliminados también\n" .
-                           "• Esta acción no puede deshacerse bajo ninguna circunstancia";
+                    return "**ADVERTENCIA: Esta acción es IRREVERSIBLE**\n\n".
+                           "Eliminar permanentemente el tenant '{$record->name}' significa:\n\n".
+                           "• Todos los datos serán borrados para siempre\n".
+                           "• No se podrá recuperar ninguna información\n".
+                           "• Los backups podrían ser eliminados también\n".
+                           '• Esta acción no puede deshacerse bajo ninguna circunstancia';
                 })
                 ->modalSubmitActionLabel('Entiendo, Eliminar Permanentemente')
                 ->form([
-                    \Filament\Forms\Components\Textarea::make('delete_reason')
+                    Textarea::make('delete_reason')
                         ->label('Motivo de la Eliminación')
                         ->required()
                         ->rows(3)
                         ->placeholder('Describe exhaustivamente el motivo de esta eliminación...'),
 
-                    \Filament\Forms\Components\TextInput::make('admin_password')
+                    TextInput::make('admin_password')
                         ->label('Contraseña de Administrador')
                         ->required()
                         ->password()
                         ->revealable(),
 
-                    \Filament\Forms\Components\TextInput::make('confirm_delete_keyword')
+                    TextInput::make('confirm_delete_keyword')
                         ->label('Palabra Clave de Confirmación')
                         ->required()
                         ->placeholder('Escribe: DELETE_PERMANENTLY'),
 
-                    \Filament\Forms\Components\Checkbox::make('understand_permanent')
+                    Checkbox::make('understand_permanent')
                         ->label('Entiendo que esta acción es PERMANENTE e IRREVERSIBLE.')
                         ->required(),
 
-                    \Filament\Forms\Components\Checkbox::make('legal_compliance')
+                    Checkbox::make('legal_compliance')
                         ->label('Confirmo cumplir con todas las obligaciones legales de retención de datos.')
                         ->required(),
                 ])
@@ -443,7 +451,7 @@ trait HasStandardActionGroup
     protected static function hasBackupAvailable($record): bool
     {
         try {
-            return \App\Models\BackupLog::where('tenant_id', $record->id)
+            return BackupLog::where('tenant_id', $record->id)
                 ->where('status', 'completed')
                 ->exists();
         } catch (\Exception $e) {
@@ -457,30 +465,32 @@ trait HasStandardActionGroup
     protected static function downloadLatestBackup($record): void
     {
         try {
-            $latestBackup = \App\Models\BackupLog::where('tenant_id', $record->id)
+            $latestBackup = BackupLog::where('tenant_id', $record->id)
                 ->where('status', 'completed')
                 ->latest('created_at')
                 ->first();
 
-            if (!$latestBackup || !$latestBackup->file_path) {
+            if (! $latestBackup || ! $latestBackup->file_path) {
                 Notification::make()
                     ->title('❌ Backup No Disponible')
                     ->body('No hay backups disponibles para este tenant.')
                     ->danger()
                     ->send();
+
                 return;
             }
 
-            if (!Storage::exists($latestBackup->file_path)) {
+            if (! Storage::exists($latestBackup->file_path)) {
                 Notification::make()
                     ->title('❌ Archivo No Encontrado')
                     ->body('El archivo de backup no existe en el almacenamiento.')
                     ->danger()
                     ->send();
+
                 return;
             }
 
-            return Storage::download($latestBackup->file_path, "backup_{$record->database}_" . date('Y-m-d_H-i-s') . ".sql.gz");
+            return Storage::download($latestBackup->file_path, "backup_{$record->database}_".date('Y-m-d_H-i-s').'.sql.gz');
 
         } catch (\Exception $e) {
             Notification::make()
@@ -500,12 +510,13 @@ trait HasStandardActionGroup
             $admin = auth('superadmin')->user();
 
             // Validate admin password
-            if (!\Illuminate\Support\Facades\Hash::check($data['admin_password'], $admin->password)) {
+            if (! Hash::check($data['admin_password'], $admin->password)) {
                 Notification::make()
                     ->title('Error de Autenticación')
                     ->body('La contraseña de administrador es incorrecta.')
                     ->danger()
                     ->send();
+
                 return;
             }
 
@@ -516,25 +527,26 @@ trait HasStandardActionGroup
                     ->body('El nombre de la tienda no coincide. Restauración cancelada.')
                     ->danger()
                     ->send();
+
                 return;
             }
 
             // Create backup before restore if requested
             if ($data['backup_before_restore']) {
-                $backupService = app(\App\Services\TenantBackupService::class);
+                $backupService = app(TenantBackupService::class);
                 $backupResult = $backupService->backupDatabase(
                     $record->database,
                     $record->id,
                     'pre_restore'
                 );
 
-                if (!$backupResult['success']) {
+                if (! $backupResult['success']) {
                     throw new \Exception('No se pudo crear el backup previo a la restauración.');
                 }
             }
 
             // Restore the tenant
-            $record->status = \App\Models\Tenant::STATUS_ACTIVE;
+            $record->status = Tenant::STATUS_ACTIVE;
             $record->restore();
 
             // Log the restoration
@@ -584,7 +596,7 @@ trait HasStandardActionGroup
     protected static function handleBackupAction($record, string $type = 'manual'): void
     {
         try {
-            $backupService = app(\App\Services\TenantBackupService::class);
+            $backupService = app(TenantBackupService::class);
 
             Notification::make()
                 ->title('Iniciando Backup')
@@ -597,7 +609,7 @@ trait HasStandardActionGroup
             if ($result['success']) {
                 Notification::make()
                     ->title('✅ Backup Creado Exitosamente')
-                    ->body("Backup completado: " . round($result['file_size'] / 1024 / 1024, 2) . " MB")
+                    ->body('Backup completado: '.round($result['file_size'] / 1024 / 1024, 2).' MB')
                     ->success()
                     ->duration(10000)
                     ->send();
@@ -652,12 +664,13 @@ trait HasStandardActionGroup
             $admin = auth('superadmin')->user();
 
             // Validate admin password
-            if (!\Illuminate\Support\Facades\Hash::check($data['admin_password'], $admin->password)) {
+            if (! Hash::check($data['admin_password'], $admin->password)) {
                 Notification::make()
                     ->title('Error de Autenticación')
                     ->body('La contraseña de administrador es incorrecta.')
                     ->danger()
                     ->send();
+
                 return;
             }
 
@@ -668,6 +681,7 @@ trait HasStandardActionGroup
                     ->body('La palabra clave es incorrecta. Eliminación cancelada.')
                     ->danger()
                     ->send();
+
                 return;
             }
 

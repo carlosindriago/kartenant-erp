@@ -24,7 +24,7 @@ return new class extends Migration
             $table->timestamp('expires_at')->nullable()->comment('Expiración opcional');
             $table->boolean('is_valid')->default(true)->comment('Puede invalidarse manualmente');
             $table->timestamps();
-            
+
             // Índices para búsquedas rápidas
             $table->index('hash', 'idx_hash');
             $table->index('document_type', 'idx_document_type');

@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\PaymentSettings;
-use App\Models\PaymentProof;
-use App\Models\TenantSubscription;
 use App\Models\Invoice;
+use App\Models\PaymentProof;
+use App\Models\PaymentSettings;
 use App\Services\PaymentProofService;
 use App\Services\SubscriptionService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class BillingController extends Controller
 {
@@ -90,7 +89,7 @@ class BillingController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', 'Error al subir el comprobante: ' . $e->getMessage());
+                ->with('error', 'Error al subir el comprobante: '.$e->getMessage());
         }
     }
 

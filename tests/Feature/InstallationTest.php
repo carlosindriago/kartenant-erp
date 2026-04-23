@@ -2,14 +2,13 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Cache;
-use App\Models\User;
 use App\Jobs\InstallationJob;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Queue;
+use Tests\TestCase;
 
 class InstallationTest extends TestCase
 {
@@ -18,7 +17,7 @@ class InstallationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Clean up any existing installation
         if (File::exists(base_path('.installed'))) {
             File::delete(base_path('.installed'));
@@ -79,17 +78,17 @@ class InstallationTest extends TestCase
             'db_database' => env('DB_DATABASE', 'testing'),
             'db_username' => env('DB_USERNAME', 'sail'),
             'db_password' => env('DB_PASSWORD', 'password'),
-            
+
             // Admin config
             'admin_name' => 'Test Admin',
             'admin_email' => 'admin@test.com',
             'admin_password' => 'testpassword123',
-            
+
             // App config
             'app_name' => 'Test Kartenant',
             'app_url' => 'http://localhost',
             'app_timezone' => 'America/Lima',
-            
+
             // Mail config (optional)
             'mail_host' => null,
             'mail_port' => null,
@@ -167,8 +166,8 @@ class InstallationTest extends TestCase
             'error_details' => [
                 'file',
                 'line',
-                'trace'
-            ]
+                'trace',
+            ],
         ]);
     }
 
@@ -178,7 +177,7 @@ class InstallationTest extends TestCase
         // Create installation lock file
         File::put(base_path('.installed'), json_encode([
             'installed_at' => now()->toISOString(),
-            'version' => '1.0.0'
+            'version' => '1.0.0',
         ]));
 
         $response = $this->get('/install');
@@ -191,7 +190,7 @@ class InstallationTest extends TestCase
         // Create a superadmin user
         User::factory()->create([
             'is_super_admin' => true,
-            'email' => 'existing@admin.com'
+            'email' => 'existing@admin.com',
         ]);
 
         $response = $this->get('/install');
@@ -205,7 +204,7 @@ class InstallationTest extends TestCase
     {
         // Ensure no superadmin exists to bypass middleware
         User::where('is_super_admin', true)->delete();
-        
+
         $response = $this->post('/install/process', []);
 
         // Installation controller returns JSON errors, not session errors
@@ -220,7 +219,7 @@ class InstallationTest extends TestCase
         if (File::exists(base_path('.installed'))) {
             File::delete(base_path('.installed'));
         }
-        
+
         parent::tearDown();
     }
 
@@ -232,7 +231,7 @@ class InstallationTest extends TestCase
         Cache::put("installation_progress_{$jobId}", [
             'step' => 'database',
             'message' => 'Conectando a la base de datos...',
-            'completed' => false
+            'completed' => false,
         ], 300);
 
         $response = $this->get("/install/progress?job_id={$jobId}");
@@ -241,7 +240,7 @@ class InstallationTest extends TestCase
         $response->assertJson([
             'step' => 'database',
             'message' => 'Conectando a la base de datos...',
-            'completed' => false
+            'completed' => false,
         ]);
     }
 
@@ -254,7 +253,7 @@ class InstallationTest extends TestCase
         $response->assertJson([
             'step' => 'unknown',
             'message' => 'Estado de instalación no encontrado',
-            'completed' => false
+            'completed' => false,
         ]);
     }
 
@@ -267,7 +266,7 @@ class InstallationTest extends TestCase
         $response->assertJson([
             'step' => 'unknown',
             'message' => 'ID de trabajo no proporcionado',
-            'completed' => false
+            'completed' => false,
         ]);
     }
 
@@ -295,7 +294,7 @@ class InstallationTest extends TestCase
 
         // Simulate job execution by manually creating an InstallationJob and calling handle
         $job = new InstallationJob($installationData, $jobId);
-        
+
         // Mock the job execution to avoid actual installation
         try {
             // This would normally execute the full installation
