@@ -15,11 +15,6 @@ class CreateDatabase extends Command
     {
         $databaseName = $this->argument('name');
 
-        if (! is_string($databaseName)) {
-            $this->error('The name argument must be a string.');
-            return self::FAILURE;
-        }
-
         try {
             // Create the database using the landlord connection
             DB::connection('landlord')->statement("CREATE DATABASE {$databaseName}");
