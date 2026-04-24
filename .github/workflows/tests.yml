@@ -41,6 +41,11 @@ jobs:
     - name: Install Dependencies
       run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       
+    - name: Prepare Directories
+      run: |
+        mkdir -p storage/framework/{sessions,views,cache}
+        chmod -R 777 storage bootstrap/cache
+
     - name: Generate key
       run: php artisan key:generate
       env:
@@ -52,10 +57,7 @@ jobs:
         DB_PASSWORD: password
         CACHE_STORE: array
         SESSION_DRIVER: array
-        
-    - name: Directory Permissions
-      run: chmod -R 777 storage bootstrap/cache
-      
+
     - name: Execute tests (Unit and Feature tests) via PestPHP
       env:
         APP_ENV: testing
