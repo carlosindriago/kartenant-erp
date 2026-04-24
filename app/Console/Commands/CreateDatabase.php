@@ -17,13 +17,15 @@ class CreateDatabase extends Command
 
         try {
             // Create the database using the landlord connection
-            DB::connection('landlord')->statement("CREATE DATABASE {$databaseName}");
+            $databaseNameStr = (string) $databaseName;
+            DB::connection('landlord')->statement("CREATE DATABASE {$databaseNameStr}");
 
-            $this->info("✅ Database '{$databaseName}' created successfully");
+            $this->info("✅ Database '{$databaseNameStr}' created successfully");
 
             return self::SUCCESS;
         } catch (\Exception $e) {
-            $this->error("❌ Failed to create database '{$databaseName}': ".$e->getMessage());
+            $databaseNameStrCatch = (string) $databaseName;
+            $this->error("❌ Failed to create database '{$databaseNameStrCatch}': ".$e->getMessage());
 
             return self::FAILURE;
         }

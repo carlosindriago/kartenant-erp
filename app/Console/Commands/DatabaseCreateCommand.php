@@ -40,10 +40,11 @@ class DatabaseCreateCommand extends Command
             // Esta es la instrucción directa para PostgreSQL para crear una base de datos.
             // Es importante que la conexión por defecto tenga permisos para hacer esto.
             // Con Sail y nuestra configuración, sí los tiene.
-            DB::statement("CREATE DATABASE \"$databaseName\"");
+            $databaseNameStr = (string) $databaseName;
+            DB::statement("CREATE DATABASE \"$databaseNameStr\"");
 
             // Le informamos al artesano que la herramienta funcionó.
-            $this->info("Database '$databaseName' created successfully!");
+            $this->info("Database '$databaseNameStr' created successfully!");
 
         } catch (\Exception $e) {
             // Si algo sale mal (ej: la DB ya existe), atrapamos el error.

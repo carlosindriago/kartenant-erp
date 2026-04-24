@@ -60,11 +60,7 @@ parameters:
 			count: 1
 			path: app/Console/Commands/CreateDatabase.php
 
-		-
-			message: '#^Part \$databaseName \(array\|bool\|float\|int\|string\|null\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 3
-			path: app/Console/Commands/CreateDatabase.php
+
 
 		-
 			message: '#^Method App\\Console\\Commands\\CreateTenantSettingsTable\:\:handle\(\) has no return type specified\.$#'
