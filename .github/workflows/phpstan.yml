@@ -28,6 +28,7 @@ jobs:
     - name: Prepare Directories
       run: |
         mkdir -p storage/framework/{sessions,views,cache}
+        mkdir -p database/settings
         chmod -R 777 storage bootstrap/cache
 
     - name: Generate key
