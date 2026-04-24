@@ -112,7 +112,21 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
-        'landlord' => env('APP_ENV') === 'testing' ? [
+        'landlord' => env('APP_ENV') === 'testing' && env('DB_HOST') !== null && env('DB_HOST') !== 'pgsql' ? [
+            // CI environment: use real PostgreSQL
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '5432'),
+            'database' => env('DB_DATABASE', 'kartenant_testing'),
+            'username' => env('DB_USERNAME', 'sail'),
+            'password' => env('DB_PASSWORD', 'password'),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'search_path' => 'public',
+            'sslmode' => 'prefer',
+        ] : (env('APP_ENV') === 'testing' ? [
+            // Local testing: use SQLite in-memory
             'driver' => 'sqlite',
             'database' => ':memory:',
             'prefix' => '',
@@ -129,7 +143,7 @@ return [
             'prefix' => '',
             'schema' => 'public',
             'sslmode' => 'prefer',
-        ],
+        ]),
 
         'tenant' => config('app.mode') === 'standalone'
             ? [
@@ -149,7 +163,20 @@ return [
                 'search_path' => 'public',
                 'sslmode' => 'prefer',
             ]
-            : (env('APP_ENV') === 'testing' ? [
+            : (env('APP_ENV') === 'testing' && env('DB_HOST') !== null && env('DB_HOST') !== 'pgsql' ? [
+                // CI environment: use real PostgreSQL
+                'driver' => 'pgsql',
+                'host' => env('DB_HOST', '127.0.0.1'),
+                'port' => env('DB_PORT', '5432'),
+                'database' => env('DB_DATABASE', 'kartenant_testing'),
+                'username' => env('DB_USERNAME', 'sail'),
+                'password' => env('DB_PASSWORD', 'password'),
+                'charset' => 'utf8',
+                'prefix' => '',
+                'search_path' => 'public',
+                'sslmode' => 'prefer',
+            ] : (env('APP_ENV') === 'testing' ? [
+                // Local testing: use SQLite in-memory
                 'driver' => 'sqlite',
                 'database' => ':memory:',
                 'prefix' => '',
@@ -168,7 +195,7 @@ return [
                 'prefix' => '',
                 'schema' => 'public',
                 'sslmode' => 'prefer',
-            ]),
+            ])),
     ],
 
     /*

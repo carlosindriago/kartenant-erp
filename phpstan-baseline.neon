@@ -14953,12 +14953,6 @@ parameters:
 			path: app/Services/SubscriptionService.php
 
 		-
-			message: '#^Anonymous function has an unused use \$plan\.$#'
-			identifier: closure.unusedUse
-			count: 1
-			path: app/Services/SubscriptionService.php
-
-		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Invoice\>\:\:unpaid\(\)\.$#'
 			identifier: method.notFound
 			count: 1
