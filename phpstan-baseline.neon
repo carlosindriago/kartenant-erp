@@ -254,11 +254,7 @@ parameters:
 			count: 1
 			path: app/Console/Commands/ManageStoreSettings.php
 
-		-
-			message: '#^Part \$action \(array\|bool\|float\|int\|string\|null\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: app/Console/Commands/ManageStoreSettings.php
+
 
 		-
 			message: '#^Right side of && is always true\.$#'

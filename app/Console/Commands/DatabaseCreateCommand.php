@@ -35,16 +35,20 @@ class DatabaseCreateCommand extends Command
         // Obtenemos el nombre de la base de datos del argumento del comando.
         $databaseName = $this->argument('name');
 
+        if (! is_string($databaseName)) {
+            $this->error('The name argument must be a string.');
+            return self::FAILURE;
+        }
+
         try {
             // Usamos el Facade DB para ejecutar una sentencia SQL en crudo.
             // Esta es la instrucción directa para PostgreSQL para crear una base de datos.
             // Es importante que la conexión por defecto tenga permisos para hacer esto.
             // Con Sail y nuestra configuración, sí los tiene.
-            $databaseNameStr = (string) $databaseName;
-            DB::statement("CREATE DATABASE \"$databaseNameStr\"");
+            DB::statement("CREATE DATABASE \"$databaseName\"");
 
             // Le informamos al artesano que la herramienta funcionó.
-            $this->info("Database '$databaseNameStr' created successfully!");
+            $this->info("Database '$databaseName' created successfully!");
 
         } catch (\Exception $e) {
             // Si algo sale mal (ej: la DB ya existe), atrapamos el error.

@@ -28,6 +28,12 @@ class ManageStoreSettings extends Command
     public function handle(): int
     {
         $action = $this->argument('action');
+
+        if (! is_string($action)) {
+            $this->error('The action argument must be a string.');
+            return 1;
+        }
+
         $tenantId = $this->option('tenant');
         $force = $this->option('force');
 

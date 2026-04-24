@@ -15,17 +15,20 @@ class CreateDatabase extends Command
     {
         $databaseName = $this->argument('name');
 
+        if (! is_string($databaseName)) {
+            $this->error('The name argument must be a string.');
+            return self::FAILURE;
+        }
+
         try {
             // Create the database using the landlord connection
-            $databaseNameStr = (string) $databaseName;
-            DB::connection('landlord')->statement("CREATE DATABASE {$databaseNameStr}");
+            DB::connection('landlord')->statement("CREATE DATABASE {$databaseName}");
 
-            $this->info("✅ Database '{$databaseNameStr}' created successfully");
+            $this->info("✅ Database '{$databaseName}' created successfully");
 
             return self::SUCCESS;
         } catch (\Exception $e) {
-            $databaseNameStrCatch = (string) $databaseName;
-            $this->error("❌ Failed to create database '{$databaseNameStrCatch}': ".$e->getMessage());
+            $this->error("❌ Failed to create database '{$databaseName}': ".$e->getMessage());
 
             return self::FAILURE;
         }
