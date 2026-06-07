@@ -4,7 +4,7 @@
     "type": "project",
     "description": "Kartenant: Open-Core Multi-Tenant ERP",
     "keywords": ["laravel", "erp", "saas", "multi-tenant", "pos"],
-    "license": "MIT",
+    "license": "AGPL-3.0-only",
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
