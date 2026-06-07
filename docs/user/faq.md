@@ -1,6 +1,6 @@
-# ❓ Preguntas Frecuentes - Kartenant
+# ❓ Preguntas Frecuentes — Kartenant ERP
 
-Encuentra respuestas a las preguntas más comunes sobre Kartenant.
+Encuentra respuestas a las preguntas más comunes sobre Kartenant ERP.
 
 ## 📋 Índice
 
@@ -12,40 +12,39 @@ Encuentra respuestas a las preguntas más comunes sobre Kartenant.
 - [Clientes](#clientes)
 - [Reportes](#reportes)
 - [Seguridad](#seguridad)
-- [Facturación y Precios](#facturación-y-precios)
+- [Licencia y Precios](#licencia-y-precios)
 - [Soporte](#soporte)
 
 ---
 
 ## 🤔 General
 
-### ¿Qué es Kartenant?
+### ¿Qué es Kartenant ERP?
 
-Kartenant es un **sistema SaaS completo** para gestión de comercios retail. Reemplaza Excel, cuadernos y sistemas legacy con una solución moderna que incluye:
+Kartenant ERP es una **plataforma SaaS multi-tenant de código abierto** para gestión de comercios retail, ferreterías y PYMEs. Opera bajo un modelo **Open-Core**: el núcleo es libre (AGPL-3.0), y la infraestructura SaaS se ofrece como servicio premium.
 
-- Punto de venta (POS) profesional
-- Gestión de inventario en tiempo real
-- Sistema de clientes con historial
-- Dashboard con métricas inteligentes
-- Verificación de documentos con QR
+Incluye:
+- Punto de venta (POS) profesional con soporte de escáner
+- Gestión de inventario en tiempo real con trazabilidad
+- CRM básico con historial de compras por cliente
+- Dashboard con KPIs en tiempo real
+- Verificación de documentos con SHA-256 y QR
 - Backups automáticos y seguridad avanzada
 
 ### ¿Para qué tipo de negocios está diseñado?
 
 Ideal para:
-- **Ferreterías y comercios pequeños** (1-5 empleados)
-- **Negocios en crecimiento** (5-20 empleados)
-- **Cadenas y franquicias** (multi-sucursal)
-
-**No recomendado para:** Grandes corporaciones con ERPs complejos.
+- **Ferreterías y comercios pequeños** (1–5 empleados)
+- **Negocios en crecimiento** (5–20 empleados)
+- **Cadenas y franquicias** (multi-sucursal, próximamente)
 
 ### ¿Es fácil de usar?
 
-✅ **Sí, extremadamente fácil.** Diseñado con el principio "Ernesto el ferretero" - si Ernesto puede usarlo en 10 minutos sin capacitación, entonces es simple.
+✅ Sí. Diseñado con el principio de que si alguien sin experiencia técnica puede usarlo en minutos sin capacitación, entonces cumple su objetivo.
 
 ### ¿Funciona offline?
 
-Actualmente **requiere conexión a internet**. Versión offline en desarrollo para 2026.
+Actualmente requiere conexión a internet. Modo offline en el roadmap.
 
 ---
 
@@ -54,53 +53,37 @@ Actualmente **requiere conexión a internet**. Versión offline en desarrollo pa
 ### ¿Qué necesito para instalarlo?
 
 **Requisitos mínimos:**
-- PHP 8.2+
-- PostgreSQL 15+
-- 2GB RAM
-- 10GB disco
+- PHP 8.2+, PostgreSQL 15+, Docker (recomendado)
+- 2 GB RAM, 10 GB disco
 
-**Recomendado:**
-- VPS con 4GB RAM
-- SSL configurado
-- Backup automático
+### ¿Puedo instalarlo en mi propio servidor?
 
-### ¿Puedo instalarlo en mi servidor?
+Sí. El repositorio incluye guías completas para instalación self-hosted con Docker (Sail) o instalación nativa.
 
-Sí, completamente. Proporcionamos guías detalladas para instalación en cualquier servidor Linux.
-
-### ¿Ofrecen hosting?
-
-Próximamente ofreceremos hosting gestionado. Por ahora, instalación self-hosted únicamente.
+Ver: [Guía de Instalación](installation.md)
 
 ### ¿Cómo creo el primer usuario administrador?
 
-Ejecuta el comando artisan dedicado:
-
 ```bash
+# Con Docker (Sail)
+./vendor/bin/sail artisan kartenant:make-superadmin
+
+# Sin Docker
 php artisan kartenant:make-superadmin
 ```
 
 Este comando:
-- ✅ Crea un usuario con permisos de Super Admin
-- ✅ Asigna el rol `admin_manager` con todos los permisos
-- ✅ Marca el usuario como `is_superadmin: true`
+- ✅ Crea el superadmin con todos los permisos
 - ✅ Verifica automáticamente el email
 - ✅ Activa el usuario
 
-**Acceso al panel:** `http://tu-dominio.com/admin/login`
-
-**Troubleshooting:**
-- Si el comando no existe, verifica que estés usando la rama correcta
-- Si hay errores de permisos, ejecuta primero: `php artisan db:seed --class=LandlordAdminSeeder`
+Acceso al panel: `http://localhost/admin/login`
 
 ### ¿Cuánto cuesta?
 
-**Planes mensuales:**
-- Básico: $19 (1 sucursal, 500 productos)
-- Profesional: $49 (3 sucursales, productos ilimitados)
-- Empresarial: $149 (sucursales ilimitadas, integraciones)
+El código fuente es **gratuito y de código abierto** (AGPL-3.0). Puedes instalarlo y usarlo libremente en modo standalone.
 
-**Sin costos ocultos:** Precio fijo, sin comisiones por transacción.
+Para la versión SaaS gestionada con infraestructura multi-tenant, backups automáticos y soporte, ver el modelo de precios en [PRICING_STRUCTURE.md](../PRICING_STRUCTURE.md).
 
 ---
 
@@ -108,26 +91,21 @@ Este comando:
 
 ### ¿Cómo accedo al sistema?
 
-1. Recibes email con credenciales temporales
-2. Accedes a `https://tu-tienda.kartenant.test/app`
-3. Verificación 2FA por email
-4. Cambio obligatorio de contraseña
-5. ¡Listo para usar!
+- **Modo standalone / desarrollo:** `http://localhost/admin/login`
+- **Modo SaaS (tenant):** `https://tu-tienda.tu-dominio.com/app`
 
 ### ¿Puedo usar en móvil/tablet?
 
-✅ **Sí, optimizado para tablets.** El POS funciona perfectamente en tablets Android/iOS con pantalla táctil.
+✅ Sí, optimizado para tablets. El POS funciona en tablets Android/iOS con pantalla táctil.
 
 ### ¿Cuántos usuarios puedo crear?
 
-Depende del plan:
-- **Básico:** 2 usuarios
-- **Profesional:** 10 usuarios
-- **Empresarial:** Usuarios ilimitados
+En modo standalone: sin límite técnico, según tu plan de hosting.
+En modo SaaS: según el plan contratado (ver [PRICING_STRUCTURE.md](../PRICING_STRUCTURE.md)).
 
 ### ¿Puedo personalizar colores y logo?
 
-✅ **Sí, completamente.** Sube tu logo y elige colores corporativos. Se aplica en POS, tickets y reportes.
+✅ Sí. Sube tu logo y elige colores corporativos desde **Configuración → Branding**. Se aplica en POS, tickets y PDFs.
 
 ---
 
@@ -135,47 +113,34 @@ Depende del plan:
 
 ### ¿Cómo funciona el POS?
 
-**Flujo típico:**
-1. Busca producto (nombre, SKU, código de barras)
-2. Agrega al carrito
-3. Procesa pago (F12)
-4. Selecciona método (efectivo/tarjeta)
-5. Confirma (Enter)
+**Flujo típico de una venta:**
+1. Busca producto (nombre, SKU o código de barras)
+2. Agrega al carrito con clic o Enter
+3. Presiona F12 para procesar pago
+4. Selecciona método de pago (efectivo / tarjeta)
+5. Confirma — ticket generado automáticamente
 
-**Tiempo promedio:** 30 segundos por venta.
+**Tiempo promedio:** ~30 segundos por venta.
 
 ### ¿Soporta códigos de barras?
 
-✅ **Sí, completamente.** Compatible con cualquier escáner USB. Detecta automáticamente entrada rápida de teclado.
+✅ Sí. Compatible con cualquier escáner USB. Detecta automáticamente la entrada rápida de teclado del escáner.
 
 ### ¿Puedo hacer descuentos?
 
-✅ **Sí:**
-- Descuentos por línea de producto
-- Descuentos totales
-- Descuentos por cliente frecuente
+✅ Sí: por línea de producto, sobre el total de la venta, y por cliente frecuente.
 
 ### ¿Qué pasa si cometo un error en una venta?
 
-**Dos opciones:**
+**Anulación rápida** (primeros 5 minutos): botón "Anular Venta" + verificación con contraseña → stock se revierte automáticamente.
 
-1. **Anulación rápida** (primeros 5 minutos):
-   - Botón "Anular Venta"
-   - Verificación con contraseña
-   - Stock se devuelve automáticamente
+**Devolución formal** (después de 5 minutos): requiere autorización de supervisor → genera nota de crédito → stock se devuelve tras aprobación.
 
-2. **Devolución formal** (después de 5 minutos):
-   - Requiere autorización de supervisor
-   - Crea nota de crédito
-   - Stock se devuelve después de aprobación
+Ver: [Sistema de Devoluciones y Seguridad](../SISTEMA_DEVOLUCIONES_Y_SEGURIDAD.md)
 
 ### ¿Puedo vender sin stock?
 
-❌ **No.** El sistema valida stock disponible antes de agregar al carrito. Evita ventas de productos agotados.
-
-### ¿Cómo manejo pagos mixtos?
-
-Próximamente. Actualmente un método de pago por venta.
+❌ No. El sistema valida el stock disponible antes de agregar al carrito.
 
 ---
 
@@ -183,34 +148,27 @@ Próximamente. Actualmente un método de pago por venta.
 
 ### ¿Cómo agrego productos?
 
-1. Inventario → Productos → Nuevo
-2. Nombre, código, precio base, categoría, impuesto, stock inicial
-3. Guardar
+**Inventario → Productos → Nuevo** — Completa: nombre, código/SKU, precio base, categoría, impuesto y stock inicial.
 
-**Importante:** El precio que ingresas es el precio BASE. El sistema calcula IVA automáticamente.
+> El precio ingresado es el precio BASE. El sistema calcula el impuesto automáticamente.
 
-### ¿Cómo funciona el cálculo de IVA?
+### ¿Cómo funciona el cálculo de impuestos?
 
 ```
-Precio Base: $1000 (lo que ingresas)
-IVA 21%: $210 (calculado automáticamente)
-Precio Final: $1210 (lo que paga el cliente)
+Precio Base:  $100.00  (lo que ingresas)
+IVA 12%:       $12.00  (calculado automáticamente)
+Precio Final: $112.00  (lo que paga el cliente)
 ```
 
-### ¿Puedo importar productos desde Excel?
-
-Próximamente en plan Profesional. Actualmente carga manual o API.
-
-### ¿Cómo hago inventario físico?
-
-1. Inventario → Movimientos → Registrar Salida
-2. Motivo: "Ajuste de Inventario (Disminución)"
-3. Cantidad: Diferencia encontrada
-4. Se genera comprobante verificable
+El porcentaje de IVA se configura por producto según el país.
 
 ### ¿Alertas de stock bajo?
 
-✅ **Sí, automáticas.** Configurables por producto. Aparecen en dashboard y widgets.
+✅ Sí, automáticas y configurables por producto. Aparecen en el dashboard y en el widget de productos críticos.
+
+### ¿Puedo importar productos desde Excel?
+
+En el roadmap. Actualmente: carga manual o vía API.
 
 ---
 
@@ -218,22 +176,14 @@ Próximamente en plan Profesional. Actualmente carga manual o API.
 
 ### ¿Cómo agrego clientes?
 
-**Tres formas:**
-1. Manual: Clientes → Nuevo Cliente
-2. Desde POS: Durante venta, opción "Cliente"
-3. Automático: Primera venta crea cliente básico
+Tres formas:
+1. **Manual:** Clientes → Nuevo Cliente
+2. **Desde el POS:** opción "Cliente" durante una venta
+3. **Automático:** la primera venta puede crear un cliente básico
 
-### ¿Puedo ver historial de compras?
+### ¿Puedo ver el historial de compras?
 
-✅ **Sí, completo.** Por cliente:
-- Todas las compras
-- Total gastado
-- Productos favoritos
-- Frecuencia de compra
-
-### ¿Se puede dar crédito a clientes?
-
-Próximamente. Actualmente solo contado.
+✅ Sí, completo: todas las compras, total gastado, productos frecuentes y fechas.
 
 ---
 
@@ -241,152 +191,99 @@ Próximamente. Actualmente solo contado.
 
 ### ¿Qué reportes incluye?
 
-**Básico:**
-- Ventas por período
+- Ventas por período, cajero y método de pago
 - Productos más vendidos
-- Top clientes
-- Estado de caja
+- Top clientes por volumen
+- Movimientos y estado de inventario
+- Cierres de caja con verificación QR
 
-**Profesional (próximamente):**
-- Análisis ABC de productos
-- Rentabilidad por producto
-- Rotación de inventario
-- Comparativas mensuales
+Ver detalle completo en [reports-analytics.md](../features/reports-analytics.md).
 
-### ¿Puedo exportar a Excel?
+### ¿Puedo exportar a Excel o PDF?
 
-✅ **Plan Profesional.** Todos los reportes exportables a Excel con formato profesional.
+✅ Sí. Todos los reportes son exportables. Los PDFs de documentos críticos incluyen hash SHA-256 y QR de verificación.
 
 ### ¿Los reportes son en tiempo real?
 
-✅ **Sí.** Dashboard actualiza automáticamente. Reportes históricos disponibles al instante.
+✅ Sí. El dashboard se actualiza automáticamente. Los reportes históricos están disponibles al instante.
 
 ---
 
 ## 🔐 Seguridad
 
-### ¿Es seguro mi datos?
+### ¿Es seguro el sistema?
 
-✅ **Máxima seguridad:**
-- Base de datos encriptada
-- Backups diarios automáticos
-- Verificación de documentos con hash SHA-256
-- Acceso con 2FA obligatorio
+✅ Implementa seguridad en capas:
+- Autenticación con bcrypt + 2FA (TOTP)
+- Roles y permisos granulares
+- Aislamiento de datos por tenant (base de datos separada)
+- Verificación de documentos con SHA-256 y QR
 - Auditoría completa de todas las acciones
+- Backups automáticos diarios
 
-### ¿Qué pasa si pierdo mis datos?
+Ver: [Sistema de Seguridad](../features/security-system.md)
 
-**Triple protección:**
-1. Backups diarios automáticos
-2. Restauración point-in-time
-3. Datos en la nube (georedundante)
+### ¿Puedo verificar la autenticidad de documentos?
 
-### ¿Puedo verificar autenticidad de documentos?
-
-✅ **Sí.** Todos los PDFs incluyen código QR. Escanea y verifica online que no han sido modificados.
+✅ Sí. Todos los PDFs críticos incluyen un código QR. Escanéalo y el sistema confirma si el documento fue alterado o no.
 
 ### ¿Quién puede acceder a mis datos?
 
-**Solo tú y tu equipo.** Arquitectura multi-tenant garantiza aislamiento completo entre empresas.
+Solo tú y tu equipo. La arquitectura Database-per-Tenant garantiza aislamiento completo entre empresas.
 
 ---
 
-## 💰 Facturación y Precios
+## 💰 Licencia y Precios
 
-### ¿Cómo funciona la facturación?
+### ¿Bajo qué licencia está publicado?
 
-**Mensual, automática:**
-- Cargo el día 1 de cada mes
-- Recordatorio 3 días antes
-- Suspensión automática si no paga
-- Reactivación inmediata al pagar
+**AGPL-3.0** (GNU Affero General Public License v3). Puedes usar, estudiar, modificar y distribuir el código libremente. Si lo modificas y ofreces como servicio de red, debes liberar tus modificaciones bajo la misma licencia.
 
-### ¿Puedo cambiar de plan?
+Ver: [LICENSE](../../LICENSE) y [CLA.md](../../CLA.md)
 
-✅ **Sí, en cualquier momento.** Upgrade inmediato, downgrade al final del período.
+### ¿Puedo usarlo para mi negocio sin pagar?
 
-### ¿Hay período de prueba?
+Sí, en modo standalone (self-hosted). El código es libre.
 
-✅ **14 días gratis** para probar todas las funcionalidades.
+### ¿Cuándo hay período de prueba para el SaaS?
 
-### ¿Qué métodos de pago aceptan?
-
-- Tarjeta de crédito/débito
-- Transferencia bancaria
-- MercadoPago (LATAM)
-- PayPal (internacional)
-
-### ¿Puedo cancelar?
-
-✅ **Sí, en cualquier momento.** Sin penalizaciones. Datos disponibles para descarga 30 días.
+Consulta el modelo de precios actualizado en [PRICING_STRUCTURE.md](../PRICING_STRUCTURE.md).
 
 ---
 
 ## 🆘 Soporte
 
-### ¿Qué tipo de soporte ofrecen?
-
-**Básico (incluido):**
-- Email support (24-48h)
-- Centro de ayuda online
-- Comunidad Discord
-
-**Profesional ($49/mes):**
-- WhatsApp directo (4-8h respuesta)
-- Soporte prioritario
-- Capacitación incluida
-
-**Empresarial ($149/mes):**
-- Soporte 24/7
-- Gerente de cuenta dedicado
-- Capacitación presencial
-- SLA garantizado
-
-### ¿Dónde encuentro documentación?
-
-- 📚 **Documentación completa:** [docs.kartenant.com](https://docs.kartenant.com)
-- 🎥 **Videos tutoriales:** [YouTube](https://youtube.com/kartenant)
-- 👥 **Comunidad:** [Discord](https://discord.gg/kartenant)
-
 ### ¿Cómo reporto un bug?
 
-1. Revisa si ya está reportado en [GitHub Issues](https://github.com/kartenant/issues)
-2. Si no, crea nuevo issue con:
-   - Descripción detallada
-   - Pasos para reproducir
-   - Capturas de pantalla
-   - Información del navegador/sistema
+1. Revisa si ya está reportado en [GitHub Issues](https://github.com/carlosindriago/kartenant-erp/issues)
+2. Si no, crea un nuevo issue con:
+   - Descripción detallada del problema
+   - Pasos para reproducirlo
+   - Capturas de pantalla si aplica
+   - Versión del sistema y navegador
 
-### ¿Ofrecen capacitación?
+### ¿Cómo reporto una vulnerabilidad de seguridad?
 
-✅ **Sí:**
-- **Básico:** Videos y guías autoaprendizaje
-- **Profesional:** Sesión de 2 horas por WhatsApp
-- **Empresarial:** Capacitación presencial + material personalizado
+**No abras un Issue público.** Sigue el proceso responsable descrito en [SECURITY.md](../../SECURITY.md).
+
+### ¿Cómo contribuyo al proyecto?
+
+Lee [CONTRIBUTING.md](../../CONTRIBUTING.md) y el [CLA.md](../../CLA.md). Los PRs son bienvenidos.
 
 ---
 
 ## 🚀 Próximas Funcionalidades
 
-### 2025 Q4
+### En desarrollo
 - Integraciones de pago (MercadoPago, Stripe)
-- Facturación electrónica (AFIP, SRI)
-- App móvil básica
-
-### 2026 Q1
-- Multi-sucursal
-- Sistema de empleados y comisiones
-- API completa
-
-### 2026 Q2
-- Inteligencia artificial para predicciones
-- E-commerce integrado
-- App móvil avanzada
+- Facturación electrónica oficial (AFIP, SRI, SUNAT)
+- Sistema multi-sucursal
+- Gestión de empleados y comisiones
+- API REST completa para integraciones externas
+- Import masivo de productos desde Excel
 
 ---
 
 **¿No encontraste tu pregunta?**
 
-📧 **Contáctanos:** soporte@kartenant.com  
-💬 **WhatsApp:** +54 9 11 1234-5678  
-📚 **Documentación completa:** [docs.kartenant.com](https://docs.kartenant.com)
+Abre un [Issue en GitHub](https://github.com/carlosindriago/kartenant-erp/issues) con la etiqueta `question` y te respondemos a la brevedad.
