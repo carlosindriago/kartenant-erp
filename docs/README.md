@@ -2,7 +2,7 @@
 
 Bienvenido a la documentación completa de **Kartenant ERP** — una plataforma SaaS multi-tenant de código abierto para gestión empresarial de PYMEs.
 
-> Esta documentación está en desarrollo continuo. Los documentos marcados con 🚧 aún no están redactados; los marcados con ✅ están disponibles.
+> Los documentos marcados con ✅ están disponibles. Los marcados con 🚧 están en el roadmap de documentación.
 
 ---
 
@@ -14,9 +14,9 @@ Documentación orientada a usuarios finales, administradores y clientes del sist
 | Estado | Documento | Descripción |
 |---|---|---|
 | 🚧 | Guía de Usuario | Uso diario del sistema |
-| 🚧 | [Instalación](user/installation.md) | Setup inicial |
-| 🚧 | Primeros Pasos | Configuración inicial |
-| 🚧 | Preguntas Frecuentes | Dudas comunes |
+| ✅ | [Instalación](user/installation.md) | Setup inicial paso a paso |
+| ✅ | [Primeros Pasos](user/getting-started.md) | Configuración inicial y primera venta |
+| ✅ | [Preguntas Frecuentes](user/faq.md) | Dudas comunes |
 
 > 💡 Para instalación rápida, consulta el [README principal](../README.md#-getting-started).
 
@@ -53,9 +53,9 @@ Documentación detallada de cada módulo del sistema.
 | ✅ | [Permisos y Funcionalidades](features/PERMISOS_Y_FUNCIONALIDADES.md) | Roles y control de acceso |
 | ✅ | [Seguridad Multi-Tenant](features/ENHANCED-TENANT-SECURITY.md) | Aislamiento avanzado entre tenants |
 | ✅ | [Zonas Horarias por Tenant](features/ZONA_HORARIA_TENANTS.md) | Configuración de timezone por tenant |
-| 🚧 | Gestión de Inventario | Control de stock e historial de movimientos |
-| 🚧 | Gestión de Clientes (CRM) | Historial de compras y relaciones |
-| 🚧 | Reportes y Analytics | Dashboards y métricas exportables |
+| ✅ | [Gestión de Inventario](features/inventory-management.md) | Control de stock e historial de movimientos |
+| ✅ | [Gestión de Clientes (CRM)](features/customer-management.md) | Historial de compras y relaciones |
+| ✅ | [Reportes y Analytics](features/reports-analytics.md) | Dashboards y métricas exportables |
 
 ---
 
@@ -64,11 +64,12 @@ Información sobre seguridad, protección de datos y cumplimiento.
 
 | Estado | Documento | Descripción |
 |---|---|---|
+| ✅ | [Sistema de Seguridad](features/security-system.md) | Capas de seguridad, 2FA y auditoría |
+| ✅ | [Autenticación y Autorización](security/authentication.md) | Roles, permisos y control de acceso |
 | ✅ | [Verificación de Documentos PDF](PDF_VERIFICATION_SYSTEM.md) | Sistema de hash SHA-256 y QR |
 | ✅ | [Verificación Interna](INTERNAL_VERIFICATION_SYSTEM.md) | Verificación de integridad interna |
 | ✅ | [Protección SQL Injection](security/sql-injection-protection.md) | Análisis de seguridad |
 | ✅ | [Patch de Seguridad 2026-03-31](security/SECURITY-PATCH-2026-03-31.md) | Último parche aplicado |
-| 🚧 | Autenticación y Autorización | Control de acceso y 2FA |
 
 > Para reportar vulnerabilidades sigue el proceso en [SECURITY.md](../SECURITY.md). **No abras Issues públicos.**
 
@@ -104,9 +105,9 @@ Guías para resolución de problemas y soporte técnico.
 ## 🚀 Inicio Rápido
 
 ### Para Usuarios
-1. Lee la [Guía de Instalación](../README.md#-getting-started) en el README principal
-2. Accede al panel en `http://localhost/admin/login`
-3. Consulta [Troubleshooting](TROUBLESHOOTING.md) si encuentras problemas
+1. Lee la [Guía de Instalación](user/installation.md)
+2. Sigue los [Primeros Pasos](user/getting-started.md)
+3. Consulta el [FAQ](user/faq.md) o [Troubleshooting](TROUBLESHOOTING.md) si tienes dudas
 
 ### Para Desarrolladores
 1. Clona el repo: `git clone https://github.com/carlosindriago/kartenant-erp.git`
@@ -158,4 +159,4 @@ El sistema está diseñado pensando en el usuario final típico: un pequeño com
 
 **Última actualización:** Junio 2026  
 **Versión del sistema:** 1.0.0-beta  
-**Estado:** Documentación en desarrollo continuo
+**Estado:** Documentación activa
