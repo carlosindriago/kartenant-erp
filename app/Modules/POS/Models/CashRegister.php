@@ -145,7 +145,7 @@ class CashRegister extends Model
      */
     public function scopeOwnedBy($query, int $userId)
     {
-        return $query->where('opened_by_user_id', $userId);
+        return $query->where('user_id', $userId);
     }
 
     /**
