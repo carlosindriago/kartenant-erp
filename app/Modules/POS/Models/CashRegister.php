@@ -137,6 +137,18 @@ class CashRegister extends Model
     }
 
     /**
+     * Scope para filtrar las cajas registradoras que pertenecen a un usuario específico.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param int $userId
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOwnedBy($query, int $userId)
+    {
+        return $query->where('opened_by_user_id', $userId);
+    }
+
+    /**
      * Scope para obtener cajas abiertas de un usuario específico
      */
     public function scopeOpenByUser($query, int $userId)
