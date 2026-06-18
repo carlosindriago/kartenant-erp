@@ -110,6 +110,7 @@ class AppPanelProvider extends PanelProvider
                 // CRITICAL: MakeSpatieTenantCurrent MUST run before StartSession
                 // to ensure tenant DB is configured before session loads
                 \App\Http\Middleware\MakeSpatieTenantCurrent::class,
+                \App\Http\Middleware\CheckTenantMigrationStatus::class,
                 StartSession::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
