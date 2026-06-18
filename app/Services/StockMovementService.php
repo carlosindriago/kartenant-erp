@@ -232,14 +232,14 @@ class StockMovementService
         $from = $from ?? now()->startOfMonth();
         $to = $to ?? now()->endOfMonth();
 
-        $movements = StockMovement::whereBetween('created_at', [$from, $to])->get();
+        $baseQuery = StockMovement::whereBetween('created_at', [$from, $to]);
 
         return [
-            'total_entries' => $movements->where('type', 'entrada')->count(),
-            'total_exits' => $movements->where('type', 'salida')->count(),
-            'total_quantity_in' => $movements->where('type', 'entrada')->sum('quantity'),
-            'total_quantity_out' => $movements->where('type', 'salida')->sum('quantity'),
-            'unique_products' => $movements->pluck('product_id')->unique()->count(),
+            'total_entries' => (clone $baseQuery)->where('type', 'entrada')->count(),
+            'total_exits' => (clone $baseQuery)->where('type', 'salida')->count(),
+            'total_quantity_in' => (int) (clone $baseQuery)->where('type', 'entrada')->sum('quantity'),
+            'total_quantity_out' => (int) (clone $baseQuery)->where('type', 'salida')->sum('quantity'),
+            'unique_products' => (clone $baseQuery)->distinct('product_id')->count('product_id'),
             'period_from' => $from->format('d/m/Y'),
             'period_to' => $to->format('d/m/Y'),
         ];
