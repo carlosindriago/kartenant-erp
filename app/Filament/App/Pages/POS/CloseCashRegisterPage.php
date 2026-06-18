@@ -56,23 +56,21 @@ class CloseCashRegisterPage extends Page
     {
         $userId = auth('tenant')->id();
 
-        // Verificar si el usuario tiene una caja abierta
-        if (! $userId || ! CashRegister::userHasOpenRegister($userId)) {
-            Notification::make()
-                ->warning()
-                ->title('No tienes caja abierta')
-                ->body('Debes abrir una caja antes de poder cerrarla.')
-                ->persistent()
+        $openRegister = CashRegister::getUserOpenRegister($userId);
+
+        if ($openRegister === null) {
+            \Filament\Notifications\Notification::make()
+                ->title('No tienes ninguna caja abierta')
+                ->danger()
                 ->send();
 
-            return redirect(\App\Filament\App\Pages\POS\OpenCashRegisterPage::getUrl());
+            $this->redirect(\App\Filament\App\Pages\POS\OpenCashRegisterPage::getUrl());
+            return; 
         }
 
-        // Obtener la caja abierta
-        $this->cashRegister = CashRegister::getUserOpenRegister($userId);
+        $this->cashRegister = $openRegister;
 
-        // Obtener resumen del turno
-        $service = new CashRegisterService;
+        $service = new \App\Services\POS\CashRegisterService;
         $this->summary = $service->getCashRegisterSummary($this->cashRegister->id);
 
         $this->form->fill([
