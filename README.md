@@ -1,118 +1,177 @@
-# Kartenant 🚀
+# Kartenant ERP 🚀
 
-[![Laravel](https://img.shields.io/badge/Laravel-11.x-red.svg)](https://laravel.com)
+[![Laravel](https://img.shields.io/badge/Laravel-12.x-red.svg)](https://laravel.com)
 [![Filament](https://img.shields.io/badge/Filament-3.x-blue.svg)](https://filamentphp.com)
 [![PHP](https://img.shields.io/badge/PHP-8.2+-purple.svg)](https://php.net)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)](https://postgresql.org)
 [![PHPStan](https://img.shields.io/badge/PHPStan-Level%208-brightgreen.svg)](https://phpstan.org/)
-[![Coverage](https://img.shields.io/badge/Coverage-Pending-yellow.svg)](https://kartenant.test)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://img.shields.io/badge/Tests-Pest%203-brightgreen.svg)](https://pestphp.com)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
-**Kartenant** is a modern, enterprise-grade Multi-Tenant SaaS platform designed for retail businesses, hardware stores, and SMBs. Built on a robust **Open-Core** model, it provides a comprehensive suite of tools for Point of Sale (POS), Inventory Management, and Billing.
+**Kartenant ERP** is a modern, enterprise-grade **Multi-Tenant SaaS platform** designed for retail businesses, hardware stores, and SMBs across LATAM and beyond. Built on an **Open-Core** model using Laravel 12, Filament v3, and a Database-per-Tenant architecture.
 
-## 🌟 The Open-Core Model
+> ⚠️ **License Notice**: This project is licensed under the **GNU Affero General Public License v3 (AGPL-3.0)**. See the [LICENSE](LICENSE) file for full terms. By contributing, you agree to the [Contributor License Agreement (CLA)](CLA.md).
 
-Kartenant is built with an **Open-Core** philosophy. We believe in providing immense value to the community while offering advanced capabilities for growing enterprises.
+---
 
-- 🌍 **Community Edition (Open Source)**: The core engine is free and open-source forever. It includes essential POS, inventory management, and single-tenant capabilities perfect for small, single-location businesses.
-- 💼 **Premium Cloud (SaaS)**: Our hosted solution offers advanced multi-tenant isolation (Database-per-tenant), intelligent dashboards, automated backups, priority support, and multi-branch management.
+## 🌟 Open-Core Model
+
+Kartenant operates under an **Open-Core** philosophy — the core engine is open and auditable, while premium infrastructure features are offered as a hosted SaaS.
+
+| Edition | Description |
+|---|---|
+| 🌍 **Community (Open Source)** | Core POS, inventory, and single-tenant mode. Free forever under AGPL-3.0. |
+| 💼 **Premium Cloud (SaaS)** | Full multi-tenant isolation (Database-per-Tenant), automated backups, priority support, multi-branch management, and advanced dashboards. |
+
+---
 
 ## ✨ Key Features
 
-*   🛍️ **Professional POS**: Fast, keyboard-first Point of Sale terminal with barcode scanner support.
-*   📦 **Smart Inventory**: Real-time stock tracking, automated movement logging, and low-stock alerts.
-*   👥 **CRM & Customer Management**: Track purchase history and manage client relationships.
-*   📊 **Intelligent Dashboard**: Real-time KPIs, sales analytics, and business insights.
-*   🏢 **Multi-Tenant Architecture**: Complete data isolation using a Database-per-Tenant strategy (Premium).
-*   🔐 **Enterprise Security**: 2FA, granular roles & permissions, automated backups, and Document Verification via SHA-256 Hashes and QR codes.
+- 🛍️ **Professional POS** — Fast, keyboard-first terminal with barcode scanner support
+- 📦 **Smart Inventory** — Real-time stock tracking, automated movement logging, and low-stock alerts
+- 👥 **CRM & Customer Management** — Track purchase history and manage client relationships
+- 📊 **Intelligent Dashboard** — Real-time KPIs, sales analytics, and business insights
+- 🏢 **Multi-Tenant Architecture** — Complete data isolation using Database-per-Tenant (Premium/SaaS mode)
+- 🔐 **Enterprise Security** — 2FA, granular roles & permissions, automated backups, SHA-256 document verification with QR codes
 
-## 🛠️ Tech Stack & Architecture
+---
 
-Kartenant is engineered for scalability, maintainability, and developer experience.
+## 🛠️ Tech Stack
 
-*   **Backend**: Laravel 11.x, PHP 8.2+
-*   **Frontend**: Livewire 3, Alpine.js, Tailwind CSS
-*   **Admin & App Panels**: Filament v3
-*   **Database**: PostgreSQL (Database-per-tenant architecture)
-*   **PDF Generation**: DomPDF
-*   **Infrastructure**: Docker (Sail), Nginx, Redis (Queue)
+| Layer | Technology |
+|---|---|
+| Backend | Laravel 12.x, PHP 8.2+ |
+| Frontend | Livewire 3, Alpine.js, Tailwind CSS |
+| Admin & App Panels | Filament v3 |
+| Database | PostgreSQL 15+ |
+| PDF Generation | DomPDF (barryvdh/laravel-dompdf) |
+| QR Codes | SimpleSoftwareIO/simple-qrcode |
+| Excel Export | Maatwebsite/Excel + pxlrbt/filament-excel |
+| Multi-Tenancy | spatie/laravel-multitenancy v4 |
+| Permissions | spatie/laravel-permission |
+| Activity Logs | spatie/laravel-activitylog |
+| Infrastructure | Docker (Laravel Sail), Nginx, Redis |
+| Testing | Pest 3, Laravel Dusk |
+| Static Analysis | PHPStan / Larastan Level 8 |
 
 ### Architecture Highlights
-- **Modular Design**: Features are encapsulated in specific modules (`Inventory`, `POS`, `Clients`).
-- **Database-per-Tenant**: Maximum data isolation and security. Separate databases for Landlord and Tenants.
-- **Service Layer Pattern**: Fat models are avoided by using dedicated Service classes for business logic.
+
+- **Modular Design** — Features are encapsulated in dedicated modules (`Inventory`, `POS`, `Clients`)
+- **Database-per-Tenant** — Maximum data isolation; separate databases for Landlord and each Tenant
+- **Dual Mode** — `APP_MODE=standalone` (single DB) for self-hosted SMBs; `APP_MODE=saas` for full multi-tenant cloud deployment
+- **Service Layer Pattern** — Business logic lives in dedicated Service classes, keeping controllers and models lean
+
+---
 
 ## 📚 Documentation
 
-We have comprehensive documentation available in the [`docs/`](docs/) directory:
+Full documentation is available in the [`docs/`](docs/) directory:
 
-- 📖 **User Guides**: [User Documentation](docs/user/)
-- 🏗️ **Technical & Architecture**: [Architecture & API](docs/technical/)
-- 🚀 **Development & Roadmap**: [Development Guides](docs/development/)
-- ✨ **Features**: [Feature Deep Dives](docs/features/)
-- 🔒 **Security**: [Security Practices](docs/security/)
-- 🐛 **Bugfixes & Logs**: [Bugfix Logs](docs/bugfixes/)
+| Category | Link |
+|---|---|
+| 📖 User Guides | [docs/user/](docs/user/) |
+| 🏗️ Architecture & API | [docs/technical/](docs/technical/) |
+| 🚀 Development & Roadmap | [docs/development/](docs/development/) |
+| ✨ Feature Deep Dives | [docs/features/](docs/features/) |
+| 🔒 Security Practices | [docs/security/](docs/security/) |
+| 🐛 Bugfix Logs | [docs/bugfixes/](docs/bugfixes/) |
+| 🔧 Troubleshooting | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) |
 
-## 🚀 Getting Started (Community Edition)
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
+
 - Docker & Docker Compose
 - PHP 8.2+
 - Composer
 - Node.js & NPM
 
-### Installation
+### Installation (Community Edition)
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-org/kartenant.git
-   cd kartenant
-   ```
+**1. Clone the repository**
 
-2. **Environment Setup**
-   ```bash
-   cp .env.example .env
-   # Update your .env with database credentials
-   ```
+```bash
+git clone https://github.com/carlosindriago/kartenant-erp.git
+cd kartenant-erp
+```
 
-3. **Install Dependencies**
-   ```bash
-   composer install
-   npm install && npm run build
-   ```
+**2. Environment Setup**
 
-4. **Start Services (using Laravel Sail)**
-   ```bash
-   ./vendor/bin/sail up -d
-   ```
+```bash
+cp .env.example .env
+# Edit .env — set your APP_MODE, DB credentials, etc.
+# APP_MODE=standalone  → single DB, self-hosted
+# APP_MODE=saas        → Database-per-Tenant, multi-tenant cloud
+```
 
-5. **Run Migrations & Seeders**
-   ```bash
-   ./vendor/bin/sail artisan key:generate
-   ./vendor/bin/sail artisan migrate --database=landlord --path=database/migrations/landlord
-   php seed-landlord.php
-   ```
+**3. Install Dependencies**
 
-6. **Create Super Admin**
-   ```bash
-   ./vendor/bin/sail artisan kartenant:make-superadmin
-   ```
+```bash
+composer install
+npm install && npm run build
+```
 
-Access the admin panel at `http://localhost/admin/login`.
+**4. Start Services (Laravel Sail)**
+
+```bash
+./vendor/bin/sail up -d
+```
+
+**5. Run Migrations & Seeders**
+
+```bash
+# Generate application key
+./vendor/bin/sail artisan key:generate
+
+# Run landlord migrations
+./vendor/bin/sail artisan migrate --database=landlord --path=database/migrations/landlord
+
+# Seed initial landlord data
+./vendor/bin/sail php scripts/seed-landlord.php
+```
+
+**6. Create Super Admin**
+
+```bash
+./vendor/bin/sail artisan kartenant:make-superadmin
+```
+
+Access the admin panel at: **http://localhost/admin/login**
+
+> 📖 For detailed installation guides (standalone vs SaaS mode, production deployment), see [docs/user/installation.md](docs/user/installation.md).
+
+---
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! Whether it's a bug fix, new feature, or documentation improvement, please feel free to open an issue or submit a pull request.
+Contributions are welcome! Bug fixes, new features, and documentation improvements all matter.
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes following conventional commits (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create your feature branch: `git checkout -b feature/amazing-feature`
+3. Commit following Conventional Commits: `git commit -m 'feat: add amazing feature'`
+4. Push your branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request against `develop`
+
+> 📋 By submitting a Pull Request you agree to the [Contributor License Agreement (CLA)](CLA.md). Please also read [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+For security vulnerabilities, please follow the [Security Policy](SECURITY.md) — **do not open a public issue**.
+
+---
 
 ## 📄 License
 
-The Community Edition of Kartenant is open-sourced software licensed under the [MIT license](LICENSE).
+Kartenant ERP is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+
+This means:
+- ✅ You can use, study, modify, and distribute the software freely
+- ✅ You can run it for your business or clients
+- ⚠️ If you modify it **and deploy it as a network service**, you must release your modifications under AGPL-3.0
+- ❌ You **cannot** sublicense it under proprietary terms without a commercial agreement
+
+See the full [LICENSE](LICENSE) file for details. For commercial licensing inquiries, please contact the maintainer.
 
 ---
+
 *Built with ❤️ for SMBs and hardware stores in LATAM and beyond.*
