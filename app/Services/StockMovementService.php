@@ -48,13 +48,15 @@ class StockMovementService
             $reference,
             $pdfFormat
         ) {
+            $lockedProduct = Product::where('id', $product->id)->lockForUpdate()->firstOrFail();
+
             // Obtener stock actual
-            $previousStock = $product->stock;
+            $previousStock = $lockedProduct->stock;
             $newStock = $previousStock + $quantity;
 
             // Crear movimiento
             $movement = new StockMovement([
-                'product_id' => $product->id,
+                'product_id' => $lockedProduct->id,
                 'supplier_id' => $supplierId,
                 'type' => 'entrada',
                 'quantity' => $quantity,
@@ -79,16 +81,15 @@ class StockMovementService
             $movement->ensureVerificationHash();
 
             // Actualizar stock del producto SIN disparar observers ni eventos
-            $product->stock = $newStock;
-            $product->saveQuietly();
+            $lockedProduct->updateQuietly(['stock' => $newStock]);
 
             // Log de auditoría
             activity()
                 ->performedOn($movement)
                 ->causedBy($registeredBy)
                 ->withProperties([
-                    'product_id' => $product->id,
-                    'product_name' => $product->name,
+                    'product_id' => $lockedProduct->id,
+                    'product_name' => $lockedProduct->name,
                     'quantity' => $quantity,
                     'previous_stock' => $previousStock,
                     'new_stock' => $newStock,
@@ -99,12 +100,12 @@ class StockMovementService
             Log::info('Entrada de mercadería registrada', [
                 'movement_id' => $movement->id,
                 'document_number' => $movement->document_number,
-                'product_id' => $product->id,
+                'product_id' => $lockedProduct->id,
                 'quantity' => $quantity,
                 'user_id' => $registeredBy->id,
             ]);
 
-            return $movement->fresh(['product', 'authorizedBy']);
+            return $movement->fresh(['product', 'authorizedBy']) ?? $movement;
         });
     }
 
@@ -131,18 +132,20 @@ class StockMovementService
             $reference,
             $pdfFormat
         ) {
+            $lockedProduct = Product::where('id', $product->id)->lockForUpdate()->firstOrFail();
+
             // Validar stock disponible
-            if ($product->stock < $quantity) {
-                throw new \Exception("Stock insuficiente. Disponible: {$product->stock}, Solicitado: {$quantity}");
+            if ($lockedProduct->stock < $quantity) {
+                throw new \Exception("Stock insuficiente. Disponible: {$lockedProduct->stock}, Solicitado: {$quantity}");
             }
 
             // Obtener stock actual
-            $previousStock = $product->stock;
+            $previousStock = $lockedProduct->stock;
             $newStock = $previousStock - $quantity;
 
             // Crear movimiento
             $movement = new StockMovement([
-                'product_id' => $product->id,
+                'product_id' => $lockedProduct->id,
                 'type' => 'salida',
                 'quantity' => $quantity,
                 'reason' => $reason,
@@ -165,16 +168,15 @@ class StockMovementService
             $movement->ensureVerificationHash();
 
             // Actualizar stock del producto SIN disparar observers ni eventos
-            $product->stock = $newStock;
-            $product->saveQuietly();
+            $lockedProduct->updateQuietly(['stock' => $newStock]);
 
             // Log de auditoría
             activity()
                 ->performedOn($movement)
                 ->causedBy($registeredBy)
                 ->withProperties([
-                    'product_id' => $product->id,
-                    'product_name' => $product->name,
+                    'product_id' => $lockedProduct->id,
+                    'product_name' => $lockedProduct->name,
                     'quantity' => $quantity,
                     'previous_stock' => $previousStock,
                     'new_stock' => $newStock,
@@ -186,13 +188,13 @@ class StockMovementService
             Log::info('Salida de mercadería registrada', [
                 'movement_id' => $movement->id,
                 'document_number' => $movement->document_number,
-                'product_id' => $product->id,
+                'product_id' => $lockedProduct->id,
                 'quantity' => $quantity,
                 'user_id' => $registeredBy->id,
                 'authorized_by' => $authorizedBy?->id,
             ]);
 
-            return $movement->fresh(['product', 'authorizedBy']);
+            return $movement->fresh(['product', 'authorizedBy']) ?? $movement;
         });
     }
 
@@ -226,6 +228,8 @@ class StockMovementService
 
     /**
      * Obtener resumen de movimientos por período
+     *
+     * @return array<string, mixed>
      */
     public function getMovementsSummary(?\DateTime $from = null, ?\DateTime $to = null): array
     {
